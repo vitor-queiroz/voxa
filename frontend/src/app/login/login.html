@@ -5,7 +5,7 @@
       VOXA
     </div>
 
-    <form>
+    <form #loginForm="ngForm" (ngSubmit)="acessar(loginForm)">
       <div class="form-group">
         <label for="usuario">Acesso</label>
         <input
@@ -13,6 +13,8 @@
           id="usuario"
           name="usuario"
           placeholder="Digite seu usuário"
+          [(ngModel)]="usuario"
+          required
         />
       </div>
 
@@ -23,6 +25,8 @@
           id="senha"
           name="senha"
           placeholder="Digite sua senha"
+          [(ngModel)]="senha"
+          required
         />
       </div>
 
