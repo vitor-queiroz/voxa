@@ -23,8 +23,12 @@ public class UsuarioController {
 
         if(usuario == null){
             return "Usuário não encontrado";
-
         }
-        return "Usuário encontrado: " + loginRequest.getUsuario();
+
+        if (!usuario.getSenha().equals(loginRequest.getSenha())){
+            return "Senha Inválida";
+        }
+
+        return "Login Autorizado";
     }
 }
