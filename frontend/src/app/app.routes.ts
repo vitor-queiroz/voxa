@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { Login } from './login/login';
 import { Manager } from './manager/manager';
+import { Estoque } from './estoque/estoque';
 
 export const routes: Routes = [
   {
@@ -15,5 +16,9 @@ export const routes: Routes = [
     {
     path: 'manager',
     component: Manager
+  },
+  {
+    path: 'estoque',
+    component: Estoque
   }
 ];

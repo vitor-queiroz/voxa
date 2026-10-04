@@ -1,4 +1,4 @@
-.manager-container {
+.estoque-container {
     height: 100vh;
     display: flex;
     flex-direction: column;
@@ -9,22 +9,22 @@
     box-sizing: border-box;
 }
 
-.manager-title {
+.estoque-title {
     margin-top: 100px;
     text-align: center;
     font-family: 'Scoria', sans-serif;
-    font-size: 115px;
+    font-size: 64px;
 }
 
-.manager-title span {
+.estoque-title span {
     display: block;
     font-family: Arial, sans-serif;
-    font-size: 19px;
+    font-size: 18px;
     letter-spacing: 6px;
     margin-top: 8px;
 }
 
-.manager-menu {
+.estoque-menu {
     display: flex;
     justify-content: center;
     align-items: flex-end;
@@ -32,7 +32,7 @@
     margin-bottom: 40px;
 }
 
-.manager-menu button {
+.estoque-menu button {
     width: 120px;
     height: 120px;
     border: none;
@@ -46,15 +46,16 @@
 
     font-size: 14px;
     font-family: Arial, sans-serif;
+    text-align: center;
 }
 
-.manager-menu button img {
+.estoque-menu button img {
     width: 55px;
     height: 55px;
     object-fit: contain;
     margin-bottom: 10px;
 }
 
-.manager-menu button:hover {
+.estoque-menu button:hover {
     transform: scale(1.05);
 }
