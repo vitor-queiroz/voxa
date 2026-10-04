@@ -1,0 +1,60 @@
+.manager-container {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    background: #ffffff;
+    padding: 60px 40px;
+    box-sizing: border-box;
+}
+
+.manager-title {
+    margin-top: 100px;
+    text-align: center;
+    font-family: 'Scoria', sans-serif;
+    font-size: 64px;
+}
+
+.manager-title span {
+    display: block;
+    font-family: Arial, sans-serif;
+    font-size: 18px;
+    letter-spacing: 6px;
+    margin-top: 8px;
+}
+
+.manager-menu {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    gap: 50px;
+    margin-bottom: 40px;
+}
+
+.manager-menu button {
+    width: 120px;
+    height: 120px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 14px;
+    font-family: Arial, sans-serif;
+}
+
+.manager-menu button img {
+    width: 55px;
+    height: 55px;
+    object-fit: contain;
+    margin-bottom: 10px;
+}
+
+.manager-menu button:hover {
+    transform: scale(1.05);
+}
