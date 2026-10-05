@@ -1,0 +1,124 @@
+<div class="tela">
+  <h1><strong>Consulta</strong> | Vendas realizadas</h1>
+
+  <section class="vx-cartao filtros">
+    <div class="vx-campo cresce">
+      <label for="busca">Buscar</label>
+      <input
+        id="busca"
+        placeholder="Nº da venda, vendedor, cliente ou CPF"
+        [ngModel]="filtroTexto()"
+        (ngModelChange)="filtroTexto.set($event)"
+      />
+    </div>
+    <div class="vx-campo">
+      <label for="status">Situação</label>
+      <select id="status" [ngModel]="filtroStatus()" (ngModelChange)="filtroStatus.set($event)">
+        <option value="">Todas</option>
+        <option value="FINALIZADA">Finalizadas</option>
+        <option value="CANCELADA">Canceladas</option>
+      </select>
+    </div>
+  </section>
+
+  @if (erro()) {
+    <p class="vx-mensagem-erro">{{ erro() }}</p>
+  }
+
+  <div class="colunas">
+    <section class="vx-cartao lista">
+      <table class="vx-tabela">
+        <thead>
+          <tr>
+            <th>Nº</th>
+            <th>Data</th>
+            <th>Vendedor</th>
+            <th>Cliente</th>
+            <th>Situação</th>
+            <th class="num">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (venda of vendasFiltradas(); track venda.numero) {
+            <tr
+              [class.selecionada]="numeroSelecionado() === venda.numero"
+              [class.cancelada]="venda.status === 'CANCELADA'"
+              (click)="numeroSelecionado.set(venda.numero)"
+            >
+              <td>{{ venda.numero }}</td>
+              <td>{{ venda.data | date: 'dd/MM/yyyy HH:mm' }}</td>
+              <td>{{ venda.vendedor.nome }}</td>
+              <td>{{ venda.cliente?.nome || 'Consumidor final' }}</td>
+              <td>{{ venda.status === 'FINALIZADA' ? 'Finalizada' : 'Cancelada' }}</td>
+              <td class="num">{{ venda.total | currency }}</td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="6" class="vazia">Nenhuma venda encontrada.</td>
+            </tr>
+          }
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="5">{{ vendasFiltradas().length }} venda(s) — total finalizado</td>
+            <td class="num">{{ totalFinalizado() | currency }}</td>
+          </tr>
+        </tfoot>
+      </table>
+    </section>
+
+    @if (vendaSelecionada(); as venda) {
+      <section class="vx-cartao detalhe">
+        <h2 class="vx-secao">Venda nº {{ venda.numero }}</h2>
+        <p>
+          <strong>Cliente:</strong> {{ venda.cliente?.nome || 'Consumidor final' }}
+          @if (venda.cliente?.cpf) {
+            (CPF {{ venda.cliente?.cpf }})
+          }
+        </p>
+
+        <table class="vx-tabela">
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th class="num">Qtd.</th>
+              <th class="num">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of venda.itens; track $index) {
+              <tr>
+                <td>{{ item.variacao.produto.nome }} - {{ item.variacao.cor }}/{{ item.variacao.tamanho }}</td>
+                <td class="num">{{ item.quantidade }}</td>
+                <td class="num">{{ item.quantidade * item.precoUnitario | currency }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+
+        <dl>
+          <dt>Subtotal</dt>
+          <dd>{{ venda.subtotal | currency }}</dd>
+          <dt>Descontos</dt>
+          <dd>{{ venda.valorDesconto | currency }}</dd>
+          @if (venda.cashback > 0) {
+            <dt>Cashback</dt>
+            <dd>{{ venda.cashback | currency }}</dd>
+          }
+          @for (pagamento of venda.pagamentos; track $index) {
+            <dt>{{ pagamento.forma.descricao }} ({{ pagamento.parcelas }}x)</dt>
+            <dd>{{ pagamento.valor | currency }}</dd>
+          }
+          <dt>Troco</dt>
+          <dd>{{ venda.troco | currency }}</dd>
+          <dt><strong>Total</strong></dt>
+          <dd><strong>{{ venda.total | currency }}</strong></dd>
+        </dl>
+
+        @if (venda.status === 'FINALIZADA') {
+          <button type="button" class="vx-botao" (click)="cancelarVenda(venda)">Cancelar venda</button>
+        }
+      </section>
+    }
+  </div>
+</div>

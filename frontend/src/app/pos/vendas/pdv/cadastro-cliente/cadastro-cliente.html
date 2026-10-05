@@ -1,0 +1,42 @@
+<app-dialogo [titulo]="cliente() ? 'Editar cadastro' : 'Novo cliente'" (fechar)="fechar.emit()">
+  <form #formCliente="ngForm" (ngSubmit)="salvar(formCliente)">
+    <div class="vx-campo">
+      <label for="cad-cpf">CPF</label>
+      <input
+        id="cad-cpf"
+        name="cpf"
+        inputmode="numeric"
+        maxlength="14"
+        required
+        [readonly]="cliente() !== null"
+        [ngModel]="cpf"
+        (ngModelChange)="formatar($event)"
+      />
+    </div>
+
+    <div class="vx-campo">
+      <label for="cad-nome">Nome</label>
+      <input id="cad-nome" name="nome" required [(ngModel)]="nome" />
+    </div>
+
+    <div class="linha">
+      <div class="vx-campo">
+        <label for="cad-email">E-mail</label>
+        <input id="cad-email" name="email" type="email" [(ngModel)]="email" />
+      </div>
+      <div class="vx-campo">
+        <label for="cad-telefone">Telefone</label>
+        <input id="cad-telefone" name="telefone" type="tel" [(ngModel)]="telefone" />
+      </div>
+    </div>
+
+    @if (erro()) {
+      <p class="vx-mensagem-erro">{{ erro() }}</p>
+    }
+
+    <div class="acoes">
+      <button type="button" class="vx-botao" (click)="fechar.emit()">Cancelar</button>
+      <button type="submit" class="vx-botao primario" [disabled]="salvando()">Salvar</button>
+    </div>
+  </form>
+</app-dialogo>

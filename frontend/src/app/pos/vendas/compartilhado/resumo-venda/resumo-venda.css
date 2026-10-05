@@ -1,0 +1,44 @@
+.resumo {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px 24px;
+  align-items: center;
+}
+
+dl {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 3px 12px;
+  margin: 0;
+}
+
+dt {
+  color: var(--vx-texto-suave);
+}
+
+dd {
+  margin: 0;
+  text-align: right;
+}
+
+.restante {
+  font-weight: bold;
+  color: var(--vx-perigo);
+}
+
+.total {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.total span {
+  font-size: 12px;
+  font-weight: bold;
+  text-transform: uppercase;
+  color: var(--vx-texto-suave);
+}
+
+.total strong {
+  font-size: 28px;
+}

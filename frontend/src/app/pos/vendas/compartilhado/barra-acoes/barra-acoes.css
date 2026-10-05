@@ -1,0 +1,69 @@
+.titulo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: bold;
+  text-transform: uppercase;
+  color: var(--vx-texto-suave);
+}
+
+.titulo::before,
+.titulo::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--vx-borda);
+}
+
+.botoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+button {
+  display: inline-flex;
+  flex: 1 1 140px;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 12px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: bold;
+  text-transform: uppercase;
+  color: var(--vx-texto);
+  cursor: pointer;
+  background: var(--vx-branco);
+  border: 1px solid var(--vx-borda);
+  border-radius: var(--vx-raio);
+  box-shadow: var(--vx-sombra);
+}
+
+button:hover:not(:disabled) {
+  border-color: var(--vx-texto-suave);
+}
+
+button:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
+button.sucesso {
+  color: var(--vx-branco);
+  background: var(--vx-sucesso);
+  border-color: var(--vx-sucesso);
+}
+
+button.perigo {
+  color: var(--vx-branco);
+  background: var(--vx-perigo);
+  border-color: var(--vx-perigo);
+}
+
+small {
+  font-weight: normal;
+  opacity: 0.6;
+}

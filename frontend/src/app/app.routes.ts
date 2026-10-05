@@ -10,5 +10,9 @@ export const routes: Routes = [
   {
     path: 'login',
     component: Login
+  },
+  {
+    path: 'vendas',
+    loadChildren: () => import('./pos/vendas/vendas.routes').then((m) => m.VENDAS_ROUTES)
   }
 ];

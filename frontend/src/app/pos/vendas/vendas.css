@@ -1,0 +1,177 @@
+/* Estilos comuns do módulo de vendas, restritos ao <app-vendas> */
+
+app-vendas {
+  --vx-fundo: #e9ebee;
+  --vx-branco: #fff;
+  --vx-linha: #eceef1;
+  --vx-borda: #d3d7dd;
+  --vx-texto: #1f2328;
+  --vx-texto-suave: #6b7280;
+  --vx-amarelo: #fbf6d3;
+  --vx-amarelo-borda: #e3d47a;
+  --vx-sucesso: #43a047;
+  --vx-perigo: #e53935;
+  --vx-raio: 6px;
+  --vx-raio-grande: 10px;
+  --vx-sombra: 0 1px 3px rgba(0, 0, 0, 0.12);
+
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  font-family: Roboto, 'Segoe UI', Arial, sans-serif;
+  font-size: 13px;
+  color: var(--vx-texto);
+  background: var(--vx-fundo);
+}
+
+app-vendas * {
+  box-sizing: border-box;
+}
+
+.vx-abas {
+  display: flex;
+  gap: 4px;
+  padding: 6px 16px 0;
+  background: var(--vx-texto);
+}
+
+.vx-abas a {
+  padding: 6px 14px;
+  color: #c9ced6;
+  text-decoration: none;
+  border-radius: var(--vx-raio) var(--vx-raio) 0 0;
+}
+
+.vx-abas a.ativa {
+  color: var(--vx-texto);
+  font-weight: bold;
+  background: var(--vx-fundo);
+}
+
+.vx-area {
+  flex: 1;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+.vx-secao,
+.vx-painel-titulo {
+  margin: 0 0 6px;
+  font-size: 13px;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.vx-cartao,
+.vx-painel {
+  padding: 12px;
+  background: var(--vx-branco);
+  border-radius: var(--vx-raio-grande);
+  box-shadow: var(--vx-sombra);
+}
+
+.vx-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.vx-campo label {
+  color: var(--vx-texto-suave);
+}
+
+.vx-campo input,
+.vx-campo select {
+  padding: 7px 9px;
+  font: inherit;
+  background: var(--vx-branco);
+  border: 1px solid var(--vx-borda);
+  border-radius: var(--vx-raio);
+}
+
+.vx-campo input[readonly] {
+  background: var(--vx-linha);
+}
+
+.vx-botao {
+  padding: 7px 14px;
+  font: inherit;
+  cursor: pointer;
+  color: var(--vx-texto);
+  background: var(--vx-linha);
+  border: 1px solid var(--vx-borda);
+  border-radius: var(--vx-raio);
+}
+
+.vx-botao.primario {
+  color: var(--vx-branco);
+  background: var(--vx-texto);
+  border-color: var(--vx-texto);
+}
+
+.vx-botao:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.vx-moeda {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  font: bold 14px Georgia, serif;
+  color: #7a4a00;
+  cursor: pointer;
+  background: radial-gradient(circle at 35% 30%, #ffe08a, #f0a81c 70%);
+  border: 2px solid #c98400;
+  border-radius: 50%;
+}
+
+.vx-tabela {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.vx-tabela th,
+.vx-tabela td {
+  padding: 7px 8px;
+  text-align: left;
+  border-bottom: 1px solid var(--vx-linha);
+}
+
+.vx-tabela th {
+  font-weight: normal;
+  color: var(--vx-texto-suave);
+}
+
+.vx-tabela tbody tr {
+  cursor: pointer;
+}
+
+.vx-tabela tbody tr.selecionada {
+  background: var(--vx-amarelo);
+}
+
+.vx-tabela .num {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.vx-tabela .vazia {
+  padding: 24px;
+  text-align: center;
+  color: var(--vx-texto-suave);
+}
+
+.vx-mensagem-erro {
+  margin: 6px 0 0;
+  padding: 6px 10px;
+  color: var(--vx-perigo);
+  background: #fdecea;
+  border-radius: var(--vx-raio);
+}

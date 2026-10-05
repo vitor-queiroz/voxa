@@ -1,0 +1,104 @@
+<div class="tela">
+  <header class="cabecalho">
+    <h1><strong>Pagamento</strong> | Ponto de venda</h1>
+  </header>
+
+  @if (vendaFinalizada(); as venda) {
+    <section class="vx-cartao concluida">
+      <h2 class="vx-secao">Venda finalizada</h2>
+      <p class="numero">Venda nº {{ venda.numero }}</p>
+      <p>Total: <strong>{{ venda.total | currency }}</strong></p>
+      @if (venda.troco > 0) {
+        <p class="troco">Troco: {{ venda.troco | currency }}</p>
+      }
+      <button type="button" class="vx-botao primario" (click)="irParaPdv()">Nova venda</button>
+    </section>
+  } @else {
+    <p class="partes">
+      <span><strong>Vendedor:</strong> {{ vendaService.rascunho().vendedor?.nome ?? '—' }}</span>
+      <span><strong>Cliente:</strong> {{ vendaService.rascunho().cliente?.nome ?? 'Consumidor final' }}</span>
+    </p>
+
+    <div class="colunas">
+      <section>
+        <h2 class="vx-secao">Formas de pagamento</h2>
+        <div class="vx-cartao">
+          <table class="vx-tabela">
+            <thead>
+              <tr>
+                <th>Forma de pagamento</th>
+                <th class="num">Valor mínimo</th>
+                <th class="num">Parcelas</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (forma of formas(); track forma.id) {
+                <tr [class.selecionada]="formaSelecionada()?.id === forma.id" (click)="selecionarForma(forma)">
+                  <td>{{ forma.descricao }}</td>
+                  <td class="num">{{ forma.valorMinimo | currency }}</td>
+                  <td class="num">até {{ forma.maxParcelas }}x</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+
+          @if (formaSelecionada(); as forma) {
+            <form class="lancamento" (ngSubmit)="incluirPagamento()">
+              <div class="vx-campo">
+                <label for="valor">Valor ({{ forma.descricao }})</label>
+                <input id="valor" name="valor" type="number" min="0" step="0.01" [(ngModel)]="valor" />
+              </div>
+              @if (forma.maxParcelas > 1) {
+                <div class="vx-campo">
+                  <label for="parcelas">Parcelas</label>
+                  <select id="parcelas" name="parcelas" [(ngModel)]="parcelas">
+                    @for (n of opcoesParcelas(); track n) {
+                      <option [ngValue]="n">{{ n }}x</option>
+                    }
+                  </select>
+                </div>
+              }
+              <button type="submit" class="vx-botao primario">Incluir</button>
+            </form>
+          }
+        </div>
+      </section>
+
+      <section>
+        <h2 class="vx-secao">Pagamentos lançados</h2>
+        <div class="vx-cartao">
+          <table class="vx-tabela">
+            <thead>
+              <tr>
+                <th>Forma</th>
+                <th class="num">Parcelas</th>
+                <th class="num">Valor</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (pagamento of vendaService.rascunho().pagamentos; track $index; let i = $index) {
+                <tr [class.selecionada]="indicePagamento() === i" (click)="indicePagamento.set(i)">
+                  <td>{{ pagamento.forma.descricao }}</td>
+                  <td class="num">{{ pagamento.parcelas }}x</td>
+                  <td class="num">{{ pagamento.valor | currency }}</td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="3" class="vazia">Selecione uma forma de pagamento.</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+    @if (erro()) {
+      <p class="vx-mensagem-erro">{{ erro() }}</p>
+    }
+
+    <app-resumo-venda />
+  }
+
+  <app-barra-acoes [acoes]="acoes()" (acionar)="executar($event)" />
+</div>

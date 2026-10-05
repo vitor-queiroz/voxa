@@ -1,0 +1,20 @@
+<nav class="barra" aria-label="Barra de atalhos">
+  <span class="titulo">Barra de atalhos</span>
+  <div class="botoes">
+    @for (acao of acoes(); track acao.id) {
+      <button
+        type="button"
+        [class]="acao.estilo ?? ''"
+        [disabled]="acao.desabilitada"
+        [title]="acao.tecla ? acao.rotulo + ' (' + acao.tecla + ')' : acao.rotulo"
+        (click)="acionar.emit(acao.id)"
+      >
+        <app-icone [nome]="acao.icone" [tamanho]="16" />
+        <span>{{ acao.rotulo }}</span>
+        @if (acao.tecla) {
+          <small>{{ acao.tecla }}</small>
+        }
+      </button>
+    }
+  </div>
+</nav>

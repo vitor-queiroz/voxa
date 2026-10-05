@@ -1,0 +1,12 @@
+<div class="fundo" (click)="fechar.emit()"></div>
+<section class="janela" role="dialog" aria-modal="true" [attr.aria-label]="titulo()">
+  <header>
+    <h2>{{ titulo() }}</h2>
+    <button type="button" class="fechar" aria-label="Fechar" (click)="fechar.emit()">
+      <app-icone nome="fechar" />
+    </button>
+  </header>
+  <div class="corpo">
+    <ng-content />
+  </div>
+</section>

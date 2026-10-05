@@ -1,0 +1,26 @@
+<section class="resumo vx-cartao">
+  <dl>
+    <dt>Subtotal</dt>
+    <dd>{{ vendaService.subtotal() | currency }}</dd>
+    <dt>Descontos</dt>
+    <dd>- {{ vendaService.valorDesconto() | currency }}</dd>
+    @if (vendaService.cashback() > 0) {
+      <dt>Cashback</dt>
+      <dd>- {{ vendaService.cashback() | currency }}</dd>
+    }
+  </dl>
+
+  <dl>
+    <dt>Pago</dt>
+    <dd>{{ vendaService.totalPago() | currency }}</dd>
+    <dt>Restante</dt>
+    <dd class="restante">{{ vendaService.restante() | currency }}</dd>
+    <dt>Troco</dt>
+    <dd>{{ vendaService.troco() | currency }}</dd>
+  </dl>
+
+  <div class="total">
+    <span>Total</span>
+    <strong>{{ vendaService.total() | currency }}</strong>
+  </div>
+</section>
