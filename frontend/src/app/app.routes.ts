@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { Login } from './login/login';
 import { Manager } from './manager/manager';
 import { Estoque } from './estoque/estoque';
+import { EntradaMercadoria } from './entrada-mercadoria/entrada-mercadoria';
 
 export const routes: Routes = [
   {
@@ -20,5 +21,9 @@ export const routes: Routes = [
   {
     path: 'estoque',
     component: Estoque
-  }
-];
+  },
+  {
+    path: 'entrada-mercadoria',
+    component: EntradaMercadoria
+  }  
+  ];

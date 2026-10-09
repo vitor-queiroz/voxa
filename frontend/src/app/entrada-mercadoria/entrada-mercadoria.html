@@ -1,0 +1,130 @@
+<div class="entrada-container">
+
+    <header class="entrada-header">
+        <div class="entrada-logo">VOXA</div>
+
+        <div class="entrada-identificacao">
+            <span>ESTOQUE</span>
+            <span> / </span>
+            <span>ENTRADA DE MERCADORIA</span>
+        </div>
+    </header>
+
+    <main class="entrada-conteudo">
+
+        <div class="entrada-titulo">
+            <div>
+                <h1>Entrada de Mercadoria</h1>
+                <p>Registro e conferência de mercadorias recebidas.</p>
+            </div>
+
+            <span class="entrada-status">RASCUNHO</span>
+        </div>
+
+        <section class="entrada-etapas">
+            <div class="etapa etapa-ativa">
+                <span>1</span>
+                <div>
+                    <strong>Dados da entrada</strong>
+                    <small>Loja, fornecedor e nota fiscal</small>
+                </div>
+            </div>
+
+            <div class="etapa">
+                <span>2</span>
+                <div>
+                    <strong>Produtos</strong>
+                    <small>Bipagem e lançamento</small>
+                </div>
+            </div>
+
+            <div class="etapa">
+                <span>3</span>
+                <div>
+                    <strong>Conferência</strong>
+                    <small>Revisão e confirmação</small>
+                </div>
+            </div>
+        </section>
+
+        <section class="entrada-formulario">
+
+            <div class="secao-titulo">
+                <h2>Dados da entrada</h2>
+                <p>Informe os dados da mercadoria recebida.</p>
+            </div>
+
+            <div class="formulario-grid">
+
+                <div class="campo">
+                    <label for="loja">Loja que recebe</label>
+                    <select id="loja">
+                        <option value="">Selecione a loja</option>
+                        <option value="1">Loja 01</option>
+                        <option value="2">Loja 02</option>
+                        <option value="3">Loja 03</option>
+                    </select>
+                </div>
+
+                <div class="campo">
+                    <label for="cnpj">CNPJ do fornecedor</label>
+                    <input id="cnpj" type="text" placeholder="Digite o CNPJ" />
+                </div>
+
+                <div class="campo campo-completo">
+                    <label for="fornecedor">Fornecedor</label>
+                    <select id="fornecedor">
+                        <option value="">Selecione o fornecedor</option>
+                    </select>
+                    <small>
+                        O fornecedor será identificado pelo CNPJ informado.
+                    </small>
+                </div>
+
+                <div class="campo">
+                    <label for="nota">Número da nota fiscal</label>
+                    <input id="nota" type="text" placeholder="Número da NF" />
+                </div>
+
+                <div class="campo">
+                    <label for="serie">Série</label>
+                    <input id="serie" type="text" placeholder="Série da NF" />
+                </div>
+
+                <div class="campo">
+                    <label for="emissao">Data de emissão</label>
+                    <input id="emissao" type="date" />
+                </div>
+
+                <div class="campo">
+                    <label for="entrada">Data de entrada</label>
+                    <input id="entrada" type="date" />
+                </div>
+
+                <div class="campo campo-completo">
+                    <label for="chave">Chave de acesso da NF-e</label>
+                    <input id="chave" type="text" placeholder="Chave de acesso, se disponível" />
+                </div>
+
+                <div class="campo campo-completo">
+                    <label for="observacoes">Observações</label>
+                    <textarea id="observacoes" rows="3" placeholder="Informações adicionais sobre a entrada"></textarea>
+                </div>
+
+            </div>
+
+        </section>
+
+        <footer class="entrada-acoes">
+            <button type="button" class="botao-secundario">
+                Cancelar
+            </button>
+
+            <button type="button" class="botao-principal">
+                Iniciar lançamento
+            </button>
+        </footer>
+
+    </main>
+
+</div>
