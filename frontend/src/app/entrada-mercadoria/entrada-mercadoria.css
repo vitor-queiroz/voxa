@@ -154,3 +154,57 @@
     .campo-completo { grid-column: auto; }
     .entrada-formulario { padding: 18px; }
 }
+
+.importacao-xml {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    padding: 18px;
+    margin-top: 22px;
+    border: 1px dashed #c9c9c9;
+    border-radius: 5px;
+    background: #fafafa;
+}
+
+.importacao-xml-info {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.importacao-xml-info strong {
+    font-size: 14px;
+}
+
+.importacao-xml-info small {
+    color: #777;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.botao-importar-xml {
+    flex-shrink: 0;
+    padding: 11px 16px;
+    border: 1px solid #222;
+    border-radius: 4px;
+    background: #fff;
+    color: #222;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.botao-importar-xml:hover {
+    background: #f0f0f0;
+}
+
+@media (max-width: 600px) {
+    .importacao-xml {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .botao-importar-xml {
+        text-align: center;
+    }
+}
