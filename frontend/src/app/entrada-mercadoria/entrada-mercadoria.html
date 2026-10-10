@@ -98,7 +98,12 @@
                     id="cnpj" 
                     type="text" 
                     placeholder="Digite o CNPJ" 
-                    [(ngModel)]="cnpj"/>
+                    [(ngModel)]="cnpj"
+                    (keydown.enter)="buscarFornecedorPorCnpj()"/>
+
+                    <small *ngIf="mensagemFornecedor">
+                        {{ mensagemFornecedor }}
+                    </small>
                 </div>
 
                 <div class="campo campo-completo">

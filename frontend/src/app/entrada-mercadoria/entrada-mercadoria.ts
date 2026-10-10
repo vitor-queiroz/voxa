@@ -1,6 +1,8 @@
+
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { FornecedorService } from '../auth/fornecedor.service';
 
 @Component({
   selector: 'app-entrada-mercadoria',
@@ -22,6 +24,54 @@ export class EntradaMercadoria {
   natureza: string = '';
   totalNota: string = '';
   chave: string = '';
+
+  mensagemFornecedor = '';
+
+  constructor(private fornecedorService: FornecedorService) { }
+
+
+  buscarFornecedorPorCnpj(): void {
+    const cnpjLimpo = this.cnpj.replace(/\D/g, '');
+
+    if (!cnpjLimpo) {
+      this.mensagemFornecedor = 'Digite o CNPJ do fornecedor.';
+      return;
+    }
+
+    if (cnpjLimpo.length !== 14) {
+      this.mensagemFornecedor = 'O CNPJ deve conter 14 dígitos.';
+      return;
+    }
+
+    this.mensagemFornecedor = 'Consultando fornecedor...';
+
+    this.fornecedorService.buscarPorCnpj(cnpjLimpo).subscribe({
+      next: (fornecedorEncontrado) => {
+        this.cnpj = fornecedorEncontrado.cnpj;
+
+        this.fornecedor =
+          fornecedorEncontrado.nomeFantasia?.trim() ||
+          fornecedorEncontrado.razaoSocial;
+
+        this.mensagemFornecedor = 'Fornecedor encontrado no cadastro!';
+      },
+
+      error: (erro) => {
+        if (erro.status === 404) {
+          this.mensagemFornecedor =
+            'Fornecedor não cadastrado. Confira o CNPJ ou cadastre-o.';
+          return;
+        }
+
+        this.mensagemFornecedor =
+          'Não foi possível consultar o fornecedor. Tente novamente.';
+
+        console.error('Erro ao consultar fornecedor:', erro);
+      },
+    });
+  }
+
+
 
   aoSelecionarXml(event: Event): void {
     const input = event.target as HTMLInputElement;
@@ -59,31 +109,40 @@ export class EntradaMercadoria {
         return;
       }
 
+      const emitente =
+        documento.getElementsByTagNameNS('*', 'emit')[0];
 
-      const emitente = documento.getElementsByTagNameNS('*', 'emit')[0];
-      const ide = documento.getElementsByTagNameNS('*', 'ide')[0];
-      const total = documento.getElementsByTagNameNS('*', 'ICMSTot')[0];
+      const ide =
+        documento.getElementsByTagNameNS('*', 'ide')[0];
+
+      const total =
+        documento.getElementsByTagNameNS('*', 'ICMSTot')[0];
 
       const obterTextoDoBloco = (
         bloco: Element | undefined,
         nome: string
       ): string => {
         return bloco
-          ? bloco.getElementsByTagNameNS('*', nome)[0]?.textContent?.trim() ?? ''
+          ? bloco.getElementsByTagNameNS('*', nome)[0]
+            ?.textContent?.trim() ?? ''
           : '';
       };
 
-      this.cnpj = obterTextoDoBloco(emitente, 'CNPJ');
-      this.fornecedor = obterTextoDoBloco(emitente, 'xNome');
+      this.cnpj = obterTextoDoBloco(emitente, 'CNPJ')
+        .replace(/\D/g, '');
+
+      this.fornecedor = obterTextoDoBloco(emitente, 'xNome');// Aqui mantém inicialmente o nome extraído do XML.
+
       this.nota = obterTextoDoBloco(ide, 'nNF');
       this.serie = obterTextoDoBloco(ide, 'serie');
-      this.emissao = obterTextoDoBloco(ide, 'dhEmi').substring(0, 10);
+      this.emissao = obterTextoDoBloco(ide, 'dhEmi')
+        .substring(0, 10);
       this.natureza = obterTextoDoBloco(ide, 'natOp');
       this.totalNota = obterTextoDoBloco(total, 'vNF');
 
+      const infNFe =
+        documento.getElementsByTagNameNS('*', 'infNFe')[0];
 
-
-      const infNFe = documento.getElementsByTagNameNS('*', 'infNFe')[0];
       const identificador = infNFe?.getAttribute('Id') ?? '';
 
       this.chave = identificador.startsWith('NFe')
@@ -91,7 +150,6 @@ export class EntradaMercadoria {
         : identificador;
 
       this.arquivoSelecionado = arquivo.name;
-      this.mensagemXml = 'XML carregado com sucesso! Dados extraídos.';
 
       console.log('Dados extraídos da NF-e:', {
         cnpj: this.cnpj,
@@ -102,6 +160,46 @@ export class EntradaMercadoria {
         natureza: this.natureza,
         totalNota: this.totalNota,
         chave: this.chave,
+      });
+
+      if (!this.cnpj) {// Sem CNPJ, não é possível consultar o fornecedor.
+
+        this.mensagemXml =
+          'XML carregado, mas o CNPJ do emitente não foi encontrado.';
+        return;
+      }
+
+
+      this.mensagemXml = 'XML carregado. Consultando fornecedor...';// Consulta o fornecedor cadastrado no backend.
+
+
+      this.fornecedorService.buscarPorCnpj(this.cnpj).subscribe({
+        next: (fornecedorEncontrado) => {
+          this.fornecedor =
+            fornecedorEncontrado.nomeFantasia?.trim()
+            || fornecedorEncontrado.razaoSocial;
+
+          this.mensagemXml =
+            'XML carregado! Fornecedor encontrado no cadastro.';
+        },
+
+        error: (erro) => {
+          if (erro.status === 404) {
+            this.mensagemXml =
+              'XML carregado, mas o fornecedor não está cadastrado.';
+
+            // O nome extraído do XML é mantido.
+            return;
+          }
+
+          this.mensagemXml =
+            'XML carregado, mas não foi possível consultar o fornecedor.';
+
+          console.error(
+            'Erro ao consultar fornecedor:',
+            erro
+          );
+        },
       });
     };
 

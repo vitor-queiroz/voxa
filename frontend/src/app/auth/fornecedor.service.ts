@@ -4,21 +4,32 @@ import { HttpClient } from '@angular/common/http'; /*permite enviar requisiçõe
 import { Observable } from 'rxjs';
 
 export interface Fornecedor { /*Aqui estamos definindo o formato dos dados de um fornecedor no frontend.*/
-  id?: number;
-  cnpj: string;
-  razaoSocial: string;
-  nomeFantasia?: string; /* O ? significa que a propriedade é opcional.*/
+    id?: number;
+    cnpj: string;
+    razaoSocial: string;
+    nomeFantasia?: string; /* O ? significa que a propriedade é opcional.*/
 }
 
 @Injectable({
-  providedIn: 'root', /*faz com que o Angular disponibilize o serviço na aplicação inteira, sem precisar registrá-lo manualmente em cada componente.*/
+    providedIn: 'root', /*faz com que o Angular disponibilize o serviço na aplicação inteira, sem precisar registrá-lo manualmente em cada componente.*/
 })
+
 export class FornecedorService {
-  private readonly apiUrl = 'http://localhost:8080/api/fornecedores'; /*(readonly) impede que o valor seja reatribuído depois da inicialização.*/
+    private readonly apiUrl = 'http://localhost:8080/api/fornecedores'; /*(readonly) impede que o valor seja reatribuído depois da inicialização.*/
 
-  constructor(private http: HttpClient) {}
+    constructor(private http: HttpClient) { }
 
-  listarTodos(): Observable<Fornecedor[]> { /* Observable<Fornecedor[]>: indica que o método retorna uma resposta assíncrona contendo uma lista de fornecedores.*/
-    return this.http.get<Fornecedor[]>(this.apiUrl);
-  }
+    listarTodos(): Observable<Fornecedor[]> { /* Observable<Fornecedor[]>: indica que o método retorna uma resposta assíncrona contendo uma lista de fornecedores.*/
+        return this.http.get<Fornecedor[]>(this.apiUrl);
+    }
+
+
+    buscarPorCnpj(cnpj: string): Observable<Fornecedor> {
+        const cnpjLimpo = cnpj.replace(/\D/g, '');
+
+        return this.http.get<Fornecedor>(
+            `${this.apiUrl}/cnpj/${cnpjLimpo}`
+        );
+    }
+
 }
