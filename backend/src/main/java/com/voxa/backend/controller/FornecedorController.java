@@ -26,6 +26,18 @@ public class FornecedorController {
         return fornecedorRepository.findAll(); //fornecedorRep... = consulta os registros da tabela fornecedor no Aiven.
         }
 
+    @GetMapping("/cnpj/{cnpj}")
+    public Fornecedor buscarPorCnpj(@PathVariable String cnpj) {
+
+        String cnpjLimpo = cnpj.replaceAll("\\D", "");
+
+        return fornecedorRepository.findByCnpj(cnpjLimpo)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Fornecedor não encontrado."
+                ));
+    }
+
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
