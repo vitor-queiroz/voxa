@@ -57,21 +57,27 @@
             <div class="importacao-xml">
                 <div class="importacao-xml-info">
                     <strong>Importar nota fiscal (NF-e)</strong>
-                    <small> Selecione o arquivo XML da nota fiscal para facilitar o preenchimento dos dados da entrada.
+                    <small>Selecione o XML para preencher automaticamente os dados da nota.
                     </small>
                 </div>
 
                 
                 <div class="retorno-xml" *ngIf="mensagemXml">
-                    <span>{{ mensagemXml }}</span>
+                  <div class="retorno-xml-mensagem">
+                    <span class="retorno-xml-icone" aria-hidden="true">
+                        {{ mensagemXml.startsWith('XML carregado!') ? '✓' : 'i' }}
+                    </span>
 
-                    <small *ngIf="arquivoSelecionado">
-                        Arquivo: {{ arquivoSelecionado }}
+                    <span>{{ mensagemXml }}</span>
+                  </div> 
+
+                    <small *ngIf="arquivoSelecionado" class="nome-arquivo">
+                        {{ arquivoSelecionado }}
                     </small>
                 </div>
 
 
-                <label for="arquivoXml" class="botao-importar-xml"> Selecionar arquivo XML </label>
+                <label for="arquivoXml" class="botao-importar-xml"> {{ arquivoSelecionado  ? 'Trocar arquivo' : 'Selecionar arquivo XML' }} </label>
                 <input 
                 id="arquivoXml"
                 type="file" 
@@ -83,7 +89,7 @@
             <div class="formulario-grid">
 
                 <div class="campo">
-                    <label for="loja">Loja que recebe</label>
+                    <label for="loja">Loja que recebe *</label>
                     <select id="loja">
                         <option value="">Selecione a loja</option>
                         <option value="1">Loja 01</option>
@@ -93,7 +99,7 @@
                 </div>
 
                 <div class="campo">
-                    <label for="cnpj">CNPJ do fornecedor</label>
+                    <label for="cnpj">CNPJ do fornecedor *</label>
                     <input 
                     id="cnpj" 
                     type="text" 
@@ -107,7 +113,7 @@
                 </div>
 
                 <div class="campo campo-completo">
-                    <label for="fornecedor">Fornecedor</label>
+                    <label for="fornecedor">Fornecedor *</label>
                     <input 
                     id="fornecedor"
                     type="text"
@@ -120,7 +126,7 @@
                 </div>
 
                 <div class="campo">
-                    <label for="nota">Número da nota fiscal</label>
+                    <label for="nota">Número da nota fiscal *</label>
                     <input 
                     id="nota" 
                     type="text" 
@@ -138,7 +144,7 @@
                 </div>
 
                 <div class="campo">
-                    <label for="emissao">Data de emissão</label>
+                    <label for="emissao">Data de emissão *</label>
                     <input 
                     id="emissao" 
                     type="date"
@@ -146,14 +152,19 @@
                 </div>
 
                 <div class="campo">
-                    <label for="entrada">Data de entrada</label>
-                    <input id="entrada" type="date" />
+                    <label for="entrada">Data de entrada *</label>
+                    <input 
+                    id="entrada" 
+                    type="date"
+                    [(ngModel)]="dataEntrada" 
+                    required/>
                 </div>
 
                 <div class="campo campo-completo">
                     <label for="chave">Chave de acesso da NF-e</label>
                     <input 
                     id="chave" 
+                    class="campo-chave"
                     type="text" 
                     placeholder="Chave de acesso, se disponível"
                     [(ngModel)]="chave" />

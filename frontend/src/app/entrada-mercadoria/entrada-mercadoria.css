@@ -13,9 +13,11 @@
     align-items: center;
     gap: 30px;
     border-bottom: 1px solid #e5e5e5;
+    background: #102532;
 }
 
-.entrada-logo { font: 32px 'Scoria', sans-serif; }
+.entrada-logo { font: 32px 'Scoria', sans-serif; color: #fff }
+.entrada-header .entrada-identificacao { color: #d2dce2; }
 
 .entrada-identificacao,
 .entrada-titulo p,
@@ -63,7 +65,7 @@
     align-items: center;
     gap: 12px;
     padding: 18px;
-    color: #888;
+    color: #74818a;
 }
 
 .etapa + .etapa { border-left: 1px solid #e5e5e5; }
@@ -75,10 +77,12 @@
     place-items: center;
     border: 1px solid #ccc;
     border-radius: 50%;
+    border-color: #c7d0d5;
+    background: #fff;
 }
 
-.etapa-ativa { color: #222; background: #fafafa; }
-.etapa-ativa > span { color: #fff; background: #222; }
+.etapa-ativa { color: #126b66; background: #fff; }
+.etapa-ativa > span { color: #fff; background: #126b66; border-color: #126b66; }
 
 .etapa strong,
 .etapa small { display: block; font-size: 12px; }
@@ -136,7 +140,7 @@
 }
 
 .botao-secundario { background: #fff; border: 1px solid #ddd; }
-.botao-principal { color: #fff; background: #222; border: 1px solid #222; }
+.botao-principal { color: #fff; background: #126b66; border: 1px solid #126b66; }
 .entrada-acoes button:hover { opacity: .8; }
 
 @media (max-width: 700px) {

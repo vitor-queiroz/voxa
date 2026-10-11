@@ -26,6 +26,8 @@ export class EntradaMercadoria {
   chave: string = '';
 
   mensagemFornecedor = '';
+  dataEntrada: string = this.obterDataAtual();
+
 
   constructor(private fornecedorService: FornecedorService) { }
 
@@ -208,5 +210,15 @@ export class EntradaMercadoria {
     };
 
     leitor.readAsText(arquivo);
+  }
+
+
+  private obterDataAtual(): string {
+    const hoje = new Date();
+    const deslocamento = hoje.getTimezoneOffset();
+
+    return new Date(hoje.getTime() - deslocamento * 60000)
+      .toISOString()
+      .slice(0, 10);
   }
 }
