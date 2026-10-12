@@ -31,7 +31,13 @@ export class CashbackDialogo implements OnInit {
 
   ngOnInit() {
     this.valorResgate = this.resgateAtual();
-    this.api.consultarCashback(this.cliente().cpf).subscribe((saldo) => this.saldo.set(saldo));
+    this.api.consultarCashback(this.cliente().cpf).subscribe({
+      next: (saldo) => this.saldo.set(saldo),
+      error: (erro: Error) => {
+        this.saldo.set(0);
+        this.erro.set(erro.message);
+      },
+    });
   }
 
   confirmar() {

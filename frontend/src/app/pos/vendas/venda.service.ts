@@ -6,7 +6,7 @@ import {
   ProdutoVariacao,
   RascunhoVenda,
   Venda,
-  Vendedor,
+  Funcionario,
 } from './vendas.model';
 
 /*
@@ -59,8 +59,18 @@ export class VendaService {
 
   readonly troco = computed(() => Math.max(0, arredondar(this.totalPago() - this.total())));
 
-  definirVendedor(vendedor: Vendedor | null) {
-    this._rascunho.update((r) => ({ ...r, vendedor }));
+  /*Comissão do vendedor vinculado pelo prontuário, sobre o total da venda*/
+  readonly valorComissao = computed(() =>
+    arredondar((this.total() * this._rascunho().percentualComissao) / 100),
+  );
+
+  /*Vincula o vendedor (funcionário) e o percentual de comissão dele*/
+  definirVendedor(vendedor: Funcionario | null, percentualComissao = 0) {
+    this._rascunho.update((r) => ({
+      ...r,
+      vendedor,
+      percentualComissao: vendedor ? percentualComissao : 0,
+    }));
   }
 
   /*Trocar de cliente zera o cashback resgatado do cliente anterior*/
@@ -166,7 +176,10 @@ export class VendaService {
       return 'Inclua ao menos um item.';
     }
     if (!r.vendedor) {
-      return 'Informe o vendedor.';
+      return 'Informe o prontuário do vendedor.';
+    }
+    if (!podeVender(r.vendedor)) {
+      return `${r.vendedor.nome} está "${r.vendedor.situacao}" e não pode ser vinculado à venda.`;
     }
     if (this.restante() > 0) {
       return 'Ainda há valor restante a pagar.';
@@ -184,13 +197,16 @@ export class VendaService {
       total: this.total(),
       pagamentos: r.pagamentos,
       troco: this.troco(),
+      percentualComissao: r.percentualComissao,
+      valorComissao: this.valorComissao(),
       status: 'FINALIZADA',
     };
   }
 
   /*Começa uma venda nova, mantendo o vendedor*/
   novaVenda() {
-    this._rascunho.set(novoRascunho(this._rascunho().vendedor));
+    const { vendedor, percentualComissao } = this._rascunho();
+    this._rascunho.set({ ...novoRascunho(), vendedor, percentualComissao });
   }
 
   private atualizarItem(indice: number, alteracao: Partial<RascunhoVenda['itens'][number]>) {
@@ -201,8 +217,27 @@ export class VendaService {
   }
 }
 
-function novoRascunho(vendedor: Vendedor | null = null): RascunhoVenda {
-  return { vendedor, cliente: null, itens: [], desconto: null, cashback: 0, pagamentos: [] };
+/*Só funcionário com situação "Trabalhando" pode ser vinculado a uma venda*/
+export function podeVender(funcionario: Funcionario): boolean {
+  return funcionario.situacao.trim().toLowerCase() === 'trabalhando';
+}
+
+/*Prontuário com 4 dígitos, como no cadastro: "1" → "0001"*/
+export function normalizarProntuario(valor: string): string {
+  const prontuario = (valor ?? '').trim().toUpperCase();
+  return /^\d+$/.test(prontuario) ? prontuario.padStart(4, '0') : prontuario;
+}
+
+function novoRascunho(): RascunhoVenda {
+  return {
+    vendedor: null,
+    percentualComissao: 0,
+    cliente: null,
+    itens: [],
+    desconto: null,
+    cashback: 0,
+    pagamentos: [],
+  };
 }
 
 function arredondar(valor: number): number {

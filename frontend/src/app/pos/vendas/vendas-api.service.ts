@@ -1,106 +1,126 @@
 import { Injectable } from '@angular/core';
-import { Observable, of, throwError } from 'rxjs';
-import { Cliente, FormaPagamento, ProdutoVariacao, Venda, Vendedor } from './vendas.model';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { Observable, catchError, map, of, throwError } from 'rxjs';
 import {
-  CASHBACK_MOCK,
-  CLIENTES_MOCK,
-  FORMAS_PAGAMENTO_MOCK,
-  VARIACOES_MOCK,
-  VENDEDORES_MOCK,
-} from './vendas.mock';
+  Cliente,
+  FiltroVendas,
+  FormaPagamento,
+  Funcionario,
+  ProdutoVariacao,
+  ResumoComissao,
+  Venda,
+} from './vendas.model';
+import { API_URL } from './vendas.config';
+
+/*Métodos públicos da API de vendas (a versão de exemplo, VendasApiMockService, segue o mesmo formato)*/
+export type ApiVendas = { [M in keyof VendasApiService]: VendasApiService[M] };
 
 /*
- * ÚNICO ponto de comunicação do módulo de vendas com o backend.
- *
- * Hoje todos os métodos respondem com dados de exemplo (vendas.mock.ts).
- * Para integrar, troque o corpo de cada método pela chamada HTTP indicada no comentário
- * (ex.: return this.http.get<Vendedor[]>(`${this.apiUrl}/vendedores`)).
- * As telas já trabalham com Observable, então não precisam mudar.
- * O contrato completo (JSON de entrada/saída e erros) está no README.md desta pasta.
+ * ÚNICO ponto de comunicação do módulo de vendas com o backend (Spring Boot).
+ * Erros do servidor viram Error com a mensagem do backend ({ "mensagem": "..." }),
+ * que as telas mostram para o usuário. Buscas que dão 404 devolvem null.
+ * O contrato completo está no README.md desta pasta.
  */
 @Injectable({
   providedIn: 'root',
 })
 export class VendasApiService {
 
-  /*private apiUrl = 'http://localhost:8080'; — mesmo endereço usado no AuthService*/
+  constructor(private http: HttpClient) { }
 
-  private clientes = [...CLIENTES_MOCK];
-  private vendas: Venda[] = [];
-  private proximoNumero = 1;
-
-  /*GET /vendedores*/
-  listarVendedores(): Observable<Vendedor[]> {
-    return of(VENDEDORES_MOCK);
+  /*GET /funcionarios — somente prontuario, nome, funcao e situacao (sem CPF/RG)*/
+  listarFuncionarios(): Observable<Funcionario[]> {
+    return this.http.get<Funcionario[]>(`${API_URL}/funcionarios`).pipe(catchError(paraErro));
   }
 
-  /*GET /vendedores/{codigo} — 404 quando não existe (aqui: null)*/
-  buscarVendedor(codigo: string): Observable<Vendedor | null> {
-    const termo = codigo.trim().toUpperCase();
-    return of(VENDEDORES_MOCK.find((v) => v.codigo === termo) ?? null);
+  /*GET /funcionarios/{prontuario} — 404 vira null*/
+  buscarFuncionario(prontuario: string): Observable<Funcionario | null> {
+    return this.http
+      .get<Funcionario>(`${API_URL}/funcionarios/${encodeURIComponent(prontuario)}`)
+      .pipe(catchError(nuloSe404));
   }
 
-  /*GET /clientes?cpf={cpf} — 404 quando não existe (aqui: null)*/
+  /*GET /funcionarios/{prontuario}/comissao — { "percentual": 3 }*/
+  consultarPercentualComissao(prontuario: string): Observable<number> {
+    return this.http
+      .get<{ percentual: number }>(`${API_URL}/funcionarios/${encodeURIComponent(prontuario)}/comissao`)
+      .pipe(map((resposta) => resposta.percentual), catchError(paraErro));
+  }
+
+  /*GET /clientes?cpf={cpf} — 404 vira null*/
   buscarClientePorCpf(cpf: string): Observable<Cliente | null> {
-    return of(this.clientes.find((c) => c.cpf === cpf) ?? null);
+    return this.http.get<Cliente>(`${API_URL}/clientes`, { params: { cpf } }).pipe(catchError(nuloSe404));
   }
 
-  /*POST /clientes (id null) ou PUT /clientes/{id} — devolve o cliente salvo, com id*/
+  /*POST /clientes (id null) ou PUT /clientes/{id}*/
   salvarCliente(cliente: Cliente): Observable<Cliente> {
-    if (cliente.id === null && this.clientes.some((c) => c.cpf === cliente.cpf)) {
-      return throwError(() => new Error('Já existe um cliente com este CPF.'));
-    }
-    const salvo: Cliente = { ...cliente, id: cliente.id ?? this.clientes.length + 1 };
-    this.clientes = [...this.clientes.filter((c) => c.id !== salvo.id), salvo];
-    return of(salvo);
+    const requisicao =
+      cliente.id === null
+        ? this.http.post<Cliente>(`${API_URL}/clientes`, cliente)
+        : this.http.put<Cliente>(`${API_URL}/clientes/${cliente.id}`, cliente);
+    return requisicao.pipe(catchError(paraErro));
   }
 
   /*GET /clientes/{cpf}/cashback — { "saldo": 25.50 }*/
   consultarCashback(cpf: string): Observable<number> {
-    return of(CASHBACK_MOCK[cpf] ?? 0);
+    return this.http
+      .get<{ saldo: number }>(`${API_URL}/clientes/${cpf}/cashback`)
+      .pipe(map((resposta) => resposta.saldo), catchError(paraErro));
   }
 
-  /*GET /produtos/variacoes/busca?termo={termo} — termo = "REF/TAM" (12345/42) ou código de barras*/
+  /*GET /produtos/variacoes/busca?termo= — REF/TAM (12345/42) ou código de barras; 404 vira null*/
   buscarVariacao(termo: string): Observable<ProdutoVariacao | null> {
-    const busca = termo.trim().toUpperCase();
-    const variacao = VARIACOES_MOCK.find(
-      (v) =>
-        v.codigoBarras === busca ||
-        `${v.produto.referencia}/${v.tamanho}`.toUpperCase() === busca,
-    );
-    return of(variacao ?? null);
+    return this.http
+      .get<ProdutoVariacao>(`${API_URL}/produtos/variacoes/busca`, { params: { termo: termo.trim() } })
+      .pipe(catchError(nuloSe404));
   }
 
   /*GET /formas-pagamento*/
   listarFormasPagamento(): Observable<FormaPagamento[]> {
-    return of(FORMAS_PAGAMENTO_MOCK);
+    return this.http.get<FormaPagamento[]>(`${API_URL}/formas-pagamento`).pipe(catchError(paraErro));
   }
 
-  /*POST /vendas — o backend define "numero", "data" e "status" e devolve a venda gravada*/
+  /*POST /vendas — o backend recalcula os valores e define numero, data, status e comissão*/
   registrarVenda(venda: Venda): Observable<Venda> {
-    const registrada: Venda = {
-      ...venda,
-      numero: this.proximoNumero++,
-      data: new Date().toISOString(),
-      status: 'FINALIZADA',
-    };
-    this.vendas = [registrada, ...this.vendas];
-    return of(registrada);
+    return this.http.post<Venda>(`${API_URL}/vendas`, venda).pipe(catchError(paraErro));
   }
 
-  /*GET /vendas — mais recentes primeiro*/
-  listarVendas(): Observable<Venda[]> {
-    return of(this.vendas);
+  /*GET /vendas?de=AAAA-MM-DD&ate=AAAA-MM-DD&prontuario=0001 — mais recentes primeiro*/
+  listarVendas(filtro: FiltroVendas = {}): Observable<Venda[]> {
+    return this.http
+      .get<Venda[]>(`${API_URL}/vendas`, { params: semVazios(filtro) })
+      .pipe(catchError(paraErro));
   }
 
-  /*PATCH /vendas/{numero}/cancelamento — devolve a venda com status CANCELADA*/
+  /*PATCH /vendas/{numero}/cancelamento*/
   cancelarVenda(numero: number): Observable<Venda> {
-    const venda = this.vendas.find((v) => v.numero === numero);
-    if (!venda) {
-      return throwError(() => new Error(`Venda nº ${numero} não encontrada.`));
-    }
-    const cancelada: Venda = { ...venda, status: 'CANCELADA' };
-    this.vendas = this.vendas.map((v) => (v.numero === numero ? cancelada : v));
-    return of(cancelada);
+    return this.http
+      .patch<Venda>(`${API_URL}/vendas/${numero}/cancelamento`, null)
+      .pipe(catchError(paraErro));
   }
+
+  /*GET /comissoes?de=AAAA-MM-DD&ate=AAAA-MM-DD — uma linha por funcionário*/
+  resumoComissoes(filtro: FiltroVendas = {}): Observable<ResumoComissao[]> {
+    return this.http
+      .get<ResumoComissao[]>(`${API_URL}/comissoes`, { params: semVazios(filtro) })
+      .pipe(catchError(paraErro));
+  }
+}
+
+/*Transforma o erro HTTP em Error com a mensagem do backend*/
+function paraErro(erro: HttpErrorResponse): Observable<never> {
+  const mensagem =
+    erro.status === 0
+      ? 'Sem conexão com o servidor. Verifique se o backend está ligado.'
+      : (erro.error?.mensagem ?? `Erro ${erro.status} ao falar com o servidor.`);
+  return throwError(() => new Error(mensagem));
+}
+
+function nuloSe404(erro: HttpErrorResponse): Observable<null> {
+  return erro.status === 404 ? of(null) : paraErro(erro);
+}
+
+/*Remove filtros vazios da URL*/
+function semVazios(filtro: FiltroVendas): Record<string, string> {
+  return Object.fromEntries(Object.entries(filtro).filter(([, valor]) => !!valor));
 }

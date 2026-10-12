@@ -21,7 +21,7 @@
   max-height: 100%;
   overflow: auto;
   background: var(--vx-branco);
-  border-radius: var(--vx-raio-grande);
+  border-radius: var(--vx-raio);
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
 }
 
@@ -51,7 +51,7 @@ h2 {
 }
 
 .fechar:hover {
-  background: var(--vx-fundo);
+  background: var(--vx-linha);
 }
 
 .corpo {

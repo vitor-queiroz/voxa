@@ -1,10 +1,12 @@
 import { TestBed } from '@angular/core/testing';
-import { VendaService } from './venda.service';
-import { FORMAS_PAGAMENTO_MOCK, VARIACOES_MOCK, VENDEDORES_MOCK } from './vendas.mock';
+import { VendaService, normalizarProntuario, podeVender } from './venda.service';
+import { FORMAS_PAGAMENTO_MOCK, FUNCIONARIOS_MOCK, VARIACOES_MOCK } from './vendas.mock';
 import { Venda } from './vendas.model';
 
 const [tenis42, , camisetaM] = VARIACOES_MOCK; // 349,90 e 59,90
 const [dinheiro, pix, debito, credito] = FORMAS_PAGAMENTO_MOCK;
+const carlos = FUNCIONARIOS_MOCK[0];
+const afastada = FUNCIONARIOS_MOCK[3];
 
 describe('VendaService', () => {
   let service: VendaService;
@@ -65,11 +67,11 @@ describe('VendaService', () => {
     expect(service.troco()).toBe(0.1);
   });
 
-  it('monta a venda somente com vendedor e pagamento completo', () => {
+  it('monta a venda somente com vendedor e pagamento completo, com a comissão', () => {
     service.incluirItem(tenis42);
-    expect(service.montarVenda()).toBe('Informe o vendedor.');
+    expect(service.montarVenda()).toBe('Informe o prontuário do vendedor.');
 
-    service.definirVendedor(VENDEDORES_MOCK[0]);
+    service.definirVendedor(carlos, 3);
     expect(service.montarVenda()).toBe('Ainda há valor restante a pagar.');
 
     service.adicionarPagamento(credito, 349.9, 3);
@@ -77,15 +79,42 @@ describe('VendaService', () => {
 
     expect(venda.total).toBe(349.9);
     expect(venda.numero).toBeNull();
+    expect(venda.vendedor.prontuario).toBe('0001');
+    expect(venda.percentualComissao).toBe(3);
+    expect(venda.valorComissao).toBe(10.5);
   });
 
-  it('nova venda limpa o rascunho mas mantém o vendedor', () => {
-    service.definirVendedor(VENDEDORES_MOCK[0]);
+  it('calcula a comissão sobre o total, depois dos descontos', () => {
+    service.definirVendedor(carlos, 3);
+    service.incluirItem(tenis42);
+    service.definirDesconto({ tipo: 'VALOR', valor: 49.9 });
+
+    expect(service.valorComissao()).toBe(9);
+  });
+
+  it('não finaliza com funcionário que não está trabalhando', () => {
+    service.incluirItem(camisetaM);
+    service.definirVendedor(afastada, 3);
+    service.adicionarPagamento(dinheiro, 59.9);
+
+    expect(service.montarVenda()).toContain('Afastado');
+  });
+
+  it('nova venda limpa o rascunho mas mantém o vendedor e a comissão', () => {
+    service.definirVendedor(carlos, 3);
     service.incluirItem(tenis42);
 
     service.novaVenda();
 
     expect(service.rascunho().itens.length).toBe(0);
-    expect(service.rascunho().vendedor?.codigo).toBe('0GA8');
+    expect(service.rascunho().vendedor?.prontuario).toBe('0001');
+    expect(service.rascunho().percentualComissao).toBe(3);
+  });
+
+  it('completa o prontuário com zeros e verifica a situação', () => {
+    expect(normalizarProntuario(' 1 ')).toBe('0001');
+    expect(normalizarProntuario('12345')).toBe('12345');
+    expect(podeVender(carlos)).toBe(true);
+    expect(podeVender(afastada)).toBe(false);
   });
 });

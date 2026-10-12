@@ -1,0 +1,159 @@
+<div class="vx-pagina">
+  <div class="vx-coluna">
+    <section class="vx-cartao">
+      <h2 class="vx-cartao-titulo">Painel de vendedores · comissões por prontuário</h2>
+      <div class="vx-cartao-corpo filtros">
+        <div class="periodos" role="group" aria-label="Período">
+          @for (opcao of [['hoje', 'Hoje'], ['7', '7 dias'], ['30', '30 dias'], ['mes', 'Este mês']]; track opcao[0]) {
+            <button
+              type="button"
+              class="vx-botao"
+              [class.ativo]="periodo() === opcao[0]"
+              [attr.aria-pressed]="periodo() === opcao[0]"
+              (click)="escolherPeriodo($any(opcao[0]))"
+            >
+              {{ opcao[1] }}
+            </button>
+          }
+        </div>
+        <div class="vx-campo">
+          <label for="de">De</label>
+          <input id="de" type="date" [ngModel]="de()" (ngModelChange)="alterarData('de', $event)" />
+        </div>
+        <div class="vx-campo">
+          <label for="ate">Até</label>
+          <input id="ate" type="date" [ngModel]="ate()" (ngModelChange)="alterarData('ate', $event)" />
+        </div>
+        <label class="ativos">
+          <input type="checkbox" [ngModel]="somenteAtivos()" (ngModelChange)="somenteAtivos.set($event)" />
+          Só quem está trabalhando
+        </label>
+      </div>
+    </section>
+
+    @if (erro()) {
+      <p class="vx-mensagem-erro">{{ erro() }}</p>
+    }
+
+    <div class="indicadores">
+      <section class="vx-cartao vx-cartao-corpo">
+        <span class="vx-destaque-rotulo">Total vendido</span>
+        <strong class="vx-destaque">{{ totais().totalVendido | currency }}</strong>
+      </section>
+      <section class="vx-cartao vx-cartao-corpo">
+        <span class="vx-destaque-rotulo">Comissões a pagar</span>
+        <strong class="vx-destaque">{{ totais().valorComissao | currency }}</strong>
+      </section>
+      <section class="vx-cartao vx-cartao-corpo">
+        <span class="vx-destaque-rotulo">Vendas</span>
+        <strong class="vx-destaque">{{ totais().vendas }}</strong>
+      </section>
+      <section class="vx-cartao vx-cartao-corpo">
+        <span class="vx-destaque-rotulo">Ticket médio</span>
+        <strong class="vx-destaque">{{ totais().ticketMedio | currency }}</strong>
+      </section>
+    </div>
+
+    <section class="vx-cartao">
+      <h2 class="vx-cartao-titulo">Vendas e comissão por vendedor · {{ de() | date: 'dd/MM' }} a {{ ate() | date: 'dd/MM/yyyy' }}</h2>
+      <div class="grade">
+        <table class="vx-tabela">
+          <thead>
+            <tr>
+              <th>Prontuário</th>
+              <th>Funcionário</th>
+              <th>Situação</th>
+              <th class="num">Vendas</th>
+              <th class="num">Peças</th>
+              <th class="barra-coluna">Total vendido</th>
+              <th class="num">Comissão</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (linha of ranking(); track linha.vendedor.prontuario) {
+              <tr
+                class="clicavel"
+                [class.selecionada]="prontuarioSelecionado() === linha.vendedor.prontuario"
+                (click)="selecionar(linha.vendedor.prontuario)"
+              >
+                <td class="vx-mono">{{ linha.vendedor.prontuario }}</td>
+                <td>
+                  {{ linha.vendedor.nome }}<br />
+                  <small>{{ linha.vendedor.funcao }}</small>
+                </td>
+                <td>
+                  <span class="situacao" [class.inativo]="linha.vendedor.situacao.toLowerCase() !== 'trabalhando'">
+                    {{ linha.vendedor.situacao }}
+                  </span>
+                </td>
+                <td class="num">{{ linha.quantidadeVendas }}</td>
+                <td class="num">{{ linha.pecas }}</td>
+                <td class="barra-coluna" [title]="linha.vendedor.nome + ': ' + (linha.totalVendido | currency)">
+                  <span class="vx-mono">{{ linha.totalVendido | currency }}</span>
+                  <span class="trilho"><span class="barra" [style.width.%]="larguraBarra(linha.totalVendido)"></span></span>
+                </td>
+                <td class="num forte">{{ linha.valorComissao | currency }}</td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="7" class="vazia">Nenhum funcionário encontrado.</td>
+              </tr>
+            }
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="3">Total do período</td>
+              <td class="num">{{ totais().vendas }}</td>
+              <td class="num">{{ totais().pecas }}</td>
+              <td class="vx-mono">{{ totais().totalVendido | currency }}</td>
+              <td class="num">{{ totais().valorComissao | currency }}</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </section>
+    <p class="nota">Só vendas finalizadas contam para a comissão. Vendas canceladas ficam de fora.</p>
+  </div>
+
+  <aside class="vx-coluna">
+    <section class="vx-cartao">
+      @if (selecionado(); as linha) {
+        <h2 class="vx-cartao-titulo">Prontuário {{ linha.vendedor.prontuario }}</h2>
+        <div class="vx-cartao-corpo">
+          <p class="nome">{{ linha.vendedor.nome }}</p>
+          <span class="vx-destaque-rotulo">Comissão no período</span>
+          <strong class="vx-destaque">{{ linha.valorComissao | currency }}</strong>
+          <dl class="vx-resumo">
+            <dt>Total vendido</dt>
+            <dd>{{ linha.totalVendido | currency }}</dd>
+            <dt>Vendas finalizadas</dt>
+            <dd>{{ linha.quantidadeVendas }}</dd>
+            <dt>Ticket médio</dt>
+            <dd>{{ (linha.quantidadeVendas ? linha.totalVendido / linha.quantidadeVendas : 0) | currency }}</dd>
+          </dl>
+
+          <h3 class="subtitulo">Vendas no período</h3>
+          <ul class="vendas">
+            @for (venda of vendasDoVendedor(); track venda.numero) {
+              <li [class.cancelada]="venda.status === 'CANCELADA'">
+                <span class="vx-mono">nº {{ venda.numero }} · {{ venda.data | date: 'dd/MM HH:mm' }}</span>
+                <span class="vx-mono">{{ venda.total | currency }}</span>
+                <small>
+                  {{ venda.status === 'CANCELADA' ? 'Cancelada · sem comissão' : 'Comissão ' + venda.percentualComissao + '%: ' }}
+                  @if (venda.status === 'FINALIZADA') {
+                    {{ venda.valorComissao | currency }}
+                  }
+                </small>
+              </li>
+            } @empty {
+              <li class="vazio">Sem vendas no período.</li>
+            }
+          </ul>
+        </div>
+      } @else {
+        <h2 class="vx-cartao-titulo">Detalhe do vendedor</h2>
+        <p class="vx-cartao-corpo vazio">Clique em um vendedor para ver as vendas e a comissão dele.</p>
+      }
+    </section>
+  </aside>
+</div>

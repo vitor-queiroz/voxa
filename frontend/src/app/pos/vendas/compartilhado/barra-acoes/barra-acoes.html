@@ -1,20 +1,20 @@
-<nav class="barra" aria-label="Barra de atalhos">
-  <span class="titulo">Barra de atalhos</span>
+<footer class="rodape" aria-label="Barra de atalhos">
+  <p class="dica">{{ dica() }}</p>
   <div class="botoes">
     @for (acao of acoes(); track acao.id) {
       <button
         type="button"
-        [class]="acao.estilo ?? ''"
+        class="vx-botao"
+        [class.primario]="acao.estilo === 'primario'"
+        [class.perigo]="acao.estilo === 'perigo'"
         [disabled]="acao.desabilitada"
-        [title]="acao.tecla ? acao.rotulo + ' (' + acao.tecla + ')' : acao.rotulo"
         (click)="acionar.emit(acao.id)"
       >
-        <app-icone [nome]="acao.icone" [tamanho]="16" />
-        <span>{{ acao.rotulo }}</span>
+        {{ acao.rotulo }}
         @if (acao.tecla) {
-          <small>{{ acao.tecla }}</small>
+          <kbd class="vx-tecla">{{ acao.tecla }}</kbd>
         }
       </button>
     }
   </div>
-</nav>
+</footer>

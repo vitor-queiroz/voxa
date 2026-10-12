@@ -23,8 +23,17 @@ describe('Vendas', () => {
     expect(component).toBeTruthy();
   });
 
-  it('deve exibir as abas do módulo de vendas', () => {
-    const abas = (fixture.nativeElement as HTMLElement).querySelectorAll('.vx-abas a');
-    expect(abas.length).toBe(2);
+  it('deve exibir o menu do módulo de vendas', () => {
+    const links = (fixture.nativeElement as HTMLElement).querySelectorAll('.vx-menu a');
+    expect(Array.from(links).map((a) => a.textContent?.trim())).toEqual([
+      'Nova venda',
+      'Consulta',
+      'Painel de vendedores',
+    ]);
+  });
+
+  it('deve carregar as fontes do design uma única vez', () => {
+    TestBed.createComponent(Vendas);
+    expect(document.querySelectorAll('link[data-vx-fontes]').length).toBe(1);
   });
 });

@@ -6,12 +6,15 @@ import { VendaService } from '../venda.service';
 import { VendasApiService } from '../vendas-api.service';
 import { FormaPagamento, Venda } from '../vendas.model';
 import { Acao, BarraAcoes } from '../compartilhado/barra-acoes/barra-acoes';
+import { Etapas } from '../compartilhado/etapas/etapas';
+import { Icone } from '../compartilhado/icone/icone';
 import { ResumoVenda } from '../compartilhado/resumo-venda/resumo-venda';
+import { VendedorProntuario } from '../compartilhado/vendedor-prontuario/vendedor-prontuario';
 
-/*Tela de pagamento: escolha das formas de pagamento e finalização da venda*/
+/*Etapa 2 da venda: confirma o vendedor pelo prontuário, lança os pagamentos e finaliza*/
 @Component({
   selector: 'app-pagamento',
-  imports: [CurrencyPipe, FormsModule, BarraAcoes, ResumoVenda],
+  imports: [CurrencyPipe, FormsModule, BarraAcoes, Etapas, Icone, ResumoVenda, VendedorProntuario],
   templateUrl: './pagamento.html',
   styleUrl: './pagamento.css',
 })
@@ -21,7 +24,6 @@ export class Pagamento {
 
   readonly formas = signal<FormaPagamento[]>([]);
   readonly formaSelecionada = signal<FormaPagamento | null>(null);
-  readonly indicePagamento = signal<number | null>(null);
   readonly erro = signal<string | null>(null);
   readonly enviando = signal(false);
   readonly vendaFinalizada = signal<Venda | null>(null);
@@ -31,25 +33,23 @@ export class Pagamento {
   );
 
   readonly acoes = computed<Acao[]>(() => {
-    const bloqueada = this.vendaFinalizada() !== null || this.enviando();
+    if (this.vendaFinalizada()) {
+      return [{ id: 'nova-venda', rotulo: 'Nova venda', tecla: 'F2', estilo: 'primario' }];
+    }
+    const rascunho = this.vendaService.rascunho();
     return [
-      { id: 'voltar', rotulo: 'Voltar', icone: 'voltar', tecla: 'F3', desabilitada: bloqueada },
-      { id: 'incluir', rotulo: 'Incluir pagamento', icone: 'mais', tecla: 'F9', desabilitada: bloqueada },
-      {
-        id: 'excluir',
-        rotulo: 'Excluir pagamento',
-        icone: 'menos',
-        tecla: 'F8',
-        desabilitada: bloqueada || this.indicePagamento() === null,
-      },
-      { id: 'cancelar', rotulo: 'Cancelar venda', icone: 'cancelar', tecla: 'F7', estilo: 'perigo', desabilitada: bloqueada },
+      { id: 'voltar', rotulo: 'Voltar', tecla: 'F3', desabilitada: this.enviando() },
+      { id: 'cancelar', rotulo: 'Cancelar venda', tecla: 'F7', estilo: 'perigo', desabilitada: this.enviando() },
       {
         id: 'finalizar',
         rotulo: 'Finalizar venda',
-        icone: 'confirmar',
         tecla: 'F2',
-        estilo: 'sucesso',
-        desabilitada: bloqueada || this.vendaService.restante() > 0,
+        estilo: 'primario',
+        desabilitada:
+          this.enviando() ||
+          rascunho.itens.length === 0 ||
+          !rascunho.vendedor ||
+          this.vendaService.restante() > 0,
       },
     ];
   });
@@ -60,22 +60,20 @@ export class Pagamento {
     private router: Router,
     private route: ActivatedRoute,
   ) {
-    this.api.listarFormasPagamento().subscribe((formas) => this.formas.set(formas));
+    this.api.listarFormasPagamento().subscribe({
+      next: (formas) => this.formas.set(formas),
+      error: (erro: Error) => this.erro.set(erro.message),
+    });
   }
 
   executar(acao: string) {
     switch (acao) {
       case 'voltar':
+      case 'nova-venda':
         this.irParaPdv();
         break;
       case 'finalizar':
         this.finalizar();
-        break;
-      case 'incluir':
-        this.incluirPagamento();
-        break;
-      case 'excluir':
-        this.excluirPagamento();
         break;
       case 'cancelar':
         if (confirm('Cancelar a venda em andamento?')) {
@@ -106,13 +104,8 @@ export class Pagamento {
     }
   }
 
-  excluirPagamento() {
-    const indice = this.indicePagamento();
-    if (indice === null) {
-      return;
-    }
+  removerPagamento(indice: number) {
     this.vendaService.removerPagamento(indice);
-    this.indicePagamento.set(null);
   }
 
   finalizar() {

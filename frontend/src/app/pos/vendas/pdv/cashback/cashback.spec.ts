@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { CashbackDialogo } from './cashback';
 import { CLIENTES_MOCK } from '../../vendas.mock';
+import { provideVendasApiMock } from '../../vendas-api.mock';
 
 describe('CashbackDialogo', () => {
   let component: CashbackDialogo;
@@ -9,7 +10,8 @@ describe('CashbackDialogo', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [CashbackDialogo]
+      imports: [CashbackDialogo],
+      providers: [provideVendasApiMock()]
     })
     .compileComponents();
 

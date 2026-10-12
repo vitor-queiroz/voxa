@@ -3,7 +3,8 @@ import { provideRouter } from '@angular/router';
 
 import { Pagamento } from './pagamento';
 import { VendaService } from '../venda.service';
-import { VARIACOES_MOCK, VENDEDORES_MOCK } from '../vendas.mock';
+import { FUNCIONARIOS_MOCK, VARIACOES_MOCK } from '../vendas.mock';
+import { provideVendasApiMock } from '../vendas-api.mock';
 
 describe('Pagamento', () => {
   let component: Pagamento;
@@ -13,7 +14,7 @@ describe('Pagamento', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [Pagamento],
-      providers: [provideRouter([])]
+      providers: [provideRouter([]), provideVendasApiMock()]
     })
     .compileComponents();
 
@@ -38,14 +39,25 @@ describe('Pagamento', () => {
     expect(component.valor).toBe(349.9);
   });
 
-  it('deve registrar a venda e iniciar um rascunho novo', () => {
-    vendaService.definirVendedor(VENDEDORES_MOCK[0]);
+  it('não deve permitir finalizar sem o prontuário do vendedor', () => {
+    vendaService.incluirItem(VARIACOES_MOCK[0]);
+    component.selecionarForma(component.formas()[0]);
+    component.incluirPagamento();
+
+    expect(component.acoes().find((a) => a.id === 'finalizar')?.desabilitada).toBe(true);
+    component.finalizar();
+    expect(component.erro()).toBe('Informe o prontuário do vendedor.');
+  });
+
+  it('deve registrar a venda com a comissão e iniciar um rascunho novo', () => {
+    vendaService.definirVendedor(FUNCIONARIOS_MOCK[0], 3);
     vendaService.incluirItem(VARIACOES_MOCK[0]);
     component.selecionarForma(component.formas()[0]);
     component.incluirPagamento();
     component.finalizar();
 
-    expect(component.vendaFinalizada()?.numero).toBe(1);
+    expect(component.vendaFinalizada()?.numero).toBe(7);
+    expect(component.vendaFinalizada()?.valorComissao).toBe(10.5);
     expect(vendaService.rascunho().itens.length).toBe(0);
   });
 });

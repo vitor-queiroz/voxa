@@ -1,35 +1,14 @@
-.tela {
+:host {
   display: flex;
+  flex: 1;
   flex-direction: column;
-  gap: 14px;
 }
 
-h1 {
-  margin: 0;
-  font-size: 24px;
-  font-weight: normal;
-  text-transform: uppercase;
+.busca {
+  grid-column: span 2;
 }
 
-.filtros {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  gap: 10px;
-}
-
-.cresce {
-  flex: 1 1 260px;
-}
-
-.colunas {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 14px;
-  align-items: start;
-}
-
-.lista {
+.grade {
   overflow-x: auto;
 }
 
@@ -39,25 +18,36 @@ h1 {
 }
 
 tfoot td {
-  font-weight: bold;
+  padding: 10px 12px;
+  font-weight: 600;
+  background: #f7f9fa;
 }
 
-.detalhe p {
-  margin: 0 0 10px;
+.itens {
+  margin: 0 0 8px;
+  padding: 0;
+  list-style: none;
 }
 
-dl {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 3px 12px;
-  margin: 10px 0;
+.itens li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 0;
 }
 
-dt {
+.cancelar {
+  width: 100%;
+  margin-top: 14px;
+}
+
+.vazio {
+  margin: 0;
   color: var(--vx-texto-suave);
 }
 
-dd {
-  margin: 0;
-  text-align: right;
+@media (max-width: 600px) {
+  .busca {
+    grid-column: auto;
+  }
 }

@@ -3,6 +3,7 @@ import { provideRouter } from '@angular/router';
 
 import { Pdv } from './pdv';
 import { VendaService } from '../venda.service';
+import { provideVendasApiMock } from '../vendas-api.mock';
 
 describe('Pdv', () => {
   let component: Pdv;
@@ -12,7 +13,7 @@ describe('Pdv', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [Pdv],
-      providers: [provideRouter([])]
+      providers: [provideRouter([]), provideVendasApiMock()]
     })
     .compileComponents();
 
@@ -26,15 +27,6 @@ describe('Pdv', () => {
     expect(component).toBeTruthy();
   });
 
-  it('deve preencher o vendedor pelo código', () => {
-    component.codigoVendedor = '0ga8';
-    component.buscarVendedor();
-    expect(vendaService.rascunho().vendedor?.nome).toBe('ORLANDO A');
-
-    component.codigoVendedor = 'XXXX';
-    component.buscarVendedor();
-    expect(component.erroVendedor()).toBe('Vendedor não encontrado.');
-  });
 
   it('deve validar o CPF e buscar o cliente cadastrado', () => {
     component.alterarCpf('32970069865');
@@ -58,6 +50,8 @@ describe('Pdv', () => {
     expect(component.termoProduto).toBe('');
     expect(component.itemVisualizado()?.variacao.id).toBe(1);
 
+    expect(component.ultimoItem()?.variacao.codigoBarras).toBe('12345142');
+
     component.termoProduto = '00000';
     component.incluirProduto();
     expect(component.erroProduto()).toContain('não encontrado');
@@ -75,6 +69,16 @@ describe('Pdv', () => {
     expect(vendaService.total()).toBe(270);
   });
 
+  it('deve remover a linha selecionada com a tecla Del', () => {
+    component.termoProduto = '12345/42';
+    component.incluirProduto();
+    component.indiceSelecionado.set(0);
+
+    document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'Delete', bubbles: true }));
+
+    expect(vendaService.rascunho().itens.length).toBe(0);
+  });
+
   it('deve ignorar os atalhos enquanto houver janela aberta', () => {
     component.abrirDialogo({ tipo: 'desconto' });
     component.executar('novo-cliente');
@@ -88,6 +92,6 @@ describe('Pdv', () => {
 
     component.irParaPagamento();
 
-    expect(component.erroVendedor()).toContain('Informe o vendedor');
+    expect(component.erroPagamento()).toContain('prontuário do vendedor');
   });
 });

@@ -14,15 +14,22 @@ describe('BarraAcoes', () => {
 
     fixture = TestBed.createComponent(BarraAcoes);
     component = fixture.componentInstance;
+    fixture.componentRef.setInput('dica', 'F2 vai para o pagamento');
     fixture.componentRef.setInput('acoes', [
-      { id: 'pagamento', rotulo: 'Ir para pagamento', icone: 'carrinho', tecla: 'F2' },
-      { id: 'cancelar', rotulo: 'Cancelar venda', icone: 'cancelar', tecla: 'F7', desabilitada: true }
+      { id: 'pagamento', rotulo: 'Ir para pagamento', tecla: 'F2', estilo: 'primario' },
+      { id: 'cancelar', rotulo: 'Cancelar venda', tecla: 'F7', desabilitada: true }
     ]);
     await fixture.whenStable();
   });
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('deve mostrar a dica e a tecla de atalho de cada ação', () => {
+    const elemento = fixture.nativeElement as HTMLElement;
+    expect(elemento.querySelector('.dica')?.textContent).toContain('F2 vai para o pagamento');
+    expect(elemento.querySelectorAll('kbd').length).toBe(2);
   });
 
   it('deve acionar a ação pela tecla de atalho, exceto se desabilitada', () => {

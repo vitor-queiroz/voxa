@@ -3,6 +3,8 @@ import { registerLocaleData } from '@angular/common';
 import localePt from '@angular/common/locales/pt';
 import { Routes } from '@angular/router';
 import { Vendas } from './vendas';
+import { USAR_DADOS_DE_EXEMPLO } from './vendas.config';
+import { provideVendasApiMock } from './vendas-api.mock';
 
 registerLocaleData(localePt); /*formata moeda e datas no padrão brasileiro (R$ 1.234,56)*/
 
@@ -13,7 +15,8 @@ export const VENDAS_ROUTES: Routes = [
     component: Vendas,
     providers: [
       { provide: LOCALE_ID, useValue: 'pt-BR' },
-      { provide: DEFAULT_CURRENCY_CODE, useValue: 'BRL' }
+      { provide: DEFAULT_CURRENCY_CODE, useValue: 'BRL' },
+      ...(USAR_DADOS_DE_EXEMPLO ? [provideVendasApiMock()] : [])
     ],
     children: [
       {
@@ -32,6 +35,10 @@ export const VENDAS_ROUTES: Routes = [
       {
         path: 'consulta',
         loadComponent: () => import('./consulta/consulta-vendas').then((m) => m.ConsultaVendas)
+      },
+      {
+        path: 'painel-vendedores',
+        loadComponent: () => import('./painel-vendedores/painel-vendedores').then((m) => m.PainelVendedores)
       }
     ]
   }

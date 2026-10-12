@@ -1,9 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { ConsultaVendas } from './consulta-vendas';
-import { VendasApiService } from '../vendas-api.service';
-import { Venda } from '../vendas.model';
-import { VENDEDORES_MOCK } from '../vendas.mock';
+import { provideVendasApiMock } from '../vendas-api.mock';
 
 describe('ConsultaVendas', () => {
   let component: ConsultaVendas;
@@ -11,12 +9,10 @@ describe('ConsultaVendas', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ConsultaVendas]
+      imports: [ConsultaVendas],
+      providers: [provideVendasApiMock()]
     })
     .compileComponents();
-
-    const venda = { vendedor: VENDEDORES_MOCK[0], cliente: null, itens: [], pagamentos: [], total: 10 } as unknown as Venda;
-    TestBed.inject(VendasApiService).registrarVenda(venda).subscribe();
 
     fixture = TestBed.createComponent(ConsultaVendas);
     component = fixture.componentInstance;
@@ -27,20 +23,26 @@ describe('ConsultaVendas', () => {
     expect(component).toBeTruthy();
   });
 
-  it('deve filtrar as vendas pelo nome do vendedor', () => {
-    component.filtroTexto.set('orlando');
-    expect(component.vendasFiltradas().length).toBe(1);
-
-    component.filtroTexto.set('mariana');
-    expect(component.vendasFiltradas().length).toBe(0);
+  it('deve carregar as vendas de exemplo', () => {
+    expect(component.vendas().length).toBe(6);
   });
 
-  it('deve cancelar a venda e recarregar a lista', () => {
+  it('deve filtrar pelo prontuário ou nome do vendedor', () => {
+    component.filtroTexto.set('0002');
+    expect(component.vendasFiltradas().every((v) => v.vendedor.prontuario === '0002')).toBe(true);
+
+    component.filtroTexto.set('carlos');
+    expect(component.vendasFiltradas().length).toBe(3);
+  });
+
+  it('deve cancelar a venda e tirar do total finalizado', () => {
     vi.spyOn(window, 'confirm').mockReturnValue(true);
+    const venda = component.vendas().find((v) => v.numero === 6)!;
+    const totalAntes = component.totalFinalizado();
 
-    component.cancelarVenda(component.vendas()[0]);
+    component.cancelarVenda(venda);
 
-    expect(component.vendas()[0].status).toBe('CANCELADA');
-    expect(component.totalFinalizado()).toBe(0);
+    expect(component.vendas().find((v) => v.numero === 6)?.status).toBe('CANCELADA');
+    expect(component.totalFinalizado()).toBeCloseTo(totalAntes - venda.total, 2);
   });
 });

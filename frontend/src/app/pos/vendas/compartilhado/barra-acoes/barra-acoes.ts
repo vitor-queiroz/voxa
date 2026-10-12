@@ -1,24 +1,22 @@
 import { Component, HostListener, input, output } from '@angular/core';
-import { Icone, NomeIcone } from '../icone/icone';
 
 export interface Acao {
   id: string;
   rotulo: string;
-  icone: NomeIcone;
   tecla?: string; /*ex.: 'F2' — atalho de teclado*/
   desabilitada?: boolean;
-  estilo?: 'sucesso' | 'perigo';
+  estilo?: 'primario' | 'perigo';
 }
 
-/*Barra de atalhos no rodapé das telas de venda*/
+/*Rodapé fixo das telas de venda: dicas à esquerda, ações (com tecla de atalho) à direita*/
 @Component({
   selector: 'app-barra-acoes',
-  imports: [Icone],
   templateUrl: './barra-acoes.html',
   styleUrl: './barra-acoes.css',
 })
 export class BarraAcoes {
   acoes = input.required<Acao[]>();
+  dica = input('');
   acionar = output<string>();
 
   @HostListener('document:keydown', ['$event'])

@@ -22,11 +22,15 @@ export interface ProdutoVariacao {
   imagemUrl: string | null;
 }
 
-export interface Vendedor {
-  codigo: string;
+/*
+ * Funcionário (tabela "funcionario" do banco). Quem vende é identificado pelo prontuário.
+ * CPF, RG e data de nascimento NÃO vêm para o frontend: ficam só no backend (LGPD).
+ */
+export interface Funcionario {
+  prontuario: string; /*ex.: "0001"*/
   nome: string;
-  email: string | null;
-  telefone: string | null;
+  funcao: string; /*ex.: "Vendedor"*/
+  situacao: string; /*ex.: "Trabalhando" — só quem está trabalhando pode vender*/
 }
 
 export interface Cliente {
@@ -68,7 +72,8 @@ export interface PagamentoVenda {
 
 /*Venda que está sendo montada no PDV, antes de finalizar*/
 export interface RascunhoVenda {
-  vendedor: Vendedor | null;
+  vendedor: Funcionario | null;
+  percentualComissao: number; /*percentual do vendedor vinculado (ex.: 3 = 3%)*/
   cliente: Cliente | null;
   itens: ItemVenda[];
   desconto: DescontoGeral | null;
@@ -82,7 +87,7 @@ export type StatusVenda = 'FINALIZADA' | 'CANCELADA';
 export interface Venda {
   numero: number | null;
   data: string | null; /*ISO 8601*/
-  vendedor: Vendedor;
+  vendedor: Funcionario;
   cliente: Cliente | null;
   itens: ItemVenda[];
   subtotal: number;
@@ -92,5 +97,23 @@ export interface Venda {
   total: number;
   pagamentos: PagamentoVenda[];
   troco: number;
+  percentualComissao: number; /*fica gravado na venda: mudar a regra depois não altera vendas antigas*/
+  valorComissao: number; /*total × percentualComissao / 100*/
   status: StatusVenda;
+}
+
+/*Filtros da listagem de vendas (GET /vendas)*/
+export interface FiltroVendas {
+  de?: string; /*data inicial, AAAA-MM-DD*/
+  ate?: string; /*data final, AAAA-MM-DD*/
+  prontuario?: string;
+}
+
+/*Linha do painel de vendedores: totais de um prontuário no período*/
+export interface ResumoComissao {
+  vendedor: Funcionario;
+  quantidadeVendas: number;
+  pecas: number;
+  totalVendido: number;
+  valorComissao: number;
 }

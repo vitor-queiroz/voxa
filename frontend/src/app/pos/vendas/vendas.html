@@ -1,8 +1,12 @@
-<nav class="vx-abas">
-  <a routerLink="pdv" routerLinkActive="ativa">Nova venda</a>
-  <a routerLink="consulta" routerLinkActive="ativa">Consulta de vendas</a>
-</nav>
+<header class="vx-topo">
+  <span class="vx-marca">VOXA</span>
+  <nav class="vx-menu" aria-label="Módulo de vendas">
+    <span class="vx-menu-modulo">Vendas ›</span>
+    <a routerLink="pdv" routerLinkActive="ativo">Nova venda</a>
+    <a routerLink="consulta" routerLinkActive="ativo">Consulta</a>
+    <a routerLink="painel-vendedores" routerLinkActive="ativo">Painel de vendedores</a>
+  </nav>
+  <span class="vx-topo-data">{{ hoje | date: 'dd/MM/yyyy' }}</span>
+</header>
 
-<main class="vx-area">
-  <router-outlet />
-</main>
+<router-outlet />

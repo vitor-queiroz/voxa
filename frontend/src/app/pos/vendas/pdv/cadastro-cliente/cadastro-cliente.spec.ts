@@ -3,6 +3,7 @@ import { NgForm } from '@angular/forms';
 
 import { CadastroCliente } from './cadastro-cliente';
 import { Cliente } from '../../vendas.model';
+import { provideVendasApiMock } from '../../vendas-api.mock';
 
 describe('CadastroCliente', () => {
   let component: CadastroCliente;
@@ -11,7 +12,8 @@ describe('CadastroCliente', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [CadastroCliente]
+      imports: [CadastroCliente],
+      providers: [provideVendasApiMock()]
     })
     .compileComponents();
 

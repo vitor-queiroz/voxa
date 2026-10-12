@@ -28,7 +28,7 @@ export class ConsultaVendas {
       if (!texto) {
         return true;
       }
-      return [String(v.numero), v.vendedor.nome, v.cliente?.nome ?? '', v.cliente?.cpf ?? '']
+      return [String(v.numero), v.vendedor.prontuario, v.vendedor.nome, v.cliente?.nome ?? '', v.cliente?.cpf ?? '']
         .some((campo) => campo.toLowerCase().includes(texto));
     });
   });
@@ -48,7 +48,10 @@ export class ConsultaVendas {
   }
 
   carregar() {
-    this.api.listarVendas().subscribe((vendas) => this.vendas.set(vendas));
+    this.api.listarVendas().subscribe({
+      next: (vendas) => this.vendas.set(vendas),
+      error: (erro: Error) => this.erro.set(erro.message),
+    });
   }
 
   cancelarVenda(venda: Venda) {

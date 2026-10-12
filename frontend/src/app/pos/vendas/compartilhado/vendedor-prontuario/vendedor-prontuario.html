@@ -1,0 +1,37 @@
+<div class="vendedor">
+  <div class="vx-campo">
+    <label for="prontuario">Prontuário do vendedor (Enter)</label>
+    <input
+      id="prontuario"
+      name="prontuario"
+      list="lista-funcionarios"
+      autocomplete="off"
+      placeholder="0001"
+      [(ngModel)]="prontuario"
+      (change)="buscar()"
+    />
+    <datalist id="lista-funcionarios">
+      @for (funcionario of funcionarios(); track funcionario.prontuario) {
+        <option [value]="funcionario.prontuario">{{ funcionario.nome }}</option>
+      }
+    </datalist>
+  </div>
+
+  @if (erro()) {
+    <p class="vx-mensagem-erro">{{ erro() }}</p>
+  } @else if (encontrado(); as funcionario) {
+    @if (bloqueado()) {
+      <p class="vx-aviso">
+        <strong>{{ funcionario.nome }}</strong> · {{ funcionario.situacao }}<br />
+        Só funcionários com situação "Trabalhando" podem ser vinculados à venda.
+      </p>
+    } @else {
+      <p class="vx-encontrado">
+        <strong>{{ funcionario.nome }}</strong> · {{ funcionario.funcao }} · vinculado<br />
+        <small>Comissão de {{ vendaService.rascunho().percentualComissao }}% sobre o total da venda</small>
+      </p>
+    }
+  } @else {
+    <p class="vazio">Digite o prontuário para vincular a venda ao vendedor.</p>
+  }
+</div>
