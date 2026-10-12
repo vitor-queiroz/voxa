@@ -1,1 +1,60 @@
-<app-dados-entrada></app-dados-entrada>
+
+<div class="entrada-container">
+  <header class="entrada-header">
+    <div class="entrada-logo">VOXA</div>
+
+    <div class="entrada-identificacao">
+      <span>ESTOQUE</span>
+      <span> / </span>
+      <span>ENTRADA DE MERCADORIA</span>
+    </div>
+  </header>
+
+  <main class="entrada-conteudo">
+    <div class="entrada-titulo">
+      <div>
+        <h1>Entrada de Mercadoria</h1>
+        <p>Registro e conferência de mercadorias recebidas.</p>
+      </div>
+
+      <span class="entrada-status">RASCUNHO</span>
+    </div>
+
+    <section class="entrada-etapas">
+      <div
+        class="etapa"
+        [class.etapa-ativa]="etapaAtual === 1"
+      >
+        <span>1</span>
+        <div>
+          <strong>Dados da entrada</strong>
+          <small>Loja, fornecedor e nota fiscal</small>
+        </div>
+      </div>
+
+      <div
+        class="etapa"
+        [class.etapa-ativa]="etapaAtual === 2"
+      >
+        <span>2</span>
+        <div>
+          <strong>Produtos</strong>
+          <small>Bipagem e lançamento</small>
+        </div>
+      </div>
+
+      <div
+        class="etapa"
+        [class.etapa-ativa]="etapaAtual === 3"
+      >
+        <span>3</span>
+        <div>
+          <strong>Conferência</strong>
+          <small>Revisão e confirmação</small>
+        </div>
+      </div>
+    </section>
+
+    <app-dados-entrada></app-dados-entrada>
+  </main>
+</div>

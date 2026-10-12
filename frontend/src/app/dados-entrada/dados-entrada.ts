@@ -1,6 +1,6 @@
 
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { FornecedorService } from '../auth/fornecedor.service';
 
@@ -28,7 +28,7 @@ export class DadosEntrada {
   mensagemFornecedor = '';
   dataEntrada: string = this.obterDataAtual();
 
-  constructor(private fornecedorService: FornecedorService) { }
+  constructor(private fornecedorService: FornecedorService, private cdr: ChangeDetectorRef) { }
 
   buscarFornecedorPorCnpj(): void {
     const cnpjLimpo = this.cnpj.replace(/\D/g, '');
@@ -53,18 +53,23 @@ export class DadosEntrada {
           fornecedorEncontrado.razaoSocial;
 
         this.mensagemFornecedor = 'Fornecedor encontrado no cadastro!';
+
+        this.cdr.markForCheck();
       },
 
       error: (erro) => {
         if (erro.status === 404) {
           this.mensagemFornecedor =
             'Fornecedor não cadastrado. Confira o CNPJ ou cadastre-o.';
+
+          this.cdr.markForCheck();
           return;
         }
 
         this.mensagemFornecedor =
           'Não foi possível consultar o fornecedor. Tente novamente.';
 
+        this.cdr.markForCheck();
         console.error('Erro ao consultar fornecedor:', erro);
       },
     });
@@ -88,6 +93,8 @@ export class DadosEntrada {
 
     leitor.onload = () => {
       const conteudo = leitor.result;
+
+      this.cdr.markForCheck();
 
       if (typeof conteudo !== 'string') {
         this.mensagemXml = 'Não foi possível ler o arquivo.';
@@ -161,18 +168,23 @@ export class DadosEntrada {
 
           this.mensagemXml =
             'XML carregado! Fornecedor encontrado no cadastro.';
+
+          this.cdr.markForCheck();  
         },
 
         error: (erro) => {
           if (erro.status === 404) {
             this.mensagemXml =
               'XML carregado, mas o fornecedor não está cadastrado.';
+
+            this.cdr.markForCheck();
             return;
           }
 
           this.mensagemXml =
             'XML carregado, mas não foi possível consultar o fornecedor.';
 
+          this.cdr.markForCheck();
           console.error('Erro ao consultar fornecedor:', erro);
         },
       });
@@ -180,6 +192,7 @@ export class DadosEntrada {
 
     leitor.onerror = () => {
       this.mensagemXml = 'Erro ao ler o arquivo XML.';
+      this.cdr.markForCheck();
     };
 
     leitor.readAsText(arquivo);

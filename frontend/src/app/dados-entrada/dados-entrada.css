@@ -1,99 +1,20 @@
 
-.entrada-container {
-    min-height: 100vh;
-    font-family: Arial, sans-serif;
-    color: #222;
-    background: #fff;
-}
-
-.entrada-header {
-    height: 76px;
-    padding: 0 40px;
-    display: flex;
-    align-items: center;
-    gap: 30px;
-    border-bottom: 1px solid #e5e5e5;
-    background: #102532;
-}
-
-.entrada-logo { font: 32px 'Scoria', sans-serif; color: #fff }
-.entrada-header .entrada-identificacao { color: #d2dce2; }
-
-.entrada-identificacao,
-.entrada-titulo p,
 .secao-titulo p {
     color: #777;
     font-size: 13px;
 }
 
-.entrada-conteudo {
-    max-width: 1100px;
-    margin: auto;
-    padding: 36px 24px;
+.secao-titulo h2 {
+    font-size: 18px;
+    margin: 0 0 8px;
 }
 
-.entrada-titulo {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 28px;
-}
-
-.entrada-titulo h1 { font-size: 25px; margin: 0 0 8px; }
-.secao-titulo h2 { font-size: 18px; margin: 0 0 8px; }
-
-.entrada-status {
-    border: 1px solid #ddd;
-    padding: 8px 12px;
-    font-size: 11px;
-}
-
-.entrada-etapas,
 .entrada-formulario {
     border: 1px solid #e5e5e5;
     border-radius: 5px;
     margin-bottom: 28px;
+    padding: 26px;
 }
-
-.entrada-etapas {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-}
-
-.etapa {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 18px;
-    color: #74818a;
-}
-
-.etapa + .etapa { border-left: 1px solid #e5e5e5; }
-
-.etapa > span {
-    min-width: 30px;
-    height: 30px;
-    display: grid;
-    place-items: center;
-    border: 1px solid #ccc;
-    border-radius: 50%;
-    border-color: #c7d0d5;
-    background: #fff;
-}
-
-.etapa-ativa { color: #126b66; background: #fff; }
-.etapa-ativa > span { color: #fff; background: #126b66; border-color: #126b66; }
-
-.etapa strong,
-.etapa small { display: block; font-size: 12px; }
-
-.etapa small,
-.campo small {
-    color: #888;
-    margin-top: 5px;
-}
-
-.entrada-formulario { padding: 26px; }
 
 .formulario-grid {
     display: grid;
@@ -102,9 +23,20 @@
     margin-top: 24px;
 }
 
-.campo { display: flex; flex-direction: column; gap: 8px; }
-.campo-completo { grid-column: 1 / -1; }
-.campo label { font-size: 13px; font-weight: 600; }
+.campo {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.campo-completo {
+    grid-column: 1 / -1;
+}
+
+.campo label {
+    font-size: 13px;
+    font-weight: 600;
+}
 
 .campo input,
 .campo select,
@@ -125,7 +57,11 @@
     border-color: #555;
 }
 
-.campo small { font-size: 11px; }
+.campo small {
+    color: #888;
+    margin-top: 5px;
+    font-size: 11px;
+}
 
 .entrada-acoes {
     display: flex;
@@ -139,24 +75,19 @@
     cursor: pointer;
 }
 
-.botao-secundario { background: #fff; border: 1px solid #ddd; }
-.botao-principal { color: #fff; background: #126b66; border: 1px solid #126b66; }
-.entrada-acoes button:hover { opacity: .8; }
+.botao-secundario {
+    background: #fff;
+    border: 1px solid #ddd;
+}
 
-@media (max-width: 700px) {
-    .entrada-header { padding: 0 16px; gap: 16px; }
-    .entrada-conteudo { padding: 24px 16px; }
+.botao-principal {
+    color: #fff;
+    background: #126b66;
+    border: 1px solid #126b66;
+}
 
-    .entrada-etapas,
-    .formulario-grid { grid-template-columns: 1fr; }
-
-    .etapa + .etapa {
-        border-left: none;
-        border-top: 1px solid #e5e5e5;
-    }
-
-    .campo-completo { grid-column: auto; }
-    .entrada-formulario { padding: 18px; }
+.entrada-acoes button:hover {
+    opacity: .8;
 }
 
 .importacao-xml {
@@ -200,6 +131,20 @@
 
 .botao-importar-xml:hover {
     background: #f0f0f0;
+}
+
+@media (max-width: 700px) {
+    .formulario-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .campo-completo {
+        grid-column: auto;
+    }
+
+    .entrada-formulario {
+        padding: 18px;
+    }
 }
 
 @media (max-width: 600px) {

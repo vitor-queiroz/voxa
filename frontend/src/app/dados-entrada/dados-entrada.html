@@ -1,231 +1,159 @@
-<div class="entrada-container">
 
-    <header class="entrada-header">
-        <div class="entrada-logo">VOXA</div>
+<section class="entrada-formulario">
+    <div class="secao-titulo">
+        <h2>Dados da entrada</h2>
+        <p>Importe a nota fiscal ou preencha os dados manualmente.</p>
+    </div>
 
-        <div class="entrada-identificacao">
-            <span>ESTOQUE</span>
-            <span> / </span>
-            <span>ENTRADA DE MERCADORIA</span>
-        </div>
-    </header>
-
-    <main class="entrada-conteudo">
-
-        <div class="entrada-titulo">
-            <div>
-                <h1>Entrada de Mercadoria</h1>
-                <p>Registro e conferência de mercadorias recebidas.</p>
-            </div>
-
-            <span class="entrada-status">RASCUNHO</span>
+    <div class="importacao-xml">
+        <div class="importacao-xml-info">
+            <strong>Importar nota fiscal (NF-e)</strong>
+            <small>Selecione o XML para preencher automaticamente os dados da nota.</small>
         </div>
 
-        <section class="entrada-etapas">
-            <div class="etapa etapa-ativa">
-                <span>1</span>
-                <div>
-                    <strong>Dados da entrada</strong>
-                    <small>Loja, fornecedor e nota fiscal</small>
-                </div>
+        <div class="retorno-xml" *ngIf="mensagemXml">
+            <div class="retorno-xml-mensagem">
+                <span class="retorno-xml-icone" aria-hidden="true">
+                    {{ mensagemXml.startsWith('XML carregado!') ? '✓' : 'i' }}
+                </span>
+                <span>{{ mensagemXml }}</span>
             </div>
 
-            <div class="etapa">
-                <span>2</span>
-                <div>
-                    <strong>Produtos</strong>
-                    <small>Bipagem e lançamento</small>
-                </div>
-            </div>
+            <small *ngIf="arquivoSelecionado" class="nome-arquivo">
+                {{ arquivoSelecionado }}
+            </small>
+        </div>
 
-            <div class="etapa">
-                <span>3</span>
-                <div>
-                    <strong>Conferência</strong>
-                    <small>Revisão e confirmação</small>
-                </div>
-            </div>
-        </section>
+        <label for="arquivoXml" class="botao-importar-xml">
+            {{ arquivoSelecionado ? 'Trocar arquivo' : 'Selecionar arquivo XML' }}
+        </label>
 
-        <section class="entrada-formulario">
+        <input
+            id="arquivoXml"
+            type="file"
+            accept=".xml,text/xml,application/xml"
+            (change)="aoSelecionarXml($event)"
+            hidden
+        />
+    </div>
 
-            <div class="secao-titulo">
-                <h2>Dados da entrada</h2>
-                <p>Importe a nota fiscal ou preencha os dados manualmente.</p>
-            </div>
+    <div class="formulario-grid">
+        <div class="campo">
+            <label for="loja">Loja que recebe *</label>
+            <select id="loja">
+                <option value="">Selecione a loja</option>
+                <option value="1">Loja 01</option>
+                <option value="2">Loja 02</option>
+                <option value="3">Loja 03</option>
+            </select>
+        </div>
 
-            <div class="importacao-xml">
-                <div class="importacao-xml-info">
-                    <strong>Importar nota fiscal (NF-e)</strong>
-                    <small>Selecione o XML para preencher automaticamente os dados da nota.
-                    </small>
-                </div>
+        <div class="campo">
+            <label for="cnpj">CNPJ do fornecedor *</label>
+            <input
+                id="cnpj"
+                type="text"
+                placeholder="Digite o CNPJ"
+                [(ngModel)]="cnpj"
+                (keydown.enter)="buscarFornecedorPorCnpj()"
+            />
+            <small *ngIf="mensagemFornecedor">
+                {{ mensagemFornecedor }}
+            </small>
+        </div>
 
-                
-                <div class="retorno-xml" *ngIf="mensagemXml">
-                  <div class="retorno-xml-mensagem">
-                    <span class="retorno-xml-icone" aria-hidden="true">
-                        {{ mensagemXml.startsWith('XML carregado!') ? '✓' : 'i' }}
-                    </span>
+        <div class="campo campo-completo">
+            <label for="fornecedor">Fornecedor *</label>
+            <input
+                id="fornecedor"
+                type="text"
+                placeholder="Nome do fornecedor"
+                [(ngModel)]="fornecedor"
+            />
+            <small>Fornecedor identificado a partir do XML da nota fiscal.</small>
+        </div>
 
-                    <span>{{ mensagemXml }}</span>
-                  </div> 
+        <div class="campo">
+            <label for="nota">Número da nota fiscal *</label>
+            <input id="nota" type="text" placeholder="Número da NF" [(ngModel)]="nota" />
+        </div>
 
-                    <small *ngIf="arquivoSelecionado" class="nome-arquivo">
-                        {{ arquivoSelecionado }}
-                    </small>
-                </div>
+        <div class="campo">
+            <label for="serie">Série</label>
+            <input id="serie" type="text" placeholder="Série da NF" [(ngModel)]="serie" />
+        </div>
 
+        <div class="campo">
+            <label for="emissao">Data de emissão *</label>
+            <input id="emissao" type="date" [(ngModel)]="emissao" />
+        </div>
 
-                <label for="arquivoXml" class="botao-importar-xml"> {{ arquivoSelecionado  ? 'Trocar arquivo' : 'Selecionar arquivo XML' }} </label>
-                <input 
-                id="arquivoXml"
-                type="file" 
-                accept=".xml,text/xml,application/xml" 
-                (change)=" aoSelecionarXml($event)"
-                hidden />
-            </div>
+        <div class="campo">
+            <label for="entrada">Data de entrada *</label>
+            <input id="entrada" type="date" [(ngModel)]="dataEntrada" required />
+        </div>
 
-            <div class="formulario-grid">
+        <div class="campo campo-completo">
+            <label for="chave">Chave de acesso da NF-e</label>
+            <input
+                id="chave"
+                class="campo-chave"
+                type="text"
+                placeholder="Chave de acesso, se disponível"
+                [(ngModel)]="chave"
+            />
+        </div>
 
-                <div class="campo">
-                    <label for="loja">Loja que recebe *</label>
-                    <select id="loja">
-                        <option value="">Selecione a loja</option>
-                        <option value="1">Loja 01</option>
-                        <option value="2">Loja 02</option>
-                        <option value="3">Loja 03</option>
-                    </select>
-                </div>
+        <div class="campo">
+            <label for="natureza">Natureza da operação</label>
+            <input
+                id="natureza"
+                type="text"
+                placeholder="Ex.: Compra para revenda"
+                [(ngModel)]="natureza"
+            />
+        </div>
 
-                <div class="campo">
-                    <label for="cnpj">CNPJ do fornecedor *</label>
-                    <input 
-                    id="cnpj" 
-                    type="text" 
-                    placeholder="Digite o CNPJ" 
-                    [(ngModel)]="cnpj"
-                    (keydown.enter)="buscarFornecedorPorCnpj()"/>
+        <div class="campo">
+            <label for="totalNota">Valor total da NF (R$) *</label>
+            <input
+                id="totalNota"
+                type="number"
+                min="0"
+                step="0.01"
+                placeholder="0,00"
+                [(ngModel)]="totalNota"
+                required
+            />
+        </div>
 
-                    <small *ngIf="mensagemFornecedor">
-                        {{ mensagemFornecedor }}
-                    </small>
-                </div>
+        <div class="campo">
+            <label for="frete">Frete (R$)</label>
+            <input id="frete" type="number" min="0" step="0.01" placeholder="0,00" />
+        </div>
 
-                <div class="campo campo-completo">
-                    <label for="fornecedor">Fornecedor *</label>
-                    <input 
-                    id="fornecedor"
-                    type="text"
-                    placeholder="Nome do fornecedor"
-                    [(ngModel)]="fornecedor"    
-                    />
-                    <small>
-                        Fornecedor identificado a partir do XML da nota fiscal.
-                    </small>
-                </div>
+        <div class="campo">
+            <label for="condicaoPagamento">Condição de pagamento</label>
+            <input id="condicaoPagamento" type="text" placeholder="Ex.: 30/60/90 dias" />
+        </div>
 
-                <div class="campo">
-                    <label for="nota">Número da nota fiscal *</label>
-                    <input 
-                    id="nota" 
-                    type="text" 
-                    placeholder="Número da NF"
-                    [(ngModel)]="nota"/>
-                </div>
+        <div class="campo">
+            <label for="vencimento">Vencimento da 1ª parcela</label>
+            <input id="vencimento" type="date" />
+        </div>
 
-                <div class="campo">
-                    <label for="serie">Série</label>
-                    <input 
-                    id="serie" 
-                    type="text" 
-                    placeholder="Série da NF"
-                    [(ngModel)]="serie" />
-                </div>
+        <div class="campo campo-completo">
+            <label for="observacoes">Observações</label>
+            <textarea
+                id="observacoes"
+                rows="3"
+                placeholder="Informações adicionais sobre a entrada"
+            ></textarea>
+        </div>
+    </div>
 
-                <div class="campo">
-                    <label for="emissao">Data de emissão *</label>
-                    <input 
-                    id="emissao" 
-                    type="date"
-                    [(ngModel)]="emissao"/>
-                </div>
-
-                <div class="campo">
-                    <label for="entrada">Data de entrada *</label>
-                    <input 
-                    id="entrada" 
-                    type="date"
-                    [(ngModel)]="dataEntrada" 
-                    required/>
-                </div>
-
-                <div class="campo campo-completo">
-                    <label for="chave">Chave de acesso da NF-e</label>
-                    <input 
-                    id="chave" 
-                    class="campo-chave"
-                    type="text" 
-                    placeholder="Chave de acesso, se disponível"
-                    [(ngModel)]="chave" />
-                </div>
-
-
-                <div class="campo">
-                    <label for="natureza">Natureza da operação</label>
-                    <input 
-                    id="natureza"
-                    type="text" 
-                    placeholder="Ex.: Compra para revenda"
-                    [(ngModel)]="natureza" />
-                </div>
-
-                <div class="campo">
-                    <label for="totalNota">Valor total da NF (R$) *</label>
-                    <input 
-                    id="totalNota" 
-                    type="number" 
-                    min="0" 
-                    step="0.01" 
-                    placeholder="0,00" 
-                    [(ngModel)]="totalNota"
-                    required />
-                </div>
-
-                <div class="campo">
-                    <label for="frete">Frete (R$)</label>
-                    <input id="frete" type="number" min="0" step="0.01" placeholder="0,00" />
-                </div>
-
-                <div class="campo">
-                    <label for="condicaoPagamento">Condição de pagamento</label>
-                    <input id="condicaoPagamento" type="text" placeholder="Ex.: 30/60/90 dias" />
-                </div>
-
-                <div class="campo">
-                    <label for="vencimento">Vencimento da 1ª parcela</label>
-                    <input id="vencimento" type="date" />
-                </div>
-
-                <div class="campo campo-completo">
-                    <label for="observacoes">Observações</label>
-                    <textarea id="observacoes" rows="3" placeholder="Informações adicionais sobre a entrada"></textarea>
-                </div>
-
-            </div>
-
-        </section>
-
-        <footer class="entrada-acoes">
-            <button type="button" class="botao-secundario">
-                Cancelar
-            </button>
-
-            <button type="button" class="botao-principal">
-                Iniciar lançamento
-            </button>
-        </footer>
-
-    </main>
-
-</div>
+    <footer class="entrada-acoes">
+        <button type="button" class="botao-secundario">Cancelar</button>
+        <button type="button" class="botao-principal">Iniciar lançamento</button>
+    </footer>
+</section>
