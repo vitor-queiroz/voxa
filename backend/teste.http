@@ -1,1 +1,46 @@
 POST http://localhost:8080/login
+
+### ---------- Vendas ----------
+
+### Funcionário pelo prontuário (sem CPF/RG)
+GET http://localhost:8080/funcionarios/0001
+
+### Percentual de comissão do funcionário
+GET http://localhost:8080/funcionarios/0001/comissao
+
+### Produto por código de barras ou REF/TAM
+GET http://localhost:8080/produtos/variacoes/busca?termo=12345/42
+
+### Cliente pelo CPF
+GET http://localhost:8080/clientes?cpf=32970069865
+
+### Cadastrar cliente
+POST http://localhost:8080/clientes
+Content-Type: application/json
+
+{ "id": null, "cpf": "11144477735", "nome": "Joana Souza", "email": null, "telefone": "(11) 99999-0000" }
+
+### Formas de pagamento
+GET http://localhost:8080/formas-pagamento
+
+### Registrar venda (o backend recalcula total, troco e comissão)
+POST http://localhost:8080/vendas
+Content-Type: application/json
+
+{
+  "vendedor": { "prontuario": "0001" },
+  "cliente": null,
+  "itens": [ { "variacao": { "id": 1 }, "quantidade": 1, "precoUnitario": 349.90 } ],
+  "desconto": { "tipo": "PERCENTUAL", "valor": 10 },
+  "cashback": 0,
+  "pagamentos": [ { "forma": { "id": "DINHEIRO" }, "valor": 400, "parcelas": 1 } ]
+}
+
+### Vendas do prontuário 0001 em outubro
+GET http://localhost:8080/vendas?de=2026-10-01&ate=2026-10-31&prontuario=0001
+
+### Cancelar venda
+PATCH http://localhost:8080/vendas/1/cancelamento
+
+### Painel: vendas e comissão por prontuário
+GET http://localhost:8080/comissoes?de=2026-10-01&ate=2026-10-31
