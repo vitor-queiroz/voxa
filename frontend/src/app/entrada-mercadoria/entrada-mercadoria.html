@@ -55,6 +55,17 @@
       </div>
     </section>
 
-    <app-dados-entrada></app-dados-entrada>
+
+    @if (etapaAtual === 1) {
+        <app-dados-entrada
+        (avancar)="etapaAtual = 2"
+        ></app-dados-entrada>
+    }
+
+    @if (etapaAtual === 2) {
+        <app-lancamento-produtos 
+        (voltar)="etapaAtual = 1" 
+        ></app-lancamento-produtos>
+    }
   </main>
 </div>

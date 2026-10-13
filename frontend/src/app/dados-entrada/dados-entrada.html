@@ -154,6 +154,10 @@
 
     <footer class="entrada-acoes">
         <button type="button" class="botao-secundario">Cancelar</button>
-        <button type="button" class="botao-principal">Iniciar lançamento</button>
+        <button 
+        type="button" 
+        class="botao-principal"
+        (click)="avancar.emit()"
+        >Iniciar lançamento</button>
     </footer>
 </section>

@@ -1,6 +1,6 @@
 
 import { CommonModule } from '@angular/common';
-import { Component, ChangeDetectorRef } from '@angular/core';
+import { Component, ChangeDetectorRef, EventEmitter, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { FornecedorService } from '../auth/fornecedor.service';
 
@@ -12,6 +12,8 @@ import { FornecedorService } from '../auth/fornecedor.service';
   styleUrl: './dados-entrada.css',
 })
 export class DadosEntrada {
+
+    @Output() avancar = new EventEmitter<void>();
 
   arquivoSelecionado: string = '';
   mensagemXml: string = '';

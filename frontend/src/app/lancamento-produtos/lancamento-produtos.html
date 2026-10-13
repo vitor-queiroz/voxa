@@ -1,1 +1,458 @@
-<p>lancamento-produtos works!</p>
+<section class="lancamento">
+  <div class="cabecalho-etapa">
+    <div>
+      <span class="etiqueta-etapa">ETAPA 2 DE 3</span>
+      <h2>Lançamento de produtos</h2>
+      <p class="subtitulo">
+        Registre os produtos recebidos e confira os custos e as quantidades.
+      </p>
+    </div>
+
+    <div class="atalho">
+      <span>ATALHOS</span>
+      <div>
+        <kbd>F2</kbd> Bipagem
+        <kbd>F3</kbd> Manual
+      </div>
+    </div>
+  </div>
+
+  <div class="layout-lancamento">
+    <main class="area-principal">
+      <section class="painel painel-lancamento">
+        <div class="abas-modo">
+          <button
+            type="button"
+            class="aba-modo"
+            [class.ativa]="modo === 'bipagem'"
+            [attr.aria-pressed]="modo === 'bipagem'"
+            (click)="selecionarModo('bipagem')"
+          >
+            <span class="icone-modo">▥</span>
+            <span>
+              <strong>Bipagem</strong>
+              <small>Leitura por código de barras</small>
+            </span>
+            <kbd>F2</kbd>
+          </button>
+
+          <button
+            type="button"
+            class="aba-modo"
+            [class.ativa]="modo === 'manual'"
+            [attr.aria-pressed]="modo === 'manual'"
+            (click)="selecionarModo('manual')"
+          >
+            <span class="icone-modo">☷</span>
+            <span>
+              <strong>Manual</strong>
+              <small>Referência, cor e grade</small>
+            </span>
+            <kbd>F3</kbd>
+          </button>
+        </div>
+
+        @if (mensagem) {
+          <div
+            class="mensagem"
+            [class.mensagem-sucesso]="tipoMensagem === 'sucesso'"
+            [class.mensagem-aviso]="tipoMensagem === 'aviso'"
+            role="status"
+          >
+            <span>{{ mensagem }}</span>
+            <button
+              type="button"
+              class="fechar-mensagem"
+              aria-label="Fechar mensagem"
+              (click)="limparMensagem()"
+            >
+              ×
+            </button>
+          </div>
+        }
+
+        @if (modo === 'bipagem') {
+          <div class="conteudo-modo">
+            <div class="titulo-conteudo">
+              <div>
+                <h3>Leitura de código de barras</h3>
+                <p>
+                  Cada leitura corresponde a uma unidade do produto.
+                </p>
+              </div>
+              <span class="status-modo">MODO BIPAGEM</span>
+            </div>
+
+            <form
+              class="form-bipagem"
+              (ngSubmit)="registrarBipagem()"
+            >
+              <label for="codigoBarras">Código de barras</label>
+
+              <div class="campo-com-acao">
+                <span class="icone-codigo">▥</span>
+                <input
+                  id="codigoBarras"
+                  name="codigoBarras"
+                  type="text"
+                  [(ngModel)]="codigoBarras"
+                  placeholder="Leia ou digite o código de barras"
+                  autocomplete="off"
+                  autofocus
+                />
+                <button type="submit" class="botao-principal">
+                  Registrar leitura
+                </button>
+              </div>
+
+              <span class="texto-ajuda">
+                O leitor precisa estar configurado para digitar o código
+                e enviar Enter. A consulta automática será integrada ao cadastro.
+              </span>
+            </form>
+
+            <div class="separador"></div>
+
+            <div class="titulo-lista">
+              <div>
+                <h3>Leituras aguardando identificação</h3>
+                <p>
+                  Códigos registrados nesta sessão que ainda não foram
+                  relacionados a um produto.
+                </p>
+              </div>
+              <span class="contador">
+                {{ leiturasPendentes.length }}
+              </span>
+            </div>
+
+            @if (leiturasPendentes.length > 0) {
+              <div class="lista-pendencias">
+                @for (codigo of leiturasPendentes; track $index) {
+                  <div class="pendencia">
+                    <div class="pendencia-icone">!</div>
+
+                    <div class="pendencia-dados">
+                      <strong>Código {{ codigo }}</strong>
+                      <span>Aguardando identificação no cadastro</span>
+                    </div>
+
+                    <button
+                      type="button"
+                      class="botao-secundario"
+                      (click)="vincularLeitura(codigo)"
+                    >
+                      Informar produto
+                    </button>
+
+                    <button
+                      type="button"
+                      class="botao-texto perigo"
+                      (click)="descartarLeitura($index)"
+                    >
+                      Descartar
+                    </button>
+                  </div>
+                }
+              </div>
+            } @else {
+              <div class="estado-vazio">
+                <span class="vazio-icone">▥</span>
+                <strong>Nenhuma leitura pendente</strong>
+                <p>
+                  Os códigos lidos aparecerão aqui até serem identificados
+                  no cadastro de produtos.
+                </p>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="conteudo-modo">
+            <div class="titulo-conteudo">
+              <div>
+                <h3>Lançamento manual</h3>
+                <p>
+                  Informe o produto, a cor, o custo e as quantidades por tamanho.
+                </p>
+              </div>
+              <span class="status-modo">MODO MANUAL</span>
+            </div>
+
+            <div class="aviso-integracao">
+              <strong>Cadastro de produtos</strong>
+              <span>
+                A pesquisa e a seleção reais serão conectadas às entidades
+                Produto e ProdutoVariacao. Nesta etapa, os campos são
+                preenchidos manualmente.
+              </span>
+            </div>
+
+            <form
+              class="form-manual"
+              (ngSubmit)="adicionarProdutoManual()"
+            >
+              <div class="campos-produto">
+                <div class="campo">
+                  <label for="referencia">1 · Referência</label>
+                  <input
+                    id="referencia"
+                    name="referencia"
+                    type="text"
+                    [(ngModel)]="referencia"
+                    placeholder="Ex.: REF-001"
+                    required
+                  />
+                </div>
+
+                <div class="campo">
+                  <label for="nomeProduto">Nome do produto</label>
+                  <input
+                    id="nomeProduto"
+                    name="nomeProduto"
+                    type="text"
+                    [(ngModel)]="nomeProduto"
+                    placeholder="Nome do produto"
+                    required
+                  />
+                </div>
+
+                <div class="campo">
+                  <label for="cor">2 · Cor</label>
+                  <input
+                    id="cor"
+                    name="cor"
+                    type="text"
+                    [(ngModel)]="cor"
+                    placeholder="Ex.: Preto"
+                    required
+                  />
+                </div>
+
+                <div class="campo">
+                  <label for="custoUnitario">Custo unitário (R$)</label>
+                  <input
+                    id="custoUnitario"
+                    name="custoUnitario"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    [(ngModel)]="custoUnitario"
+                    placeholder="0,00"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div class="grade-cabecalho">
+                <div>
+                  <h3>Grade de tamanhos</h3>
+                  <p>Informe a quantidade recebida de cada tamanho.</p>
+                </div>
+                <span class="total-grade">
+                  {{ totalGrade }} {{ totalGrade === 1 ? 'peça' : 'peças' }}
+                </span>
+              </div>
+
+              <div class="grade-tamanhos">
+                @for (tamanho of tamanhos; track tamanho) {
+                  <div class="campo-tamanho">
+                    <label [for]="'tam-' + tamanho">
+                      {{ tamanho }}
+                    </label>
+                    <input
+                      [id]="'tam-' + tamanho"
+                      [name]="'tam-' + tamanho"
+                      type="number"
+                      min="0"
+                      step="1"
+                      [(ngModel)]="grade[tamanho]"
+                    />
+                  </div>
+                }
+              </div>
+
+              <div class="resumo-manual">
+                <div>
+                  <span>Quantidade</span>
+                  <strong>{{ totalGrade }} peças</strong>
+                </div>
+                <div>
+                  <span>Subtotal</span>
+                  <strong>
+                    {{ subtotalManual | currency: 'BRL': 'symbol': '1.2-2': 'pt-BR' }}
+                  </strong>
+                </div>
+              </div>
+
+              <button type="submit" class="botao-principal botao-adicionar">
+                + Adicionar à entrada
+              </button>
+            </form>
+          </div>
+        }
+      </section>
+
+      <section class="painel painel-itens">
+        <div class="titulo-lista">
+          <div>
+            <h3>Produtos lançados nesta sessão</h3>
+            <p>Confira os itens registrados antes de avançar.</p>
+          </div>
+          <span class="contador">{{ itens.length }}</span>
+        </div>
+
+        @if (itens.length > 0) {
+          <div class="tabela-responsiva">
+            <table>
+              <thead>
+                <tr>
+                  <th>Referência</th>
+                  <th>Produto</th>
+                  <th>Cor</th>
+                  <th>Tam.</th>
+                  <th>Qtd.</th>
+                  <th>Custo unit.</th>
+                  <th>Subtotal</th>
+                  <th>Ação</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                @for (item of itens; track $index) {
+                  <tr>
+                    <td>{{ item.referencia }}</td>
+                    <td class="produto-tabela">{{ item.produto }}</td>
+                    <td>{{ item.cor }}</td>
+                    <td>{{ item.tamanho }}</td>
+                    <td>{{ item.quantidade }}</td>
+                    <td>
+                      {{
+                        item.custoUnitario
+                          | currency:'BRL':'symbol':'1.2-2':'pt-BR'
+                      }}
+                    </td>
+                    <td class="valor-tabela">
+                      {{
+                        item.quantidade * item.custoUnitario
+                          | currency:'BRL':'symbol':'1.2-2':'pt-BR'
+                      }}
+                    </td>
+                    <td>
+                      <button
+                        type="button"
+                        class="botao-texto perigo"
+                        (click)="removerItem($index)"
+                      >
+                        Remover
+                      </button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        } @else {
+          <div class="estado-vazio estado-vazio-menor">
+            <span class="vazio-icone">▤</span>
+            <strong>Nenhum produto lançado</strong>
+            <p>
+              Use a bipagem ou o lançamento manual para começar.
+            </p>
+          </div>
+        }
+      </section>
+    </main>
+
+    <aside class="coluna-resumo">
+      <section class="painel painel-totais">
+        <span class="etiqueta-painel">RESUMO DA ENTRADA</span>
+        <h3>Totais do lançamento</h3>
+
+        <div class="total-linha">
+          <span>Peças lançadas</span>
+          <strong>{{ totalPecas }}</strong>
+        </div>
+
+        <div class="total-linha">
+          <span>Referências</span>
+          <strong>{{ totalReferencias }}</strong>
+        </div>
+
+        <div class="total-linha total-destaque">
+          <span>Valor lançado</span>
+          <strong>
+            {{
+              valorLancado
+                | currency:'BRL':'symbol':'1.2-2':'pt-BR'
+            }}
+          </strong>
+        </div>
+
+        <div class="separador"></div>
+
+        <div class="total-linha">
+          <span>Valor da NF</span>
+          <strong>
+            {{
+              valorNota
+                | currency:'BRL':'symbol':'1.2-2':'pt-BR'
+            }}
+          </strong>
+        </div>
+
+        <div class="total-linha total-falta">
+          <span>Falta lançar</span>
+          <strong>
+            {{
+              faltaLancar
+                | currency:'BRL':'symbol':'1.2-2':'pt-BR'
+            }}
+          </strong>
+        </div>
+
+        <p class="nota-resumo">
+          O resumo será atualizado com os dados reais da nota e dos produtos
+          após a integração.
+        </p>
+      </section>
+
+      <section class="painel painel-nota">
+        <span class="etiqueta-painel">DOCUMENTO DE ENTRADA</span>
+        <h3>Dados da nota</h3>
+
+        <div class="dado-nota">
+          <span>Número da NF</span>
+          <strong>{{ numeroNota }}</strong>
+        </div>
+
+        <div class="dado-nota">
+          <span>Série</span>
+          <strong>{{ serieNota }}</strong>
+        </div>
+
+        <div class="dado-nota">
+          <span>Fornecedor</span>
+          <strong>{{ fornecedor }}</strong>
+        </div>
+      </section>
+    </aside>
+  </div>
+
+  <footer class="acoes-rodape">
+    <button
+      type="button"
+      class="botao-secundario"
+      (click)="voltar.emit()"
+    >
+      ← Voltar aos dados da NF
+    </button>
+
+    <button
+      type="button"
+      class="botao-principal"
+      (click)="conferir.emit()"
+    >
+      Conferir entrada →
+    </button>
+  </footer>
+</section>
