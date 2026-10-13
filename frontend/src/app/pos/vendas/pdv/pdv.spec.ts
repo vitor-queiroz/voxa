@@ -36,6 +36,19 @@ describe('Pdv', () => {
     expect(vendaService.rascunho().cliente?.nome).toBe('ALEX CAMARGO');
   });
 
+  it('deve avisar CPF inválido na hora e CPF incompleto ao sair do campo', () => {
+    component.alterarCpf('32970069864');
+    expect(component.avisoCpf()).toContain('CPF inválido');
+
+    component.alterarCpf('3297006');
+    expect(component.avisoCpf()).toBeNull(); // ainda digitando
+    component.cpfTocado.set(true);
+    expect(component.avisoCpf()).toBe('CPF incompleto: faltam 4 dígitos.');
+
+    component.alterarCpf('');
+    expect(component.avisoCpf()).toBeNull(); // vazio = consumidor final
+  });
+
   it('deve avisar quando o CPF é válido mas não está cadastrado', () => {
     component.alterarCpf('11144477735');
 

@@ -21,7 +21,14 @@ export class BarraAcoes {
 
   @HostListener('document:keydown', ['$event'])
   aoPressionarTecla(evento: KeyboardEvent) {
-    const acao = this.acoes().find((a) => a.tecla === evento.key);
+    /*
+     * O preenchimento automático do navegador dispara "keydown" SEM tecla (key undefined).
+     * Sem esta proteção, ele combinava com a ação sem atalho (Sair) e voltava para o login.
+     */
+    if (!evento.key) {
+      return;
+    }
+    const acao = this.acoes().find((a) => a.tecla !== undefined && a.tecla === evento.key);
     if (!acao) {
       return;
     }

@@ -31,6 +31,18 @@ describe('CadastroCliente', () => {
     expect(component.cpf).toBe('111.444.777-35');
   });
 
+  it('deve avisar CPF inválido ou incompleto enquanto digita', () => {
+    component.formatar('11144477700');
+    expect(component.avisoCpf()).toContain('CPF inválido');
+
+    component.formatar('111444');
+    component.cpfTocado = true;
+    expect(component.avisoCpf()).toBe('CPF incompleto.');
+
+    component.formatar('11144477735');
+    expect(component.avisoCpf()).toBeNull();
+  });
+
   it('deve recusar CPF inválido', () => {
     component.cpf = '111.444.777-00';
     component.nome = 'Teste';

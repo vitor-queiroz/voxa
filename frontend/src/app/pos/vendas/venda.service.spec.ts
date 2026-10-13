@@ -4,7 +4,7 @@ import { FORMAS_PAGAMENTO_MOCK, FUNCIONARIOS_MOCK, VARIACOES_MOCK } from './vend
 import { Venda } from './vendas.model';
 
 const [tenis42, , camisetaM] = VARIACOES_MOCK; // 349,90 e 59,90
-const [dinheiro, pix, debito, credito] = FORMAS_PAGAMENTO_MOCK;
+const [dinheiro, pix, debito, , credito] = FORMAS_PAGAMENTO_MOCK; // débito POS e crédito POS
 const carlos = FUNCIONARIOS_MOCK[0];
 const afastada = FUNCIONARIOS_MOCK[3];
 

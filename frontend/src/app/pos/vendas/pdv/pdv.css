@@ -21,6 +21,11 @@
   gap: 6px;
 }
 
+.cpf input.invalido {
+  border-color: var(--vx-perigo);
+  box-shadow: 0 0 0 2px var(--vx-perigo-claro);
+}
+
 .cliente p {
   line-height: 1.5;
 }

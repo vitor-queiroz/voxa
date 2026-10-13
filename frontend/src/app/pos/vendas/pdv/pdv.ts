@@ -41,6 +41,7 @@ export class Pdv {
   termoProduto = '';
 
   readonly cpf = signal('');
+  readonly cpfTocado = signal(false); /*o usuário já saiu do campo de CPF*/
   readonly clienteNaoCadastrado = signal(false);
   readonly indiceSelecionado = signal<number | null>(null);
   readonly dialogo = signal<DialogoAberto | null>(null);
@@ -55,6 +56,20 @@ export class Pdv {
       return 'incompleto';
     }
     return validarCpf(cpf) ? 'valido' : 'invalido';
+  });
+
+  readonly digitosCpf = computed(() => somenteNumeros(this.cpf()).length);
+
+  /*Aviso do campo CPF: inválido na hora; incompleto só depois de sair do campo*/
+  readonly avisoCpf = computed<string | null>(() => {
+    if (this.estadoCpf() === 'invalido') {
+      return 'CPF inválido. Confira os números digitados.';
+    }
+    const faltam = 11 - this.digitosCpf();
+    if (this.cpfTocado() && faltam > 0 && faltam < 11) {
+      return `CPF incompleto: ${faltam === 1 ? 'falta 1 dígito' : `faltam ${faltam} dígitos`}.`;
+    }
+    return null;
   });
 
   /*Última leitura do leitor/teclado (linha de confirmação abaixo do campo)*/
@@ -120,6 +135,7 @@ export class Pdv {
         if (confirm('Cancelar a venda em andamento?')) {
           this.vendaService.novaVenda();
           this.cpf.set('');
+          this.cpfTocado.set(false);
           this.clienteNaoCadastrado.set(false);
           this.indiceSelecionado.set(null);
           this.erroProduto.set(null);

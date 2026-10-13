@@ -16,9 +16,14 @@
                 name="cpf"
                 inputmode="numeric"
                 maxlength="14"
+                autocomplete="off"
                 placeholder="000.000.000-00"
+                [class.invalido]="avisoCpf()"
+                [attr.aria-invalid]="avisoCpf() ? true : null"
+                aria-describedby="aviso-cpf"
                 [ngModel]="cpf()"
                 (ngModelChange)="alterarCpf($event)"
+                (blur)="cpfTocado.set(true)"
               />
               <button
                 type="button"
@@ -38,8 +43,8 @@
             </p>
           } @else if (erroCliente()) {
             <p class="vx-mensagem-erro">{{ erroCliente() }}</p>
-          } @else if (estadoCpf() === 'invalido') {
-            <p class="vx-mensagem-erro">CPF inválido.</p>
+          } @else if (avisoCpf()) {
+            <p id="aviso-cpf" class="vx-mensagem-erro" role="alert">{{ avisoCpf() }}</p>
           } @else if (clienteNaoCadastrado()) {
             <p class="vx-aviso">CPF válido, mas sem cadastro. Use <strong>Novo cliente</strong> (F4).</p>
           } @else {

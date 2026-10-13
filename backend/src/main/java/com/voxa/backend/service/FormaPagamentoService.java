@@ -16,6 +16,6 @@ public class FormaPagamentoService {
     }
 
     public List<FormaPagamentoDto> listar() {
-        return formaPagamentoRepository.findAll().stream().map(FormaPagamentoDto::de).toList();
+        return formaPagamentoRepository.findByAtivaTrueOrderByOrdemAsc().stream().map(FormaPagamentoDto::de).toList();
     }
 }

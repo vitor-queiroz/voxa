@@ -58,7 +58,7 @@ class VendasApiTest extends BaseApiTest {
                 item(tenis42.getId(), 1, "300.00") + "," + item(camisetaM.getId(), 2, "59.90"),
                 "{ \"tipo\": \"PERCENTUAL\", \"valor\": 10 }",
                 "20",
-                pagamento("CREDITO", "300", 3) + "," + pagamento("DINHEIRO", "100", 1));
+                pagamento("CREDITO_POS", "300", 3) + "," + pagamento("DINHEIRO", "100", 1));
 
         mvc.perform(post("/vendas").contentType(MediaType.APPLICATION_JSON).content(json))
                 .andExpect(status().isCreated())
@@ -80,7 +80,7 @@ class VendasApiTest extends BaseApiTest {
                 .andExpect(jsonPath("$.troco").value(42.18))
                 .andExpect(jsonPath("$.percentualComissao").value(3))
                 .andExpect(jsonPath("$.valorComissao").value(10.73))
-                .andExpect(jsonPath("$.pagamentos[0].forma.descricao").value("CARTÃO CRÉDITO"))
+                .andExpect(jsonPath("$.pagamentos[0].forma.descricao").value("CRÉDITO POS"))
                 .andExpect(jsonPath("$.pagamentos[0].parcelas").value(3));
 
         assertThat(clienteRepository.findByCpf("32970069865").orElseThrow().getSaldoCashback())
@@ -118,9 +118,9 @@ class VendasApiTest extends BaseApiTest {
                 .andExpect(jsonPath("$.mensagem").value("Só pagamento em dinheiro pode passar do total (troco)."));
 
         mvc.perform(post("/vendas").contentType(MediaType.APPLICATION_JSON)
-                        .content(venda("0001", null, itens, "null", "0", pagamento("DEBITO", "59.90", 2))))
+                        .content(venda("0001", null, itens, "null", "0", pagamento("DEBITO_TEF", "59.90", 2))))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.mensagem").value("CARTÃO DÉBITO permite de 1 a 1 parcela(s)."));
+                .andExpect(jsonPath("$.mensagem").value("DÉBITO TEF permite de 1 a 1 parcela(s)."));
     }
 
     @Test
@@ -141,7 +141,7 @@ class VendasApiTest extends BaseApiTest {
     @Test
     void listaComFiltrosECancelaDevolvendoCashback() throws Exception {
         Long doCarlos = registrar(venda("0001", alex.getId().toString(), item(tenis42.getId(), 1, "349.90"),
-                "null", "25.50", pagamento("CREDITO", "324.40", 2)));
+                "null", "25.50", pagamento("CREDITO_TEF", "324.40", 2)));
         registrar(venda("0003", null, item(camisetaM.getId(), 1, "59.90"), "null", "0", pagamento("PIX", "59.90", 1)));
 
         String hoje = LocalDate.now().toString();
@@ -169,7 +169,7 @@ class VendasApiTest extends BaseApiTest {
         registrar(venda("0001", null, item(tenis42.getId(), 1, "349.90"), "null", "0", pagamento("DINHEIRO", "349.90", 1)));
         Long cancelada = registrar(venda("0001", null, item(camisetaM.getId(), 1, "59.90"), "null", "0",
                 pagamento("PIX", "59.90", 1)));
-        registrar(venda("0003", null, item(camisetaM.getId(), 2, "59.90"), "null", "0", pagamento("DEBITO", "119.80", 1)));
+        registrar(venda("0003", null, item(camisetaM.getId(), 2, "59.90"), "null", "0", pagamento("DEBITO_POS", "119.80", 1)));
         mvc.perform(patch("/vendas/" + cancelada + "/cancelamento")).andExpect(status().isOk());
 
         String hoje = LocalDate.now().toString();

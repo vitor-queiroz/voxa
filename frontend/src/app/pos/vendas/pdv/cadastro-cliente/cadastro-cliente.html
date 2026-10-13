@@ -8,10 +8,17 @@
         inputmode="numeric"
         maxlength="14"
         required
+        autocomplete="off"
         [readonly]="cliente() !== null"
+        [class.invalido]="avisoCpf()"
+        [attr.aria-invalid]="avisoCpf() ? true : null"
         [ngModel]="cpf"
         (ngModelChange)="formatar($event)"
+        (blur)="cpfTocado = true"
       />
+      @if (avisoCpf()) {
+        <span class="aviso-cpf" role="alert">{{ avisoCpf() }}</span>
+      }
     </div>
 
     <div class="vx-campo">

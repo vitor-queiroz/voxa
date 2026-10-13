@@ -41,4 +41,18 @@ describe('BarraAcoes', () => {
 
     expect(acionadas).toEqual(['pagamento']);
   });
+
+  it('não deve acionar nada com o "keydown" sem tecla do preenchimento automático', async () => {
+    fixture.componentRef.setInput('acoes', [
+      { id: 'sair', rotulo: 'Sair' },
+      { id: 'pagamento', rotulo: 'Ir para pagamento', tecla: 'F2' }
+    ]);
+    await fixture.whenStable();
+    const acionadas: string[] = [];
+    component.acionar.subscribe((id) => acionadas.push(id));
+
+    document.dispatchEvent(new Event('keydown')); // o Chrome manda assim ao preencher um campo
+
+    expect(acionadas).toEqual([]);
+  });
 });

@@ -230,6 +230,9 @@ public class VendaService {
             }
             FormaPagamento forma = formaPagamentoRepository.findById(pedido.forma().id())
                     .orElseThrow(() -> new NaoEncontradoException("Forma de pagamento " + pedido.forma().id() + " não encontrada."));
+            if (!forma.estaAtiva()) {
+                throw new RegraNegocioException(forma.getDescricao() + " não está mais disponível.");
+            }
             if (!Dinheiro.positivo(pedido.valor())) {
                 throw new RegraNegocioException("Informe um valor de pagamento maior que zero.");
             }

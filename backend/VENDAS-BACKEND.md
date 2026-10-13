@@ -12,7 +12,7 @@ Endpoints que as telas de vendas (`frontend/src/app/.../vendas`) usam. Spring Bo
 | `service/` | Regras. `VendaService` **recalcula** subtotal, desconto, cashback, total, troco e comissão (não confia no navegador) |
 | `controller/` | `/funcionarios`, `/produtos`, `/clientes`, `/formas-pagamento`, `/vendas`, `/comissoes` |
 | `exception/` | Erros viram `{ "mensagem": "..." }` com status 400, 404 ou 409 — o frontend mostra a mensagem |
-| `config/` | `WebConfig` agora libera **PATCH** (cancelamento). `DadosIniciais` cadastra as 4 formas de pagamento se a tabela estiver vazia |
+| `config/` | `WebConfig` agora libera **PATCH** (cancelamento). `DadosIniciais` sincroniza as formas de pagamento (Dinheiro, PIX, Débito POS/TEF, Crédito POS/TEF) toda vez que o backend sobe; formas antigas são apagadas, ou só inativadas se alguma venda usou |
 | `util/` | `Dinheiro` (2 casas, arredonda metade para cima) e `Cpf` (validação) |
 
 ## Banco de dados

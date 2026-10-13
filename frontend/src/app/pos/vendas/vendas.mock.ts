@@ -43,8 +43,10 @@ export const VARIACOES_MOCK: ProdutoVariacao[] = [
 export const FORMAS_PAGAMENTO_MOCK: FormaPagamento[] = [
   { id: 'DINHEIRO', descricao: 'DINHEIRO', valorMinimo: 0, maxParcelas: 1, permiteTroco: true },
   { id: 'PIX', descricao: 'PIX', valorMinimo: 0.3, maxParcelas: 1, permiteTroco: false },
-  { id: 'DEBITO', descricao: 'CARTÃO DÉBITO', valorMinimo: 0, maxParcelas: 1, permiteTroco: false },
-  { id: 'CREDITO', descricao: 'CARTÃO CRÉDITO', valorMinimo: 0, maxParcelas: 10, permiteTroco: false },
+  { id: 'DEBITO_POS', descricao: 'DÉBITO POS', valorMinimo: 0, maxParcelas: 1, permiteTroco: false },
+  { id: 'DEBITO_TEF', descricao: 'DÉBITO TEF', valorMinimo: 0, maxParcelas: 1, permiteTroco: false },
+  { id: 'CREDITO_POS', descricao: 'CRÉDITO POS', valorMinimo: 0, maxParcelas: 10, permiteTroco: false },
+  { id: 'CREDITO_TEF', descricao: 'CRÉDITO TEF', valorMinimo: 0, maxParcelas: 10, permiteTroco: false },
 ];
 
 /*Algumas vendas antigas, para a consulta e o painel não começarem vazios*/
@@ -56,7 +58,7 @@ export function vendasIniciaisMock(): Venda[] {
     return data.toISOString();
   };
   const [tenis42, tenis40, camisetaM, , calca40] = VARIACOES_MOCK;
-  const [dinheiro, pix, , credito] = FORMAS_PAGAMENTO_MOCK;
+  const [dinheiro, pix, , , credito] = FORMAS_PAGAMENTO_MOCK;
   const [carlos, mariana, joao] = FUNCIONARIOS_MOCK;
 
   const montar = (

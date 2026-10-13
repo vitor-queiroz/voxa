@@ -13,7 +13,7 @@ public class FormaPagamento {
 
     @Id
     @Column(length = 20)
-    private String id; //DINHEIRO, PIX, DEBITO, CREDITO
+    private String id; //DINHEIRO, PIX, DEBITO_POS, DEBITO_TEF, CREDITO_POS, CREDITO_TEF
 
     @Column(nullable = false)
     private String descricao;
@@ -27,15 +27,36 @@ public class FormaPagamento {
     @Column(name = "permite_troco", nullable = false)
     private Boolean permiteTroco = false; //só dinheiro aceita valor acima do total
 
+    private Integer ordem; //ordem na tela de pagamento
+
+    private Boolean ativa = true; //false = não aparece mais, mas fica para o histórico das vendas antigas
+
     public FormaPagamento() {
     }
 
-    public FormaPagamento(String id, String descricao, BigDecimal valorMinimo, Integer maxParcelas, Boolean permiteTroco) {
+    public FormaPagamento(String id, String descricao, BigDecimal valorMinimo, Integer maxParcelas,
+                          Boolean permiteTroco, Integer ordem) {
         this.id = id;
         this.descricao = descricao;
         this.valorMinimo = valorMinimo;
         this.maxParcelas = maxParcelas;
         this.permiteTroco = permiteTroco;
+        this.ordem = ordem;
+        this.ativa = true;
+    }
+
+    /*Copia os dados de outra forma (usado para atualizar o cadastro existente)*/
+    public void atualizarCom(FormaPagamento outra) {
+        this.descricao = outra.descricao;
+        this.valorMinimo = outra.valorMinimo;
+        this.maxParcelas = outra.maxParcelas;
+        this.permiteTroco = outra.permiteTroco;
+        this.ordem = outra.ordem;
+        this.ativa = true;
+    }
+
+    public boolean estaAtiva() {
+        return !Boolean.FALSE.equals(ativa);
     }
 
     public String getId() {
@@ -76,5 +97,21 @@ public class FormaPagamento {
 
     public void setPermiteTroco(Boolean permiteTroco) {
         this.permiteTroco = permiteTroco;
+    }
+
+    public Integer getOrdem() {
+        return ordem;
+    }
+
+    public void setOrdem(Integer ordem) {
+        this.ordem = ordem;
+    }
+
+    public Boolean getAtiva() {
+        return ativa;
+    }
+
+    public void setAtiva(Boolean ativa) {
+        this.ativa = ativa;
     }
 }

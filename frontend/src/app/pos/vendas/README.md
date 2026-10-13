@@ -229,7 +229,7 @@ O `termo` pode ser **REF/TAM** (`referencia/tamanho`, ex.: `12345/42`) ou **cód
 | GET | `/formas-pagamento` | `200` lista de `FormaPagamento` |
 
 ```json
-{ "id": "CREDITO", "descricao": "CARTÃO CRÉDITO", "valorMinimo": 0, "maxParcelas": 10, "permiteTroco": false }
+{ "id": "CREDITO_POS", "descricao": "CRÉDITO POS", "valorMinimo": 0, "maxParcelas": 10, "permiteTroco": false }
 ```
 
 ### Vendas
@@ -279,7 +279,7 @@ Exemplo do corpo do `POST /vendas` (é o que `VendaService.montarVenda()` gera):
   "cashback": 20.00,
   "total": 249.91,
   "pagamentos": [
-    { "forma": { "id": "CREDITO", "descricao": "CARTÃO CRÉDITO", "valorMinimo": 0, "maxParcelas": 10, "permiteTroco": false },
+    { "forma": { "id": "CREDITO_POS", "descricao": "CRÉDITO POS", "valorMinimo": 0, "maxParcelas": 10, "permiteTroco": false },
       "valor": 249.91, "parcelas": 3 }
   ],
   "troco": 0,

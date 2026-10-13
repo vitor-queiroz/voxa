@@ -25,6 +25,7 @@ export class CadastroCliente implements OnInit {
   telefone = '';
 
   readonly erro = signal<string | null>(null);
+  cpfTocado = false;
   readonly salvando = signal(false);
 
   constructor(private api: VendasApiService) { }
@@ -39,6 +40,18 @@ export class CadastroCliente implements OnInit {
 
   formatar(valor: string) {
     this.cpf = formatarCpf(valor);
+  }
+
+  /*Aviso mostrado embaixo do campo enquanto digita*/
+  avisoCpf(): string | null {
+    const digitos = somenteNumeros(this.cpf).length;
+    if (digitos === 11 && !validarCpf(this.cpf)) {
+      return 'CPF inválido. Confira os números digitados.';
+    }
+    if (this.cpfTocado && digitos > 0 && digitos < 11) {
+      return 'CPF incompleto.';
+    }
+    return null;
   }
 
   salvar(form: NgForm) {

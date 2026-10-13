@@ -100,11 +100,14 @@ class CadastrosApiTest extends BaseApiTest {
     }
 
     @Test
-    void formasDePagamentoCadastradasNaPrimeiraVez() throws Exception {
+    void formasDePagamentoPosETef() throws Exception {
         mvc.perform(get("/formas-pagamento"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(4)))
-                .andExpect(jsonPath("$[?(@.id == 'CREDITO')].maxParcelas").value(10))
+                .andExpect(jsonPath("$", hasSize(6)))
+                .andExpect(jsonPath("$[*].descricao").value(org.hamcrest.Matchers.contains(
+                        "DINHEIRO", "PIX", "DÉBITO POS", "DÉBITO TEF", "CRÉDITO POS", "CRÉDITO TEF")))
+                .andExpect(jsonPath("$[?(@.id == 'CREDITO_TEF')].maxParcelas").value(10))
+                .andExpect(jsonPath("$[?(@.id == 'DEBITO_POS')].maxParcelas").value(1))
                 .andExpect(jsonPath("$[?(@.id == 'DINHEIRO')].permiteTroco").value(true));
     }
 }
