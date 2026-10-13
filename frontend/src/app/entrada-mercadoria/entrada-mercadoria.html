@@ -65,7 +65,15 @@
     @if (etapaAtual === 2) {
         <app-lancamento-produtos 
         (voltar)="etapaAtual = 1" 
+        (conferir)="abrirConferencia($event)"
         ></app-lancamento-produtos>
+    }
+    
+    @if (etapaAtual === 3 && dadosConferencia) {
+      <app-conferencia-entrada
+      [dados]="dadosConferencia"
+      (voltar)="etapaAtual = 2"
+      ></app-conferencia-entrada>
     }
   </main>
 </div>

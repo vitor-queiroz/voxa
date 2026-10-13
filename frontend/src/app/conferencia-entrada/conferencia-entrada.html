@@ -1,1 +1,126 @@
-<p>conferencia-entrada works!</p>
+<section class="conferencia">
+    <header class="cabecalho-conferencia">
+        <div>
+            <span class="etiqueta-etapa">ETAPA 3 DE 3</span>
+            <h2>Conferência de entrada</h2>
+            <p>Revise os produtos, as quantidades e os custos antes de confirmar.</p>
+        </div>
+
+        <div class="resumo-rapido">
+            <span>PEÇAS LANÇADAS</span>
+            <strong>{{ totalPecas }}</strong>
+        </div>
+    </header>
+
+    @if ((dados?.leiturasPendentes?.length ?? 0) > 0) {
+    <section class="aviso-conferencia" role="status">
+        <div>
+            <strong>Leituras pendentes de identificação</strong>
+            <p>
+                Existem {{ dados?.leiturasPendentes?.length }} leitura(s)
+                que ainda não foram relacionadas a um produto.
+            </p>
+        </div>
+
+        <ul>
+            @for (codigo of dados?.leiturasPendentes ?? []; track $index) {
+            <li>Código {{ codigo }}</li>
+            }
+        </ul>
+    </section>
+    }
+
+    <section class="painel-conferencia">
+        <div class="titulo-painel">
+            <div>
+                <h3>Produtos lançados</h3>
+                <p>Confira cada referência, cor, tamanho e custo.</p>
+            </div>
+
+            <span class="contador">
+                {{ dados?.itens?.length ?? 0 }} item(ns)
+            </span>
+        </div>
+
+        @if ((dados?.itens?.length ?? 0) > 0) {
+        <div class="tabela-responsiva">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Referência</th>
+                        <th>Produto</th>
+                        <th>Cor</th>
+                        <th>Tamanho</th>
+                        <th>Quantidade</th>
+                        <th>Custo unitário</th>
+                        <th>Subtotal</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @for (item of dados?.itens ?? []; track $index) {
+                    <tr>
+                        <td>{{ item.referencia }}</td>
+                        <td>{{ item.produto }}</td>
+                        <td>{{ item.cor }}</td>
+                        <td>{{ item.tamanho }}</td>
+                        <td>{{ item.quantidade }}</td>
+                        <td>
+                            {{
+                            item.custoUnitario
+                            | currency:'BRL':'symbol':'1.2-2':'pt-BR'
+                            }}
+                        </td>
+                        <td>
+                            {{
+                            item.quantidade * item.custoUnitario
+                            | currency:'BRL':'symbol':'1.2-2':'pt-BR'
+                            }}
+                        </td>
+                    </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        } @else {
+        <div class="estado-vazio">
+            <strong>Nenhum produto lançado</strong>
+            <p>Volte à etapa anterior para registrar os produtos recebidos.</p>
+        </div>
+        }
+    </section>
+
+    <section class="resumo-conferencia">
+        <article class="cartao-resumo">
+            <span>Total de peças</span>
+            <strong>{{ totalPecas }}</strong>
+        </article>
+
+        <article class="cartao-resumo">
+            <span>Referências distintas</span>
+            <strong>{{ totalReferencias }}</strong>
+        </article>
+
+        <article class="cartao-resumo cartao-valor">
+            <span>Valor total lançado</span>
+            <strong>
+                {{
+                valorLancado
+                | currency:'BRL':'symbol':'1.2-2':'pt-BR'
+                }}
+            </strong>
+        </article>
+    </section>
+
+    @if ((dados?.leiturasPendentes?.length ?? 0) > 0) {
+    <p class="texto-pendencia">
+        Atenção: resolva as leituras pendentes antes de concluir a conferência.
+    </p>
+    }
+
+    <footer class="acoes-conferencia">
+        <button type="button" class="botao-secundario" (click)="voltar.emit()">
+            ← Voltar e ajustar
+        </button>
+    </footer>
+</section>

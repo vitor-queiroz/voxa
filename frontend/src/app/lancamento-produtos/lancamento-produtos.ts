@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 
 type ModoLancamento = 'bipagem' | 'manual';
 
-interface ItemLancamento {
+export interface ItemLancamento {
   referencia: string;
   produto: string;
   cor: string;
@@ -24,7 +24,10 @@ interface ItemLancamento {
 
 export class LancamentoProdutos {
   @Output() voltar = new EventEmitter<void>();
-  @Output() conferir = new EventEmitter<void>();
+  @Output() conferir = new EventEmitter<{
+    itens: ItemLancamento[];
+    leiturasPendentes: string[];
+  }>();
 
   modo: ModoLancamento = 'bipagem';
 
@@ -92,7 +95,7 @@ export class LancamentoProdutos {
     return this.totalGrade * (Number(this.custoUnitario) || 0);
   }
 
-  
+
 
   selecionarModo(modo: ModoLancamento): void {
     this.modo = modo;
@@ -208,6 +211,14 @@ export class LancamentoProdutos {
       'sucesso',
     );
   }
+
+  emitirConferencia(): void {
+    this.conferir.emit({
+      itens: this.itens.map(item => ({ ...item })),
+      leiturasPendentes: [...this.leiturasPendentes],
+    });
+  }
+
 
   limparFormularioManual(): void {
     this.referencia = '';

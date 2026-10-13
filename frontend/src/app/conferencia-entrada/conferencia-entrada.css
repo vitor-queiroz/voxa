@@ -1,0 +1,155 @@
+:host {
+  display: block;
+  color: #202938;
+  font-family: inherit;
+}
+
+.conferencia {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 8px 0 24px;
+}
+
+.cabecalho-conferencia,
+.titulo-painel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.cabecalho-conferencia { flex-wrap: wrap; }
+
+.etiqueta-etapa,
+.resumo-rapido span,
+.cartao-resumo span {
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .6px;
+}
+
+.etiqueta-etapa {
+  display: inline-block;
+  margin-bottom: 8px;
+  letter-spacing: 1.2px;
+}
+
+.cabecalho-conferencia h2 {
+  margin: 0;
+  color: #172033;
+  font-size: 26px;
+  letter-spacing: -.6px;
+}
+
+.cabecalho-conferencia p,
+.titulo-painel p {
+  margin: 8px 0 0;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.resumo-rapido,
+.cartao-resumo {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 20px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+}
+
+.resumo-rapido { background: #f8fafc; }
+
+.resumo-rapido strong,
+.cartao-resumo strong {
+  color: #172033;
+  font-size: 26px;
+  font-weight: 800;
+}
+
+.painel-conferencia {
+  min-width: 0;
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  box-shadow: 0 3px 12px rgb(15 23 42 / 3%);
+}
+
+.titulo-painel { padding: 22px 24px; border-bottom: 1px solid #e9edf3; }
+.titulo-painel h3 { margin: 0; color: #202938; font-size: 17px; }
+.contador { padding: 6px 10px; color: #475569; background: #f1f5f9; border-radius: 20px; font-size: 12px; font-weight: 750; white-space: nowrap; }
+
+.tabela-responsiva { width: 100%; overflow-x: auto; }
+.tabela-responsiva table { width: 100%; border-collapse: collapse; text-align: left; white-space: nowrap; }
+.tabela-responsiva thead { background: #f8fafc; }
+.tabela-responsiva th,
+.tabela-responsiva td { padding: 14px 18px; border-bottom: 1px solid #e2e8f0; }
+.tabela-responsiva th { color: #64748b; font-size: 11px; font-weight: 800; text-transform: uppercase; }
+.tabela-responsiva td { color: #475569; font-size: 13px; }
+.tabela-responsiva td:first-child,
+.tabela-responsiva td:nth-child(5),
+.tabela-responsiva td:nth-child(7) { color: #172033; font-weight: 750; }
+.tabela-responsiva tbody tr:last-child td { border-bottom: 0; }
+.tabela-responsiva tbody tr:hover { background: #fafcff; }
+
+.estado-vazio { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 42px 24px; text-align: center; }
+.estado-vazio strong { color: #334155; font-size: 15px; }
+.estado-vazio p { max-width: 400px; margin: 0; color: #64748b; font-size: 13px; line-height: 1.6; }
+
+.resumo-conferencia { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.cartao-resumo { min-width: 0; background: #fff; }
+.cartao-resumo strong { overflow-wrap: anywhere; }
+.cartao-valor { background: #f8fafc; }
+
+.aviso-conferencia {
+  padding: 20px 22px;
+  background: #fffbeb;
+  border: 1px solid #f3d58b;
+  border-left: 4px solid #d99b17;
+  border-radius: 10px;
+}
+.aviso-conferencia strong { color: #854d0e; font-size: 14px; }
+.aviso-conferencia p,
+.texto-pendencia { color: #92400e; font-size: 13px; line-height: 1.6; }
+.aviso-conferencia p { margin: 7px 0 0; }
+.aviso-conferencia ul { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 0; padding: 0; list-style: none; }
+.aviso-conferencia li { padding: 7px 10px; color: #854d0e; background: #fef3c7; border: 1px solid #f3d58b; border-radius: 6px; font-size: 12px; overflow-wrap: anywhere; }
+.texto-pendencia { margin: -8px 0 0; }
+
+.acoes-conferencia { display: flex; justify-content: flex-start; padding-top: 4px; }
+.botao-secundario {
+  min-height: 44px;
+  padding: 0 18px;
+  color: #334155;
+  background: #fff;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.botao-secundario:hover { background: #f8fafc; border-color: #94a3b8; }
+.botao-secundario:focus-visible { outline: 3px solid rgb(59 130 246 / 25%); outline-offset: 2px; }
+
+@media (max-width: 900px) {
+  .resumo-conferencia { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .cartao-valor { grid-column: 1 / -1; }
+}
+
+@media (max-width: 600px) {
+  .conferencia { gap: 18px; }
+  .cabecalho-conferencia { align-items: stretch; flex-direction: column; }
+  .cabecalho-conferencia h2 { font-size: 23px; }
+  .titulo-painel { align-items: flex-start; padding: 18px; }
+  .tabela-responsiva th, .tabela-responsiva td { padding: 13px 14px; }
+  .resumo-conferencia { grid-template-columns: 1fr; gap: 12px; }
+  .cartao-valor { grid-column: auto; }
+  .cartao-resumo { padding: 18px; }
+  .cartao-resumo strong { font-size: 23px; }
+  .acoes-conferencia .botao-secundario { width: 100%; }
+}
