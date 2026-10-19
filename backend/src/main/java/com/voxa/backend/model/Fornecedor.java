@@ -1,4 +1,3 @@
-
 package com.voxa.backend.model;
 
 import jakarta.persistence.Column;
