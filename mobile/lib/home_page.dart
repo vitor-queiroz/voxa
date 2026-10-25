@@ -1,4 +1,6 @@
+
 import 'package:flutter/material.dart';
+import 'dashboard_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -10,19 +12,27 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   static const navy = Color(0xFF142B4A);
   static const blue = Color(0xFF246BFD);
-  static const background = Color(0xFFF5F7FB);
+  static const background = Color(0xFFF3F6FC);
   static const muted = Color(0xFF758198);
-  static const orange = Color(0xFFFFA51F);
+  static const green = Color(0xFF21C779);
 
   int _selectedIndex = 0;
 
-  void _showPreviewMessage(String feature) {
+  void _message(String feature) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          '$feature estará disponível nas próximas etapas.',
+          '$feature será integrado nas próximas etapas.',
         ),
         behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  void _openDashboard() {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => const DashboardPage(),
       ),
     );
   }
@@ -35,17 +45,13 @@ class _HomePageState extends State<HomePage> {
         child: IndexedStack(
           index: _selectedIndex,
           children: [
-            _buildDashboard(),
+            _buildHome(),
             _buildPlaceholder(
               Icons.inventory_2_outlined,
               'Estoque',
-              'Pesquise produtos e consulte suas variantes.',
+              'Consulte produtos, referências e variantes.',
             ),
-            _buildPlaceholder(
-              Icons.qr_code_scanner_rounded,
-              'Escanear produto',
-              'A leitura de códigos será integrada nas próximas etapas.',
-            ),
+            _buildScanner(),
             _buildPlaceholder(
               Icons.shopping_cart_outlined,
               'Carrinho',
@@ -78,6 +84,7 @@ class _HomePageState extends State<HomePage> {
           ),
           NavigationDestination(
             icon: Icon(Icons.shopping_cart_outlined),
+            selectedIcon: Icon(Icons.shopping_cart_rounded),
             label: 'Carrinho',
           ),
         ],
@@ -85,289 +92,268 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildDashboard() {
+  Widget _buildHome() {
     return CustomScrollView(
       slivers: [
+        // Cabeçalho e cartão sobreposto.
+        SliverToBoxAdapter(
+          child: SizedBox(
+            // Altura total reservada para o cabeçalho + cartão.
+            height: 310,
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Container(
+                  height: 235,
+                  width: double.infinity,
+                  padding: const EdgeInsets.fromLTRB(
+                    22, 18, 22, 0,
+                  ),
+                  decoration: const BoxDecoration(
+                    color: navy,
+                    borderRadius: BorderRadius.vertical(
+                      bottom: Radius.circular(30),
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Text(
+                            'V O X A   M O B I L E',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 1.1,
+                            ),
+                          ),
+                          const Spacer(),
+                          const Icon(
+                            Icons.circle,
+                            color: green,
+                            size: 8,
+                          ),
+                          const SizedBox(width: 5),
+                          const Text(
+                            'Conexão',
+                            style: TextStyle(
+                              color: green,
+                              fontSize: 11,
+                            ),
+                          ),
+                          IconButton(
+                            onPressed: () => _message('Perfil'),
+                            tooltip: 'Perfil do vendedor',
+                            icon: const Icon(
+                              Icons.person_outline_rounded,
+                              color: Colors.white,
+                              size: 26,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 14),
+                      const Text(
+                        'Olá, Gisele!',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 24,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const SizedBox(height: 5),
+                      const Text(
+                        'Código do vendedor: 0042 (exemplo)',
+                        style: TextStyle(
+                          color: Color(0xFFD2DFF3),
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // O cartão ultrapassa o limite inferior do azul.
+                Positioned(
+                  top: 174,
+                  left: 20,
+                  right: 20,
+                  child: _buildSalesCard(),
+                ),
+              ],
+            ),
+          ),
+        ),
+
+        // Conteúdo principal.
         SliverPadding(
-          padding: const EdgeInsets.fromLTRB(22, 22, 22, 28),
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 26),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
-              // Aviso para não confundir a prévia com dados reais.
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFE8EEFF),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Row(
-                  children: [
-                    Icon(
-                      Icons.info_outline_rounded,
-                      color: blue,
-                      size: 20,
-                    ),
-                    SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        'Prévia visual • Dados demonstrativos',
-                        style: TextStyle(
-                          color: navy,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // Cabeçalho do vendedor.
-              Row(
-                children: [
-                  Container(
-                    width: 54,
-                    height: 54,
-                    decoration: const BoxDecoration(
-                      color: blue,
-                      shape: BoxShape.circle,
-                    ),
-                    alignment: Alignment.center,
-                    child: const Text(
-                      'V',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 25,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 14),
-                  const Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Olá, vendedor!',
-                          style: TextStyle(
-                            color: navy,
-                            fontSize: 19,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                        SizedBox(height: 4),
-                        Text(
-                          'Bem-vindo ao VOXA Mobile',
-                          style: TextStyle(
-                            color: muted,
-                            fontSize: 13,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  IconButton(
-                    onPressed: () => _showPreviewMessage('Perfil'),
-                    icon: const Icon(
-                      Icons.person_outline_rounded,
-                      color: navy,
-                    ),
-                    tooltip: 'Perfil',
-                  ),
-                ],
-              ),
-              const SizedBox(height: 28),
-
+              const SizedBox(height: 8),
               const Text(
-                'Resumo de vendas',
+                'O que você deseja fazer?',
                 style: TextStyle(
                   color: navy,
-                  fontSize: 21,
+                  fontSize: 17,
                   fontWeight: FontWeight.w800,
                 ),
               ),
-              const SizedBox(height: 6),
-              const Text(
-                'Acompanhe o desempenho do dia.',
-                style: TextStyle(color: muted, fontSize: 13),
-              ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
 
-              // Cartão de vendas.
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: navy,
-                  borderRadius: BorderRadius.circular(22),
-                ),
+              // Ação principal de escaneamento.
+              Center(
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Row(
-                      children: [
-                        Icon(
-                          Icons.trending_up_rounded,
-                          color: Colors.white70,
-                          size: 20,
-                        ),
-                        SizedBox(width: 8),
-                        Text(
-                          'Total vendido hoje',
-                          style: TextStyle(
-                            color: Colors.white70,
-                            fontSize: 13,
+                    Material(
+                      color: blue,
+                      elevation: 6,
+                      shadowColor: blue.withValues(alpha: 0.22),
+                      shape: const CircleBorder(),
+                      child: InkWell(
+                        customBorder: const CircleBorder(),
+                        onTap: () {
+                          setState(() => _selectedIndex = 2);
+                        },
+                        child: const SizedBox(
+                          width: 132,
+                          height: 132,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.qr_code_scanner_rounded,
+                                color: Colors.white,
+                                size: 47,
+                              ),
+                              SizedBox(height: 9),
+                              Text(
+                                'ESCANEAR',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 1,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      ],
+                      ),
                     ),
                     const SizedBox(height: 12),
                     const Text(
-                      'R\$ 830,00',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 32,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    const SizedBox(height: 18),
-                    Row(
-                      children: [
-                        _buildSalesMetric('Vendas', '9'),
-                        const SizedBox(width: 28),
-                        _buildSalesMetric('Ticket médio', 'R\$ 92,22'),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 22),
-
-              // Gráfico por horário.
-              Container(
-                padding: const EdgeInsets.all(18),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: const Color(0xFFE7EBF2),
-                  ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Vendas por horário',
-                      style: TextStyle(
-                        color: navy,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    SizedBox(
-                      height: 100,
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          _buildBar(30, '9h', false),
-                          _buildBar(30, '10h', false),
-                          _buildBar(48, '11h', false),
-                          _buildBar(100, '13h', true),
-                          _buildBar(55, '14h', false),
-                          _buildBar(15, '15h', false),
-                          _buildBar(32, '16h', false),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'Exemplo ilustrativo de distribuição das vendas.',
+                      'Leia o código de um produto',
                       style: TextStyle(
                         color: muted,
-                        fontSize: 11,
+                        fontSize: 12,
                       ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 22),
-
-              // Alerta de estoque.
-              Container(
-                padding: const EdgeInsets.all(18),
-                decoration: BoxDecoration(
-                  color: orange,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Row(
-                  children: [
-                    const Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Estoque mínimo',
-                            style: TextStyle(
-                              color: navy,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                          SizedBox(height: 5),
-                          Text(
-                            'Exemplo de alerta de reposição',
-                            style: TextStyle(
-                              color: navy,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    const Icon(
-                      Icons.warning_amber_rounded,
-                      size: 34,
-                      color: navy,
                     ),
                   ],
                 ),
               ),
               const SizedBox(height: 26),
 
-              // Acesso destacado ao escaneamento.
-              SizedBox(
-                height: 62,
-                child: FilledButton.icon(
-                  onPressed: () {
-                    setState(() => _selectedIndex = 2);
-                  },
-                  icon: const Icon(Icons.qr_code_scanner_rounded),
-                  label: const Text(
-                    'Escanear produto',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
+              // Atalhos.
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: _buildQuickAction(
+                      icon: Icons.search_rounded,
+                      title: 'Buscar produto',
+                      subtitle: 'Por referência',
+                      onTap: () => _message('Busca por referência'),
                     ),
                   ),
-                  style: FilledButton.styleFrom(
-                    backgroundColor: blue,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(17),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildQuickAction(
+                      icon: Icons.inventory_2_outlined,
+                      title: 'Consultar',
+                      subtitle: 'Estoque',
+                      onTap: () {
+                        setState(() => _selectedIndex = 1);
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+
+              // Atalho para o dashboard completo.
+              Material(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(18),
+                child: InkWell(
+                  onTap: _openDashboard,
+                  borderRadius: BorderRadius.circular(18),
+                  child: Container(
+                    padding: const EdgeInsets.all(15),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(
+                        color: const Color(0xFFE5EAF3),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 46,
+                          height: 46,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFE8EEFF),
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: const Icon(
+                            Icons.bar_chart_rounded,
+                            color: blue,
+                            size: 28,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        const Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Desempenho de vendas',
+                                style: TextStyle(
+                                  color: navy,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                              SizedBox(height: 5),
+                              Text(
+                                'Gráfico e indicadores do dia',
+                                style: TextStyle(
+                                  color: muted,
+                                  fontSize: 11,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Icon(
+                          Icons.chevron_right_rounded,
+                          color: muted,
+                        ),
+                      ],
                     ),
                   ),
                 ),
               ),
-              const SizedBox(height: 14),
+              const SizedBox(height: 24),
               const Center(
                 child: Text(
-                  'VOXA MOBILE',
+                  'V O X A   M O B I L E',
                   style: TextStyle(
-                    color: muted,
-                    fontSize: 10,
-                    letterSpacing: 2,
-                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF8CA0C1),
+                    fontSize: 9,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ),
@@ -378,25 +364,93 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildSalesMetric(String label, String value) {
-    return Expanded(
+  Widget _buildSalesCard() {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(19, 17, 19, 15),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(21),
+        border: Border.all(
+          color: const Color(0xFFE9EDF5),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: navy.withValues(alpha: 0.13),
+            blurRadius: 22,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            label,
-            style: const TextStyle(
-              color: Colors.white70,
-              fontSize: 12,
-            ),
+          const Row(
+            children: [
+              Icon(
+                Icons.trending_up_rounded,
+                color: blue,
+                size: 21,
+              ),
+              SizedBox(width: 8),
+              Text(
+                'Total vendido hoje',
+                style: TextStyle(
+                  color: Color(0xFF58739C),
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 5),
-          Text(
-            value,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
+          const Text(
+            'R\$ 830,00',
+            style: TextStyle(
+              color: navy,
+              fontSize: 29,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Container(
+            height: 1,
+            color: const Color(0xFFDCE5F4),
+          ),
+          const SizedBox(height: 12),
+          const Row(
+            children: [
+              Icon(
+                Icons.receipt_long_outlined,
+                color: Color(0xFF58739C),
+                size: 19,
+              ),
+              SizedBox(width: 9),
+              Expanded(
+                child: Text(
+                  'Vendas realizadas',
+                  style: TextStyle(
+                    color: Color(0xFF58739C),
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+              Text(
+                '9',
+                style: TextStyle(
+                  color: navy,
+                  fontSize: 19,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            'Valores demonstrativos',
+            style: TextStyle(
+              color: muted,
+              fontSize: 10,
             ),
           ),
         ],
@@ -404,35 +458,122 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildBar(double height, String label, bool highlight) {
-    return Expanded(
+  Widget _buildQuickAction({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(18),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(18),
+        child: Container(
+          height: 140,
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: const Color(0xFFE5EAF3),
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: const BoxDecoration(
+                  color: Color(0xFFE8EEFF),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, color: blue, size: 23),
+              ),
+              const Spacer(),
+              Text(
+                title,
+                style: const TextStyle(
+                  color: navy,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                subtitle,
+                style: const TextStyle(
+                  color: muted,
+                  fontSize: 11,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildScanner() {
+    return Center(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 3),
+        padding: const EdgeInsets.all(26),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.end,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Expanded(
-              child: Align(
-                alignment: Alignment.bottomCenter,
-                child: Container(
-                  height: height,
-                  decoration: BoxDecoration(
-                    color: highlight
-                        ? blue
-                        : const Color(0xFFCBD7FA),
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(5),
-                    ),
-                  ),
+            Container(
+              width: 94,
+              height: 94,
+              decoration: BoxDecoration(
+                color: blue.withValues(alpha: 0.10),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.qr_code_scanner_rounded,
+                color: blue,
+                size: 46,
+              ),
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              'Escanear produto',
+              style: TextStyle(
+                color: navy,
+                fontSize: 23,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(height: 10),
+            const Text(
+              'Escolha como deseja localizar o produto.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: muted, fontSize: 14),
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                onPressed: () => _message('Leitura pela câmera'),
+                icon: const Icon(Icons.camera_alt_outlined),
+                label: const Text('Ler código pela câmera'),
+                style: FilledButton.styleFrom(
+                  backgroundColor: blue,
+                  padding: const EdgeInsets.all(16),
                 ),
               ),
             ),
-            const SizedBox(height: 7),
-            Text(
-              label,
-              style: const TextStyle(
-                color: muted,
-                fontSize: 9,
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () => _message('Busca manual por referência'),
+                icon: const Icon(Icons.search_rounded),
+                label: const Text('Buscar por referência'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: navy,
+                  padding: const EdgeInsets.all(16),
+                ),
               ),
             ),
           ],
