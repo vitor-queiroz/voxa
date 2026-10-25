@@ -1,5 +1,5 @@
-
 import 'package:flutter/material.dart';
+import 'home_page.dart';
 
 void main() {
   runApp(const VoxaApp());
@@ -51,7 +51,7 @@ class VoxaApp extends StatelessWidget {
           ),
         ),
       ),
-      home: const LoginPage(),
+      home: HomePage(),
     );
   }
 }
