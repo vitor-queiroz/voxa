@@ -1,0 +1,47 @@
+:host {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  display: block;
+  margin-top: auto;
+}
+
+.rodape {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 24px;
+  padding: 12px 24px;
+  background: var(--vx-branco);
+  border-top: 1px solid var(--vx-borda);
+}
+
+.dica {
+  margin: 0;
+  color: var(--vx-texto-suave);
+}
+
+.botoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.primario .vx-tecla {
+  background: var(--vx-branco);
+}
+
+@media (max-width: 700px) {
+  :host {
+    position: static;
+  }
+
+  .dica {
+    display: none;
+  }
+
+  .botoes .vx-botao {
+    flex: 1 1 140px;
+  }
+}

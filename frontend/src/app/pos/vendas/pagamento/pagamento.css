@@ -1,0 +1,57 @@
+:host {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+.concluida {
+  grid-template-columns: minmax(0, 480px);
+  justify-content: center;
+}
+
+.troco {
+  font-weight: 600;
+  color: var(--vx-primaria);
+}
+
+.lancamento {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+  background: var(--vx-primaria-clara);
+}
+
+.lancamento input {
+  width: 150px;
+  text-align: right;
+}
+
+.acao {
+  width: 40px;
+}
+
+.remover {
+  display: inline-flex;
+  padding: 4px;
+  color: var(--vx-texto-suave);
+  cursor: pointer;
+  background: none;
+  border: none;
+}
+
+.remover:hover {
+  color: var(--vx-perigo);
+}
+
+.vx-tabela {
+  position: relative;
+}
+
+.oculto {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}

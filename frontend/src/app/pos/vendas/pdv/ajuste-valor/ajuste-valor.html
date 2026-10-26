@@ -1,0 +1,39 @@
+<app-dialogo [titulo]="titulo()" (fechar)="fechar.emit()">
+  <form (ngSubmit)="enviar()">
+    @if (permitirPercentual()) {
+      <div class="tipos" role="radiogroup" aria-label="Tipo de desconto">
+        <label [class.ativo]="tipo === 'VALOR'">
+          <input type="radio" name="tipo" value="VALOR" [(ngModel)]="tipo" /> R$
+        </label>
+        <label [class.ativo]="tipo === 'PERCENTUAL'">
+          <input type="radio" name="tipo" value="PERCENTUAL" [(ngModel)]="tipo" /> %
+        </label>
+      </div>
+    }
+
+    <div class="vx-campo">
+      <label for="valor-ajuste">{{ rotulo() }} {{ tipo === 'PERCENTUAL' ? '(%)' : '(R$)' }}</label>
+      <input
+        id="valor-ajuste"
+        name="valor"
+        type="number"
+        min="0"
+        [step]="tipo === 'PERCENTUAL' ? 0.5 : 0.01"
+        autofocus
+        [(ngModel)]="valor"
+      />
+    </div>
+
+    @if (dica()) {
+      <p class="dica">{{ dica() }}</p>
+    }
+    @if (erro()) {
+      <p class="vx-mensagem-erro">{{ erro() }}</p>
+    }
+
+    <div class="acoes">
+      <button type="button" class="vx-botao" (click)="fechar.emit()">Cancelar</button>
+      <button type="submit" class="vx-botao primario">Confirmar</button>
+    </div>
+  </form>
+</app-dialogo>

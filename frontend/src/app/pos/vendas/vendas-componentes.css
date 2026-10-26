@@ -1,0 +1,235 @@
+/* Peças visuais comuns do módulo de vendas (design VOXA) */
+
+.vx-cartao {
+  background: var(--vx-branco);
+  border: 1px solid var(--vx-borda);
+  border-radius: var(--vx-raio);
+  box-shadow: var(--vx-sombra);
+}
+
+.vx-cartao-titulo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0;
+  padding: 12px 16px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: #3b4552;
+  border-bottom: 1px solid var(--vx-borda);
+}
+
+.vx-cartao-corpo {
+  padding: 16px;
+}
+
+.vx-campos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 14px;
+}
+
+.vx-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.vx-campo label {
+  font-size: 12px;
+  color: var(--vx-texto-suave);
+}
+
+.vx-campo input,
+.vx-campo select {
+  width: 100%;
+  padding: 9px 11px;
+  font: 14px var(--vx-mono);
+  color: var(--vx-texto);
+  background: var(--vx-branco);
+  border: 1px solid #c9d0d8;
+  border-radius: var(--vx-raio);
+}
+
+.vx-campo input:focus,
+.vx-campo select:focus {
+  outline: none;
+  border-color: var(--vx-primaria);
+  box-shadow: 0 0 0 2px var(--vx-primaria-clara);
+}
+
+.vx-botao {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 9px 16px;
+  font: inherit;
+  font-weight: 600;
+  color: var(--vx-texto);
+  cursor: pointer;
+  background: var(--vx-branco);
+  border: 1px solid #b9c1ca;
+  border-radius: var(--vx-raio);
+}
+
+.vx-botao.primario {
+  color: var(--vx-branco);
+  background: var(--vx-primaria);
+  border-color: var(--vx-primaria);
+}
+
+.vx-botao.perigo {
+  color: var(--vx-perigo);
+}
+
+.vx-botao:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
+.vx-tecla {
+  padding: 1px 5px;
+  font: 500 11px var(--vx-mono);
+  color: var(--vx-texto);
+  background: var(--vx-linha);
+  border: 1px solid #b9c1ca;
+  border-radius: 3px;
+}
+
+.vx-mono {
+  font-family: var(--vx-mono);
+}
+
+.vx-encontrado,
+.vx-aviso,
+.vx-mensagem-erro {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: var(--vx-raio);
+}
+
+.vx-encontrado {
+  background: var(--vx-primaria-clara);
+}
+
+.vx-aviso {
+  color: var(--vx-aviso-texto);
+  background: var(--vx-aviso);
+  border: 1px solid var(--vx-aviso-borda);
+}
+
+.vx-mensagem-erro {
+  color: var(--vx-perigo);
+  background: var(--vx-perigo-claro);
+}
+
+.vx-tabela {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.vx-tabela th {
+  padding: 9px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  text-align: left;
+  color: var(--vx-texto-suave);
+  background: #f7f9fa;
+  border-bottom: 1px solid var(--vx-borda);
+}
+
+.vx-tabela td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--vx-linha);
+}
+
+.vx-tabela td.num {
+  font-family: var(--vx-mono);
+}
+
+.vx-tabela .num {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.vx-tabela tbody tr.clicavel {
+  cursor: pointer;
+}
+
+.vx-tabela tbody tr.clicavel:hover,
+.vx-tabela tbody tr.selecionada {
+  background: var(--vx-primaria-clara);
+}
+
+.vx-tabela .vazia {
+  padding: 28px;
+  text-align: center;
+  color: var(--vx-texto-suave);
+}
+
+.vx-resumo {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  margin: 0;
+}
+
+.vx-resumo dt,
+.vx-resumo dd {
+  margin: 0;
+  padding: 8px 0;
+  border-bottom: 1px dashed var(--vx-borda);
+}
+
+.vx-resumo dd {
+  font-family: var(--vx-mono);
+  text-align: right;
+}
+
+.vx-destaque-rotulo {
+  font-size: 11px;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--vx-texto-suave);
+}
+
+.vx-destaque {
+  display: block;
+  margin: 2px 0 10px;
+  font: 600 30px var(--vx-mono);
+}
+
+.vx-progresso {
+  height: 6px;
+  margin-top: 12px;
+  overflow: hidden;
+  background: #e5e9ed;
+  border-radius: 3px;
+}
+
+.vx-progresso span {
+  display: block;
+  height: 100%;
+  background: var(--vx-primaria);
+}
+
+.vx-moeda {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  font: bold 13px Georgia, serif;
+  color: #7a4a00;
+  cursor: pointer;
+  background: radial-gradient(circle at 35% 30%, #ffe08a, #f0a81c);
+  border: 2px solid #c98400;
+  border-radius: 50%;
+}

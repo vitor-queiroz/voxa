@@ -1,0 +1,158 @@
+<div class="vx-pagina unica">
+  <section class="vx-cartao">
+    <h2 class="vx-cartao-titulo">Painel de vendas</h2>
+    <div class="vx-cartao-corpo filtros">
+      <div class="periodos" role="group" aria-label="Período">
+        @for (opcao of [['hoje', 'Hoje'], ['7', '7 dias'], ['30', '30 dias'], ['mes', 'Este mês']]; track opcao[0]) {
+          <button
+            type="button"
+            class="vx-botao"
+            [class.ativo]="periodo() === opcao[0]"
+            [attr.aria-pressed]="periodo() === opcao[0]"
+            (click)="escolherPeriodo($any(opcao[0]))"
+          >
+            {{ opcao[1] }}
+          </button>
+        }
+      </div>
+      <div class="vx-campo">
+        <label for="de">De</label>
+        <input id="de" type="date" [ngModel]="de()" (ngModelChange)="alterarData('de', $event)" />
+      </div>
+      <div class="vx-campo">
+        <label for="ate">Até</label>
+        <input id="ate" type="date" [ngModel]="ate()" (ngModelChange)="alterarData('ate', $event)" />
+      </div>
+      <div class="vx-campo">
+        <label for="vendedor">Vendedor</label>
+        <select id="vendedor" [ngModel]="prontuario()" (ngModelChange)="prontuario.set($event)">
+          <option value="">Todos</option>
+          @for (linha of ranking(); track linha.vendedor.prontuario) {
+            <option [value]="linha.vendedor.prontuario">{{ linha.vendedor.prontuario }} · {{ linha.vendedor.nome }}</option>
+          }
+        </select>
+      </div>
+      <div class="vx-campo">
+        <label for="situacao">Situação</label>
+        <select id="situacao" [ngModel]="situacao()" (ngModelChange)="situacao.set($event)">
+          <option value="">Todas</option>
+          <option value="FINALIZADA">Finalizadas</option>
+          <option value="CANCELADA">Canceladas</option>
+        </select>
+      </div>
+    </div>
+  </section>
+
+  @if (erro()) {
+    <p class="vx-mensagem-erro">{{ erro() }}</p>
+  }
+
+  <div class="indicadores">
+    <section class="vx-cartao vx-cartao-corpo">
+      <span class="vx-destaque-rotulo">Vendas</span>
+      <strong class="vx-destaque">{{ totais().vendas }}</strong>
+      @if (totais().canceladas > 0) {
+        <small>+ {{ totais().canceladas }} cancelada(s)</small>
+      }
+    </section>
+    <section class="vx-cartao vx-cartao-corpo">
+      <span class="vx-destaque-rotulo">Total vendido</span>
+      <strong class="vx-destaque">{{ totais().totalVendido | currency }}</strong>
+    </section>
+    <section class="vx-cartao vx-cartao-corpo">
+      <span class="vx-destaque-rotulo">Peças</span>
+      <strong class="vx-destaque">{{ totais().pecas }}</strong>
+    </section>
+    <section class="vx-cartao vx-cartao-corpo">
+      <span class="vx-destaque-rotulo">Ticket médio</span>
+      <strong class="vx-destaque">{{ totais().ticketMedio | currency }}</strong>
+    </section>
+  </div>
+
+  <section class="vx-cartao">
+    <h2 class="vx-cartao-titulo">Vendas por vendedor · {{ de() | date: 'dd/MM' }} a {{ ate() | date: 'dd/MM/yyyy' }}</h2>
+    <div class="grade">
+      <table class="vx-tabela">
+        <thead>
+          <tr>
+            <th>Prontuário</th>
+            <th>Vendedor</th>
+            <th class="num">Vendas</th>
+            <th class="num">Peças</th>
+            <th class="barra-coluna">Total vendido</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (linha of ranking(); track linha.vendedor.prontuario) {
+            <tr
+              class="clicavel"
+              [class.selecionada]="prontuario() === linha.vendedor.prontuario"
+              [title]="prontuario() === linha.vendedor.prontuario ? 'Mostrar todos os vendedores' : 'Ver só as vendas deste vendedor'"
+              (click)="filtrarVendedor(linha.vendedor.prontuario)"
+            >
+              <td class="vx-mono">{{ linha.vendedor.prontuario }}</td>
+              <td>
+                {{ linha.vendedor.nome }}<br />
+                <small>{{ linha.vendedor.funcao }} · {{ linha.vendedor.situacao }}</small>
+              </td>
+              <td class="num">{{ linha.quantidadeVendas }}</td>
+              <td class="num">{{ linha.pecas }}</td>
+              <td class="barra-coluna">
+                <span class="vx-mono">{{ linha.totalVendido | currency }}</span>
+                <span class="trilho"><span class="barra" [style.width.%]="larguraBarra(linha.totalVendido)"></span></span>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="5" class="vazia">Nenhum funcionário encontrado.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="vx-cartao">
+    <h2 class="vx-cartao-titulo">
+      Vendas do período · {{ vendas().length }}
+      @if (prontuario()) {
+        <button type="button" class="limpar" (click)="prontuario.set('')">Mostrar todos os vendedores ✕</button>
+      }
+    </h2>
+    <div class="grade">
+      <table class="vx-tabela">
+        <thead>
+          <tr>
+            <th>Nº</th>
+            <th>Data</th>
+            <th>Prontuário</th>
+            <th>Vendedor</th>
+            <th>Cliente</th>
+            <th class="num">Peças</th>
+            <th>Situação</th>
+            <th class="num">Valor da venda</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (venda of vendas(); track venda.numero) {
+            <tr [class.cancelada]="venda.status === 'CANCELADA'">
+              <td class="vx-mono">{{ venda.numero }}</td>
+              <td class="vx-mono">{{ venda.data | date: 'dd/MM/yyyy HH:mm' }}</td>
+              <td class="vx-mono">{{ venda.vendedor.prontuario }}</td>
+              <td>{{ venda.vendedor.nome }}</td>
+              <td>{{ venda.cliente?.nome || 'Consumidor final' }}</td>
+              <td class="num">{{ pecasDa(venda) }}</td>
+              <td>{{ venda.status === 'FINALIZADA' ? 'Finalizada' : 'Cancelada' }}</td>
+              <td class="num">{{ venda.total | currency }}</td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="8" class="vazia">Nenhuma venda no período.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+  <p class="nota">Vendas canceladas aparecem riscadas e não entram nos totais.</p>
+</div>

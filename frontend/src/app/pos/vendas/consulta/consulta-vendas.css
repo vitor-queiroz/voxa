@@ -1,0 +1,53 @@
+:host {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+.busca {
+  grid-column: span 2;
+}
+
+.grade {
+  overflow-x: auto;
+}
+
+.cancelada td {
+  color: var(--vx-texto-suave);
+  text-decoration: line-through;
+}
+
+tfoot td {
+  padding: 10px 12px;
+  font-weight: 600;
+  background: #f7f9fa;
+}
+
+.itens {
+  margin: 0 0 8px;
+  padding: 0;
+  list-style: none;
+}
+
+.itens li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 0;
+}
+
+.cancelar {
+  width: 100%;
+  margin-top: 14px;
+}
+
+.vazio {
+  margin: 0;
+  color: var(--vx-texto-suave);
+}
+
+@media (max-width: 600px) {
+  .busca {
+    grid-column: auto;
+  }
+}

@@ -1,0 +1,134 @@
+<app-etapas [atual]="vendaFinalizada() ? 3 : 2" />
+
+@if (vendaFinalizada(); as venda) {
+  <div class="vx-pagina concluida">
+    <section class="vx-cartao">
+      <h2 class="vx-cartao-titulo">Venda concluída</h2>
+      <div class="vx-cartao-corpo">
+        <span class="vx-destaque-rotulo">Venda nº {{ venda.numero }}</span>
+        <strong class="vx-destaque">{{ venda.total | currency }}</strong>
+        <dl class="vx-resumo">
+          <dt>Vendedor</dt>
+          <dd>{{ venda.vendedor.prontuario }} · {{ venda.vendedor.nome }}</dd>
+          <dt>Cliente</dt>
+          <dd>{{ venda.cliente?.nome ?? 'Consumidor final' }}</dd>
+          <dt>Troco</dt>
+          <dd class="troco">{{ venda.troco | currency }}</dd>
+        </dl>
+      </div>
+    </section>
+  </div>
+} @else {
+  <div class="vx-pagina">
+    <div class="vx-coluna">
+      <section class="vx-cartao">
+        <h2 class="vx-cartao-titulo">Vendedor responsável</h2>
+        <div class="vx-cartao-corpo">
+          <app-vendedor-prontuario />
+        </div>
+      </section>
+
+      <section class="vx-cartao">
+        <h2 class="vx-cartao-titulo">Formas de pagamento</h2>
+        <table class="vx-tabela">
+          <thead>
+            <tr>
+              <th>Forma de pagamento</th>
+              <th class="num">Valor mínimo</th>
+              <th class="num">Parcelas</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (forma of formas(); track forma.id) {
+              <tr class="clicavel" [class.selecionada]="formaSelecionada()?.id === forma.id" (click)="selecionarForma(forma)">
+                <td>{{ forma.descricao }}</td>
+                <td class="num">{{ forma.valorMinimo | currency }}</td>
+                <td class="num">até {{ forma.maxParcelas }}x</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+
+        @if (formaSelecionada(); as forma) {
+          <form class="vx-cartao-corpo lancamento" (ngSubmit)="incluirPagamento()">
+            <div class="vx-campo">
+              <label for="valor">Valor em {{ forma.descricao }} (R$)</label>
+              <input id="valor" name="valor" type="number" min="0" step="0.01" [(ngModel)]="valor" />
+            </div>
+            @if (forma.maxParcelas > 1) {
+              <div class="vx-campo">
+                <label for="parcelas">Parcelas</label>
+                <select id="parcelas" name="parcelas" [(ngModel)]="parcelas">
+                  @for (n of opcoesParcelas(); track n) {
+                    <option [ngValue]="n">{{ n }}x</option>
+                  }
+                </select>
+              </div>
+            }
+            <button type="submit" class="vx-botao primario">Incluir <kbd class="vx-tecla">Enter</kbd></button>
+          </form>
+        }
+      </section>
+
+      @if (erro()) {
+        <p class="vx-mensagem-erro">{{ erro() }}</p>
+      }
+
+      <section class="vx-cartao">
+        <h2 class="vx-cartao-titulo">Pagamentos lançados</h2>
+        <table class="vx-tabela">
+          <thead>
+            <tr>
+              <th>Forma</th>
+              <th class="num">Parcelas</th>
+              <th class="num">Valor</th>
+              <th><span class="oculto">Remover</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (pagamento of vendaService.rascunho().pagamentos; track $index; let i = $index) {
+              <tr>
+                <td>{{ pagamento.forma.descricao }}</td>
+                <td class="num">{{ pagamento.parcelas }}x</td>
+                <td class="num">{{ pagamento.valor | currency }}</td>
+                <td class="acao">
+                  <button type="button" class="remover" aria-label="Remover pagamento" (click)="removerPagamento(i)">
+                    <app-icone nome="lixeira" [tamanho]="16" />
+                  </button>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="4" class="vazia">Selecione uma forma de pagamento acima.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </section>
+    </div>
+
+    <aside class="vx-coluna">
+      <app-resumo-venda />
+
+      <section class="vx-cartao">
+        <h2 class="vx-cartao-titulo">Venda</h2>
+        <div class="vx-cartao-corpo">
+          <dl class="vx-resumo">
+            <dt>Cliente</dt>
+            <dd>{{ vendaService.rascunho().cliente?.nome ?? 'Consumidor final' }}</dd>
+            <dt>Peças</dt>
+            <dd>{{ vendaService.quantidadeItens() }}</dd>
+            <dt>Vendedor</dt>
+            <dd>{{ vendaService.rascunho().vendedor?.prontuario ?? '—' }}</dd>
+          </dl>
+        </div>
+      </section>
+    </aside>
+  </div>
+}
+
+<app-barra-acoes
+  [dica]="vendaFinalizada() ? 'Venda registrada no prontuário do vendedor.' : 'Clique na forma de pagamento · Enter inclui o valor · F2 finaliza'"
+  [acoes]="acoes()"
+  (acionar)="executar($event)"
+/>

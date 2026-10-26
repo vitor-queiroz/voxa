@@ -1,0 +1,20 @@
+<footer class="rodape" aria-label="Barra de atalhos">
+  <p class="dica">{{ dica() }}</p>
+  <div class="botoes">
+    @for (acao of acoes(); track acao.id) {
+      <button
+        type="button"
+        class="vx-botao"
+        [class.primario]="acao.estilo === 'primario'"
+        [class.perigo]="acao.estilo === 'perigo'"
+        [disabled]="acao.desabilitada"
+        (click)="acionar.emit(acao.id)"
+      >
+        {{ acao.rotulo }}
+        @if (acao.tecla) {
+          <kbd class="vx-tecla">{{ acao.tecla }}</kbd>
+        }
+      </button>
+    }
+  </div>
+</footer>

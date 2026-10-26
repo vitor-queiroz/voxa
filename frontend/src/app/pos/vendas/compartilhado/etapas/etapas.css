@@ -1,0 +1,46 @@
+.etapas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 28px;
+  margin: 0;
+  padding: 0 24px;
+  list-style: none;
+  background: var(--vx-branco);
+  border-bottom: 1px solid var(--vx-borda);
+}
+
+li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 13px 4px;
+  color: var(--vx-texto-suave);
+  border-bottom: 3px solid transparent;
+}
+
+.numero {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  font-size: 11px;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+}
+
+.feita {
+  color: var(--vx-primaria);
+}
+
+.atual {
+  font-weight: 600;
+  color: var(--vx-primaria);
+  border-bottom-color: var(--vx-primaria);
+}
+
+.atual .numero {
+  color: var(--vx-branco);
+  background: var(--vx-primaria);
+  border-color: var(--vx-primaria);
+}

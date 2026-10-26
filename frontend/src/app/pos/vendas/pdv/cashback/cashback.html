@@ -1,0 +1,37 @@
+<app-dialogo titulo="Acesso ao cashback" (fechar)="fechar.emit()">
+  <form (ngSubmit)="confirmar()">
+    <p class="cliente">{{ cliente().nome }}</p>
+
+    <dl>
+      <dt>Saldo cashback</dt>
+      <dd>{{ saldo() === null ? '…' : (saldo() | currency) }}</dd>
+      <dt>Cashback disponível nesta venda</dt>
+      <dd>{{ disponivel() | currency }}</dd>
+    </dl>
+
+    <div class="vx-campo">
+      <label for="valor-resgate">Valor do resgate (R$)</label>
+      <input
+        id="valor-resgate"
+        name="valorResgate"
+        type="number"
+        min="0"
+        step="0.01"
+        [max]="disponivel()"
+        [disabled]="disponivel() <= 0"
+        [(ngModel)]="valorResgate"
+      />
+    </div>
+
+    @if (erro()) {
+      <p class="vx-mensagem-erro">{{ erro() }}</p>
+    }
+
+    <div class="acoes">
+      <button type="button" class="vx-botao" (click)="fechar.emit()">Cancelar</button>
+      <button type="submit" class="vx-botao primario" [disabled]="disponivel() <= 0">
+        Resgatar cashback
+      </button>
+    </div>
+  </form>
+</app-dialogo>

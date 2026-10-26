@@ -1,0 +1,149 @@
+:host {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+.partes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 18px 28px;
+}
+
+.cliente {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 14px;
+}
+
+.cpf {
+  display: flex;
+  gap: 6px;
+}
+
+.cpf input.invalido {
+  border-color: var(--vx-perigo);
+  box-shadow: 0 0 0 2px var(--vx-perigo-claro);
+}
+
+.cliente p {
+  line-height: 1.5;
+}
+
+.cliente app-icone {
+  margin-right: 4px;
+  vertical-align: -2px;
+  color: var(--vx-primaria);
+}
+
+small {
+  color: var(--vx-texto-suave);
+}
+
+.vazio {
+  margin: 0;
+  padding: 10px 0;
+  color: var(--vx-texto-suave);
+}
+
+.leitura {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.bipar {
+  padding: 14px;
+  font-size: 18px;
+  border: 2px solid var(--vx-primaria);
+}
+
+.ultima {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 24px;
+}
+
+.ultima span:first-child {
+  flex: 1;
+}
+
+.desconto {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font: inherit;
+  letter-spacing: normal;
+  text-transform: none;
+  color: var(--vx-texto);
+  cursor: pointer;
+  background: none;
+  border: none;
+}
+
+.grade {
+  position: relative;
+  overflow-x: auto;
+}
+
+.qtd {
+  width: 56px;
+  padding: 4px;
+  font: inherit;
+  text-align: center;
+  background: transparent;
+  border: 1px solid var(--vx-borda);
+  border-radius: var(--vx-raio);
+}
+
+.valor {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.valor s {
+  font-size: 11px;
+  color: var(--vx-texto-suave);
+}
+
+.remover {
+  display: inline-flex;
+  padding: 4px;
+  color: var(--vx-texto-suave);
+  cursor: pointer;
+  background: none;
+  border: none;
+}
+
+.remover:hover {
+  color: var(--vx-perigo);
+}
+
+.oculto {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+.erro-pagamento {
+  margin-top: 12px;
+}
+
+.foto {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-height: 150px;
+  justify-content: center;
+  color: var(--vx-texto-suave);
+}
+
+.foto img {
+  max-width: 100%;
+  max-height: 180px;
+  object-fit: contain;
+}

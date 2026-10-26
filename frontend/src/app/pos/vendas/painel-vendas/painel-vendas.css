@@ -1,0 +1,86 @@
+:host {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+.unica {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.filtros {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 14px;
+}
+
+.periodos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.periodos .ativo {
+  color: var(--vx-branco);
+  background: var(--vx-azul-noite);
+  border-color: var(--vx-azul-noite);
+}
+
+.indicadores {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 18px;
+}
+
+.indicadores .vx-destaque {
+  margin-bottom: 0;
+  font-size: 24px;
+}
+
+.grade {
+  overflow-x: auto;
+}
+
+small {
+  color: var(--vx-texto-suave);
+}
+
+.barra-coluna {
+  min-width: 180px;
+}
+
+.trilho {
+  display: block;
+  height: 6px;
+  margin-top: 6px;
+  background: var(--vx-linha);
+  border-radius: 3px;
+}
+
+.barra {
+  display: block;
+  height: 100%;
+  background: var(--vx-primaria);
+  border-radius: 0 4px 4px 0;
+}
+
+.cancelada td {
+  color: var(--vx-texto-suave);
+  text-decoration: line-through;
+}
+
+.limpar {
+  font: inherit;
+  letter-spacing: normal;
+  text-transform: none;
+  color: var(--vx-primaria);
+  cursor: pointer;
+  background: none;
+  border: none;
+}
+
+.nota {
+  margin: 0;
+  color: var(--vx-texto-suave);
+}

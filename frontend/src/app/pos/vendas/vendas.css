@@ -1,0 +1,110 @@
+/* Base do módulo de vendas (design VOXA), restrita ao <app-vendas> */
+
+body:has(app-vendas) {
+  margin: 0;
+}
+
+app-vendas {
+  --vx-azul-noite: #0f1f2e;
+  --vx-fundo: #eef1f4;
+  --vx-branco: #fff;
+  --vx-borda: #dde2e8;
+  --vx-linha: #f3f5f7;
+  --vx-texto: #18222d;
+  --vx-texto-suave: #5f6b78;
+  --vx-primaria: #0e5c5a;
+  --vx-primaria-clara: #e4f0ee;
+  --vx-aviso: #fdf3d7;
+  --vx-aviso-borda: #e6c766;
+  --vx-aviso-texto: #6b4e00;
+  --vx-perigo: #b42318;
+  --vx-perigo-claro: #fdecea;
+  --vx-raio: 6px;
+  --vx-sombra: 0 1px 2px rgba(15, 31, 46, 0.06);
+  --vx-mono: 'IBM Plex Mono', Consolas, monospace;
+
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  font-family: 'IBM Plex Sans', 'Segoe UI', Arial, sans-serif;
+  font-size: 13px;
+  color: var(--vx-texto);
+  background: var(--vx-fundo);
+}
+
+app-vendas * {
+  box-sizing: border-box;
+}
+
+.vx-topo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 28px;
+  padding: 12px 24px;
+  color: #c4ccd5;
+  background: var(--vx-azul-noite);
+}
+
+.vx-marca {
+  font-weight: 700;
+  letter-spacing: 6px;
+  color: var(--vx-branco);
+}
+
+.vx-menu {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  gap: 4px 18px;
+}
+
+.vx-menu a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.vx-menu a:hover,
+.vx-menu a.ativo {
+  color: var(--vx-branco);
+}
+
+.vx-menu a.ativo {
+  font-weight: 600;
+}
+
+.vx-topo-data {
+  font-family: var(--vx-mono);
+}
+
+/* Página: conteúdo + coluna lateral de totais + rodapé fixo */
+.vx-pagina {
+  display: grid;
+  flex: 1;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 18px;
+  align-content: start;
+  width: 100%;
+  max-width: 1360px;
+  margin: 0 auto;
+  padding: 20px 24px;
+}
+
+.vx-coluna {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0;
+}
+
+@media (max-width: 900px) {
+  .vx-pagina {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 16px;
+  }
+
+  .vx-menu {
+    flex-basis: 100%;
+    order: 3;
+  }
+}

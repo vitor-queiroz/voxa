@@ -14,7 +14,7 @@ export const routes: Routes = [
     path: 'login',
     component: Login
   },
-    {
+  {
     path: 'manager',
     component: Manager
   },
@@ -25,5 +25,9 @@ export const routes: Routes = [
   {
     path: 'entrada-mercadoria',
     component: EntradaMercadoria
-  }  
-  ];
+  },
+  {
+    path: 'vendas',
+    loadChildren: () => import('./pos/vendas/vendas.routes').then((m) => m.VENDAS_ROUTES)
+  }
+];

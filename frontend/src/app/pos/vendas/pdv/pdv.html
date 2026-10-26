@@ -1,0 +1,259 @@
+<app-etapas [atual]="1" />
+
+<div class="vx-pagina">
+  <div class="vx-coluna">
+    <section class="vx-cartao">
+      <h2 class="vx-cartao-titulo">Vendedor e cliente</h2>
+      <div class="vx-cartao-corpo partes">
+        <app-vendedor-prontuario />
+
+        <div class="cliente">
+          <div class="vx-campo">
+            <label for="cpf-cliente">CPF do cliente</label>
+            <div class="cpf">
+              <input
+                id="cpf-cliente"
+                name="cpf"
+                inputmode="numeric"
+                maxlength="14"
+                autocomplete="off"
+                placeholder="000.000.000-00"
+                [class.invalido]="avisoCpf()"
+                [attr.aria-invalid]="avisoCpf() ? true : null"
+                aria-describedby="aviso-cpf"
+                [ngModel]="cpf()"
+                (ngModelChange)="alterarCpf($event)"
+                (blur)="cpfTocado.set(true)"
+              />
+              <button
+                type="button"
+                class="vx-botao"
+                [disabled]="!vendaService.rascunho().cliente"
+                (click)="abrirDialogo({ tipo: 'cashback' })"
+              >
+                Cashback
+              </button>
+            </div>
+          </div>
+
+          @if (vendaService.rascunho().cliente; as cliente) {
+            <p class="vx-encontrado">
+              <app-icone nome="valido" [tamanho]="14" /> <strong>{{ cliente.nome }}</strong> · CPF válido<br />
+              <small>{{ cliente.email ?? 'sem e-mail' }} · {{ cliente.telefone ?? 'sem telefone' }}</small>
+            </p>
+          } @else if (erroCliente()) {
+            <p class="vx-mensagem-erro">{{ erroCliente() }}</p>
+          } @else if (avisoCpf()) {
+            <p id="aviso-cpf" class="vx-mensagem-erro" role="alert">{{ avisoCpf() }}</p>
+          } @else if (clienteNaoCadastrado()) {
+            <p class="vx-aviso">CPF válido, mas sem cadastro. Use <strong>Novo cliente</strong> (F4).</p>
+          } @else {
+            <p class="vazio">Consumidor final</p>
+          }
+        </div>
+      </div>
+    </section>
+
+    <section class="vx-cartao">
+      <h2 class="vx-cartao-titulo">Lançar produtos</h2>
+      <div class="vx-cartao-corpo leitura">
+        <form class="vx-campo" (ngSubmit)="incluirProduto()">
+          <label for="termo-produto">Código de barras ou REF/TAM (cada leitura = 1 unidade)</label>
+          <input
+            id="termo-produto"
+            class="bipar"
+            name="termoProduto"
+            autocomplete="off"
+            placeholder="Bipe o código aqui"
+            [(ngModel)]="termoProduto"
+          />
+        </form>
+
+        @if (erroProduto()) {
+          <p class="vx-aviso"><strong>{{ erroProduto() }}</strong> Confira o código ou digite REF/TAM (ex.: 12345/42).</p>
+        } @else if (ultimoItem(); as item) {
+          <p class="vx-encontrado ultima">
+            <span><strong>✓ Última leitura</strong> {{ item.variacao.produto.nome }} · {{ item.variacao.cor }} · <strong>{{ item.variacao.tamanho }}</strong></span>
+            <span class="vx-mono">{{ item.variacao.codigoBarras }}</span>
+            <span class="vx-mono">{{ item.precoUnitario | currency }}</span>
+          </p>
+        }
+      </div>
+    </section>
+
+    <section class="vx-cartao">
+      <h2 class="vx-cartao-titulo">
+        Itens da venda · {{ vendaService.quantidadeItens() }} peças
+        <button type="button" class="desconto" (click)="abrirDialogo({ tipo: 'desconto' })">
+          <span class="vx-moeda">$</span>
+          Aplicar desconto total
+          @if (vendaService.rascunho().desconto; as desconto) {
+            ({{ desconto.tipo === 'PERCENTUAL' ? desconto.valor + '%' : (desconto.valor | currency) }})
+          }
+        </button>
+      </h2>
+      <div class="grade">
+        <table class="vx-tabela">
+          <thead>
+            <tr>
+              <th>Ref.</th>
+              <th>Produto</th>
+              <th>Cor</th>
+              <th>Tam.</th>
+              <th>Código de barras</th>
+              <th class="num">Qtd</th>
+              <th class="num">Valor unit.</th>
+              <th class="num">Subtotal</th>
+              <th><span class="oculto">Remover</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of vendaService.rascunho().itens; track $index; let i = $index) {
+              <tr class="clicavel" [class.selecionada]="indiceSelecionado() === i" (click)="indiceSelecionado.set(i)">
+                <td class="vx-mono">{{ item.variacao.produto.referencia }}</td>
+                <td>{{ item.variacao.produto.nome }}</td>
+                <td>{{ item.variacao.cor }}</td>
+                <td>{{ item.variacao.tamanho }}</td>
+                <td class="vx-mono">{{ item.variacao.codigoBarras }}</td>
+                <td class="num">
+                  <input
+                    class="qtd"
+                    type="number"
+                    min="1"
+                    aria-label="Quantidade"
+                    [value]="item.quantidade"
+                    (change)="alterarQuantidade(i, $event)"
+                    (click)="$event.stopPropagation()"
+                  />
+                </td>
+                <td class="num">
+                  <span class="valor">
+                    @if (item.precoUnitario !== item.precoOriginal) {
+                      <s>{{ item.precoOriginal | currency }}</s>
+                    }
+                    {{ item.precoUnitario | currency }}
+                    <button
+                      type="button"
+                      class="vx-moeda"
+                      title="Alterar valor"
+                      aria-label="Alterar valor do item"
+                      (click)="abrirDialogo({ tipo: 'valor-item', indice: i }); $event.stopPropagation()"
+                    >$</button>
+                  </span>
+                </td>
+                <td class="num">{{ item.quantidade * item.precoUnitario | currency }}</td>
+                <td>
+                  <button
+                    type="button"
+                    class="remover"
+                    title="Remover item"
+                    aria-label="Remover item"
+                    (click)="removerItem(i); $event.stopPropagation()"
+                  >
+                    <app-icone nome="lixeira" [tamanho]="16" />
+                  </button>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="9" class="vazia">Nenhum item na venda. Bipe um código ou digite REF/TAM (ex.: 12345/42).</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <aside class="vx-coluna">
+    <section class="vx-cartao">
+      <h2 class="vx-cartao-titulo">Totais da venda</h2>
+      <div class="vx-cartao-corpo">
+        <span class="vx-destaque-rotulo">Total</span>
+        <strong class="vx-destaque">{{ vendaService.total() | currency }}</strong>
+        <dl class="vx-resumo">
+          <dt>Peças</dt>
+          <dd>{{ vendaService.quantidadeItens() }}</dd>
+          <dt>Subtotal</dt>
+          <dd>{{ vendaService.subtotal() | currency }}</dd>
+          <dt>Descontos</dt>
+          <dd>- {{ vendaService.valorDesconto() | currency }}</dd>
+          @if (vendaService.cashback() > 0) {
+            <dt>Cashback</dt>
+            <dd>- {{ vendaService.cashback() | currency }}</dd>
+          }
+          @if (vendaService.rascunho().vendedor; as vendedor) {
+            <dt>Vendedor</dt>
+            <dd>{{ vendedor.prontuario }}</dd>
+          }
+        </dl>
+        @if (erroPagamento()) {
+          <p class="vx-mensagem-erro erro-pagamento">{{ erroPagamento() }}</p>
+        }
+      </div>
+    </section>
+
+    <section class="vx-cartao">
+      <h2 class="vx-cartao-titulo">Item selecionado</h2>
+      <div class="vx-cartao-corpo foto">
+        @if (itemVisualizado()?.variacao?.imagemUrl; as imagem) {
+          <img [src]="imagem" [alt]="itemVisualizado()?.variacao?.produto?.nome" />
+        } @else {
+          <app-icone nome="imagem" [tamanho]="44" />
+          <span>{{ itemVisualizado() ? 'Item sem imagem' : 'Nenhum item selecionado' }}</span>
+        }
+      </div>
+    </section>
+  </aside>
+</div>
+
+<app-barra-acoes
+  dica="Enter inclui o item · Del remove a linha selecionada · Esc fecha janelas"
+  [acoes]="acoes()"
+  (acionar)="executar($event)"
+/>
+
+@switch (dialogo()?.tipo) {
+  @case ('cliente') {
+    <app-cadastro-cliente
+      [cliente]="$any(dialogo()).cliente"
+      [cpfInicial]="clienteNaoCadastrado() ? cpf() : ''"
+      (salvo)="aoSalvarCliente($event)"
+      (fechar)="fecharDialogo()"
+    />
+  }
+  @case ('cashback') {
+    <app-cashback
+      [cliente]="vendaService.rascunho().cliente!"
+      [totalVenda]="vendaService.subtotal() - vendaService.valorDesconto()"
+      [resgateAtual]="vendaService.cashback()"
+      (resgatar)="aoResgatarCashback($event)"
+      (fechar)="fecharDialogo()"
+    />
+  }
+  @case ('valor-item') {
+    @let indice = $any(dialogo()).indice;
+    <app-ajuste-valor
+      titulo="Alterar valor do item"
+      rotulo="Novo valor unitário"
+      [dica]="'Valor de cadastro: R$ ' + vendaService.rascunho().itens[indice].precoOriginal.toFixed(2)"
+      [valorAtual]="vendaService.rascunho().itens[indice].precoUnitario"
+      [erro]="erroDialogo()"
+      (confirmar)="aoAlterarValorItem(indice, $event)"
+      (fechar)="fecharDialogo()"
+    />
+  }
+  @case ('desconto') {
+    <app-ajuste-valor
+      titulo="Desconto total da venda"
+      rotulo="Desconto"
+      dica="Informe 0 para remover o desconto."
+      [permitirPercentual]="true"
+      [tipoAtual]="vendaService.rascunho().desconto?.tipo ?? 'VALOR'"
+      [valorAtual]="vendaService.rascunho().desconto?.valor ?? 0"
+      [erro]="erroDialogo()"
+      (confirmar)="aoAplicarDesconto($event)"
+      (fechar)="fecharDialogo()"
+    />
+  }
+}
