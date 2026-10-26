@@ -64,6 +64,7 @@ vendas/
 ├── vendas.mock.ts             ← dados de exemplo usados pela versão de exemplo
 ├── venda.service.ts           ← estado da venda em andamento + cálculos
 ├── cpf.ts                     ← validação e máscara de CPF
+├── foto.ts                    ← reduz a foto antes do envio e monta o endereço da imagem
 ├── pdv/                       ← tela Nova venda | Ponto de venda
 │   ├── ajuste-valor/          ← janela do símbolo de moeda (valor do item / desconto total)
 │   ├── cadastro-cliente/      ← janela Novo cliente / Editar cadastro
@@ -97,7 +98,7 @@ vendas/
 | **Prontuário do vendedor**| Digita o prontuário (ex.: `1` vira `0001`) e Enter. Mostra nome e função e **vincula** a venda ao funcionário. Só funcionário com situação **Trabalhando** é aceito. |
 | **Dados do cliente**      | Digita o CPF (máscara automática). Ao completar 11 dígitos, valida e mostra *CPF válido/inválido*. CPF válido → busca o cliente. Sem cliente = *Consumidor final*. |
 | **Acesso ao cashback**    | Habilitado com cliente identificado. Mostra o saldo e permite resgatar parte dele na venda.                       |
-| **Item selecionado**      | Foto do item selecionado (ou do último incluído), na coluna lateral. Usa `imagemUrl` da variação.                 |
+| **Item selecionado**      | Foto do item selecionado (ou do último incluído), na coluna lateral. Botões **Adicionar foto / Trocar foto** e **Remover**: a foto é reduzida no navegador (até 1000 px, JPG) e enviada ao backend. Vale para **todos os tamanhos da mesma cor**. |
 | **Lançar produtos**       | Campo "Bipe o código aqui": **REF/TAM** (ex.: `12345/42`) ou **código de barras** + Enter. Cada leitura cria uma linha nova; a "Última leitura" confirma o item. |
 | **Linha do item**         | Nº, descrição, cor/tamanho, referência, quantidade (editável), **símbolo de moeda = alterar valor do item**, valor e lixeira (remover). Valor alterado mostra o original riscado. |
 | **Aplicar desconto total**| **Símbolo de moeda abaixo dos itens = desconto geral** da venda, em R$ ou %. Informar 0 remove o desconto.          |
@@ -208,6 +209,9 @@ Lidos da tabela `funcionario`. **Não envie CPF, RG nem data de nascimento** par
 | Método | URL | Resposta |
 | ------ | --- | -------- |
 | GET | `/produtos/variacoes/busca?termo=12345/42` | `200` `ProdutoVariacao` · `404` não encontrado |
+| POST | `/produtos/variacoes/{id}/imagem` (multipart, campo `arquivo`, até 1 MB, JPG/PNG/WEBP) | `200` `ProdutoVariacao` com o novo `imagemUrl` · `400` arquivo inválido · `404` |
+| DELETE | `/produtos/variacoes/{id}/imagem` | `200` `ProdutoVariacao` com `imagemUrl: null` |
+| GET | `/produtos/imagens/{id}` | `200` a imagem (usada no `<img>`) · `404` |
 
 O `termo` pode ser **REF/TAM** (`referencia/tamanho`, ex.: `12345/42`) ou **código de barras** (ex.: `12345142`). Lembre de codificar a barra na URL (`12345%2F42`), o `HttpClient` faz isso com `params`.
 
@@ -219,9 +223,11 @@ O `termo` pode ser **REF/TAM** (`referencia/tamanho`, ex.: `12345/42`) ou **cód
   "tamanho": "42",
   "cor": "Preto",
   "preco": 349.90,
-  "imagemUrl": "https://.../12345-preto.jpg"
+  "imagemUrl": "/produtos/imagens/7"
 }
 ```
+
+As fotos ficam no banco (tabela `produto_imagem`), assim todos os computadores veem a mesma foto. O `imagemUrl` vem como `/produtos/imagens/{id}` e o frontend completa com o endereço do backend (`enderecoFoto` em `foto.ts`). Também aceita um link completo (`https://...`) gravado direto no banco. Enviar foto para o **Preto 42** troca a foto de todos os tamanhos do tênis **Preto**.
 
 ### Formas de pagamento
 
@@ -425,5 +431,6 @@ Já existem 6 vendas de exemplo nos últimos 12 dias (uma cancelada), para a con
 - [ ] **Estoque**: ao finalizar a venda, o backend deve dar baixa no estoque da variação.
 - [ ] **Cashback**: definir regra de acúmulo (quanto o cliente ganha por venda) e se o resgate debita o saldo na finalização.
 - [ ] **Permissão para alterar valor/desconto**: hoje qualquer vendedor pode; avaliar limite ou senha de gerente.
-- [ ] **Imagens**: definir onde ficam as fotos dos produtos (`imagemUrl`).
+- [x] **Imagens**: fotos enviadas pelo PDV e guardadas no banco (`produto_imagem`).
+- [ ] **Quem pode trocar fotos**: hoje qualquer funcionário pode; quando houver login com perfis, avaliar limitar ao gerente.
 - [ ] **Nota fiscal (NFC-e)**: emissão após finalizar a venda (módulo Notas Fiscais).

@@ -196,11 +196,36 @@
     <section class="vx-cartao">
       <h2 class="vx-cartao-titulo">Item selecionado</h2>
       <div class="vx-cartao-corpo foto">
-        @if (itemVisualizado()?.variacao?.imagemUrl; as imagem) {
+        @if (fotoVisualizada(); as imagem) {
           <img [src]="imagem" [alt]="itemVisualizado()?.variacao?.produto?.nome" />
         } @else {
           <app-icone nome="imagem" [tamanho]="44" />
-          <span>{{ itemVisualizado() ? 'Item sem imagem' : 'Nenhum item selecionado' }}</span>
+          <span>{{ itemVisualizado() ? 'Item sem foto' : 'Nenhum item selecionado' }}</span>
+        }
+
+        @if (itemVisualizado(); as item) {
+          <p class="foto-legenda">{{ item.variacao.produto.nome }} · {{ item.variacao.cor }}</p>
+          <div class="foto-acoes">
+            <label class="vx-botao" [class.desabilitado]="enviandoFoto()">
+              <input
+                type="file"
+                class="foto-arquivo"
+                [accept]="tiposFoto"
+                [disabled]="enviandoFoto()"
+                (change)="aoEscolherFoto($event)"
+              />
+              {{ enviandoFoto() ? 'Enviando...' : item.variacao.imagemUrl ? 'Trocar foto' : 'Adicionar foto' }}
+            </label>
+            @if (item.variacao.imagemUrl) {
+              <button type="button" class="vx-botao perigo" [disabled]="enviandoFoto()" (click)="removerFoto()">
+                Remover
+              </button>
+            }
+          </div>
+          <small class="foto-dica">A foto vale para todos os tamanhos desta cor.</small>
+          @if (erroFoto()) {
+            <p class="vx-mensagem-erro">{{ erroFoto() }}</p>
+          }
         }
       </div>
     </section>

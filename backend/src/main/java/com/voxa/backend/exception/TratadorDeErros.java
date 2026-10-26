@@ -6,6 +6,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 
 /*Transforma as exceções em respostas { "mensagem": "..." } com o status certo*/
 @RestControllerAdvice
@@ -33,6 +35,16 @@ public class TratadorDeErros {
                 .findFirst()
                 .orElse("Dados inválidos.");
         return resposta(HttpStatus.BAD_REQUEST, mensagem);
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ErroResponse> arquivoGrande(MaxUploadSizeExceededException erro) {
+        return resposta(HttpStatus.BAD_REQUEST, "A imagem deve ter no máximo 1 MB.");
+    }
+
+    @ExceptionHandler(MissingServletRequestPartException.class)
+    public ResponseEntity<ErroResponse> semArquivo(MissingServletRequestPartException erro) {
+        return resposta(HttpStatus.BAD_REQUEST, "Escolha uma imagem para enviar.");
     }
 
     private ResponseEntity<ErroResponse> resposta(HttpStatus status, String mensagem) {

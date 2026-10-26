@@ -80,6 +80,19 @@ export class VendaService {
     }));
   }
 
+  /*Foto nova (ou removida): atualiza os itens do mesmo produto e cor, que usam a mesma foto*/
+  atualizarFoto(variacao: ProdutoVariacao) {
+    const mesmaCor = (outra: ProdutoVariacao) =>
+      outra.id === variacao.id ||
+      (outra.produto.id === variacao.produto.id && !!outra.cor && outra.cor.toLowerCase() === variacao.cor?.toLowerCase());
+    this._rascunho.update((r) => ({
+      ...r,
+      itens: r.itens.map((item) =>
+        mesmaCor(item.variacao) ? { ...item, variacao: { ...item.variacao, imagemUrl: variacao.imagemUrl } } : item,
+      ),
+    }));
+  }
+
   removerItem(indice: number) {
     this._rascunho.update((r) => ({ ...r, itens: r.itens.filter((_, i) => i !== indice) }));
   }

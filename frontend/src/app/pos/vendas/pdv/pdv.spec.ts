@@ -107,4 +107,33 @@ describe('Pdv', () => {
 
     expect(component.erroPagamento()).toContain('prontuário do vendedor');
   });
+
+  it('deve adicionar a foto ao item selecionado e mostrar no card', async () => {
+    component.termoProduto = '12345/42';
+    component.incluirProduto();
+    component.prepararFoto = async (arquivo) => arquivo; // o ambiente de teste não tem canvas
+    const foto = new File(['x'], 'tenis.jpg', { type: 'image/jpeg' });
+
+    await component.aoEscolherFoto({ target: { files: [foto], value: '' } } as unknown as Event);
+    for (let i = 0; i < 50 && component.enviandoFoto(); i++) {
+      await new Promise((pronto) => setTimeout(pronto, 10)); // a versão de exemplo lê o arquivo de forma assíncrona
+    }
+    fixture.detectChanges();
+
+    const card: HTMLElement = fixture.nativeElement.querySelector('.foto');
+    expect(component.fotoVisualizada()).toMatch(/^data:image\/jpeg/);
+    expect(card.querySelector('img')).toBeTruthy();
+    expect(card.textContent).toContain('Trocar foto');
+  });
+
+  it('deve recusar arquivo que não é imagem', async () => {
+    component.termoProduto = '12345/42';
+    component.incluirProduto();
+    const pdf = new File(['x'], 'nota.pdf', { type: 'application/pdf' });
+
+    await component.aoEscolherFoto({ target: { files: [pdf], value: '' } } as unknown as Event);
+
+    expect(component.erroFoto()).toBe('Escolha uma imagem JPG, PNG ou WEBP.');
+    expect(vendaService.rascunho().itens[0].variacao.imagemUrl).toBeNull();
+  });
 });

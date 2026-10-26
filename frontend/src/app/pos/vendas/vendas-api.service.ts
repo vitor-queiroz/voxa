@@ -69,6 +69,25 @@ export class VendasApiService {
       .pipe(catchError(nuloSe404));
   }
 
+  /*
+   * POST /produtos/variacoes/{id}/imagem (multipart, campo "arquivo").
+   * A foto vale para todos os tamanhos da mesma cor; devolve a variação com o novo imagemUrl.
+   */
+  enviarFoto(variacaoId: number, foto: Blob): Observable<ProdutoVariacao> {
+    const dados = new FormData();
+    dados.append('arquivo', foto, 'foto.jpg');
+    return this.http
+      .post<ProdutoVariacao>(`${API_URL}/produtos/variacoes/${variacaoId}/imagem`, dados)
+      .pipe(catchError(paraErro));
+  }
+
+  /*DELETE /produtos/variacoes/{id}/imagem — tira a foto de todos os tamanhos da mesma cor*/
+  removerFoto(variacaoId: number): Observable<ProdutoVariacao> {
+    return this.http
+      .delete<ProdutoVariacao>(`${API_URL}/produtos/variacoes/${variacaoId}/imagem`)
+      .pipe(catchError(paraErro));
+  }
+
   /*GET /formas-pagamento*/
   listarFormasPagamento(): Observable<FormaPagamento[]> {
     return this.http.get<FormaPagamento[]>(`${API_URL}/formas-pagamento`).pipe(catchError(paraErro));

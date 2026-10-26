@@ -6,7 +6,7 @@ Endpoints que as telas de vendas (`frontend/src/app/.../vendas`) usam. Spring Bo
 
 | Pasta | Arquivos |
 | ----- | -------- |
-| `model/` | `Funcionario` (mapeia a tabela **funcionario** que já existe), `Cliente`, `FormaPagamento`, `Venda`, `ItemVenda`, `PagamentoVenda`, enums `StatusVenda` e `TipoDesconto`. **`ProdutoVariacao` ganhou** `codigoBarras`, `tamanho`, `cor`, `preco` e `imagemUrl` |
+| `model/` | `Funcionario` (mapeia a tabela **funcionario** que já existe), `Cliente`, `FormaPagamento`, `Venda`, `ItemVenda`, `PagamentoVenda`, `ProdutoImagem` (fotos dos produtos), enums `StatusVenda` e `TipoDesconto`. **`ProdutoVariacao` ganhou** `codigoBarras`, `tamanho`, `cor`, `preco` e `imagemUrl` |
 | `dto/` | O que entra e sai em JSON, com os mesmos nomes do frontend. `FuncionarioResumo` **não tem CPF/RG** (LGPD) |
 | `repository/` | Um por entidade. `VendaRepository` tem as consultas do painel de vendas (GROUP BY prontuário) |
 | `service/` | Regras. `VendaService` **recalcula** subtotal, desconto, cashback, total, troco e comissão (não confia no navegador). `resumoPorVendedor` monta o painel |
@@ -17,7 +17,7 @@ Endpoints que as telas de vendas (`frontend/src/app/.../vendas`) usam. Spring Bo
 
 ## Banco de dados
 
-O `application.properties` usa `spring.jpa.hibernate.ddl-auto=update`: **ao subir o backend, o Hibernate cria sozinho** as tabelas `cliente`, `forma_pagamento`, `venda`, `item_venda` e `pagamento_venda`, e acrescenta as colunas novas em `produto_variacao` e `funcionario` (`percentual_comissao`, opcional). A tabela `funcionario` e os dados dela são mantidos.
+O `application.properties` usa `spring.jpa.hibernate.ddl-auto=update`: **ao subir o backend, o Hibernate cria sozinho** as tabelas `cliente`, `forma_pagamento`, `venda`, `item_venda`, `pagamento_venda` e `produto_imagem`, e acrescenta as colunas novas em `produto_variacao` e `funcionario` (`percentual_comissao`, opcional). A tabela `funcionario` e os dados dela são mantidos.
 
 Depois de subir uma vez, **preencha as variações de produto** (as linhas antigas ficam com as colunas novas vazias):
 
@@ -46,6 +46,14 @@ Produto sem `preco` não pode ser vendido (o backend avisa).
 ```
 
 Sem `de`, conta desde o início; sem `ate`, até hoje. `de` depois de `ate` → `400`.
+
+## Fotos dos produtos
+
+- `POST /produtos/variacoes/{id}/imagem` (multipart, campo `arquivo`): grava a foto na tabela `produto_imagem` e preenche `imagem_url` com `/produtos/imagens/{id}` em **todas as variações do mesmo produto e cor**.
+- `DELETE /produtos/variacoes/{id}/imagem`: tira a foto dessas variações.
+- `GET /produtos/imagens/{id}`: devolve a imagem (com cache longo, porque foto nova ganha id novo).
+- Aceita só **JPG, PNG ou WEBP** (o tipo é conferido pelos primeiros bytes do arquivo) de até **1 MB**, o limite padrão do Spring. O PDV já reduz a foto antes de enviar (uma foto de celular fica com uns 100 KB).
+- Foto trocada ou removida que nenhuma variação usa mais é apagada do banco.
 
 ## Regras validadas no backend
 
