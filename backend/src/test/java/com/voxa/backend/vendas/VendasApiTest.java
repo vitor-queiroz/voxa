@@ -1,7 +1,9 @@
 package com.voxa.backend.vendas;
 
 import com.jayway.jsonpath.JsonPath;
+import com.voxa.backend.repository.VendaRepository;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 
 import java.math.BigDecimal;
@@ -17,6 +19,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /*Registro, consulta, cancelamento de vendas e painel de comissões*/
 class VendasApiTest extends BaseApiTest {
+
+    @Autowired
+    private VendaRepository vendaRepository;
 
     /*Venda como o frontend envia: totais errados de propósito, o backend deve recalcular*/
     private String venda(String prontuario, String clienteId, String itens, String desconto, String cashback, String pagamentos) {
@@ -78,13 +83,18 @@ class VendasApiTest extends BaseApiTest {
                 .andExpect(jsonPath("$.cashback").value(20.00))
                 .andExpect(jsonPath("$.total").value(357.82))
                 .andExpect(jsonPath("$.troco").value(42.18))
-                .andExpect(jsonPath("$.percentualComissao").value(3))
-                .andExpect(jsonPath("$.valorComissao").value(10.73))
+                .andExpect(jsonPath("$.percentualComissao").doesNotExist()) // comissão não sai na API
+                .andExpect(jsonPath("$.valorComissao").doesNotExist())
                 .andExpect(jsonPath("$.pagamentos[0].forma.descricao").value("CRÉDITO POS"))
                 .andExpect(jsonPath("$.pagamentos[0].parcelas").value(3));
 
         assertThat(clienteRepository.findByCpf("32970069865").orElseThrow().getSaldoCashback())
                 .isEqualByComparingTo("5.50");
+
+        // ...mas continua calculada e gravada no banco: 3% de 357,82
+        var gravada = vendaRepository.findAll().getFirst();
+        assertThat(gravada.getPercentualComissao()).isEqualByComparingTo("3");
+        assertThat(gravada.getValorComissao()).isEqualByComparingTo("10.73");
     }
 
     @Test
@@ -165,7 +175,7 @@ class VendasApiTest extends BaseApiTest {
     }
 
     @Test
-    void painelDeComissoesPorProntuarioSemContarCanceladas() throws Exception {
+    void resumoPorVendedorSemComissaoESemContarCanceladas() throws Exception {
         registrar(venda("0001", null, item(tenis42.getId(), 1, "349.90"), "null", "0", pagamento("DINHEIRO", "349.90", 1)));
         Long cancelada = registrar(venda("0001", null, item(camisetaM.getId(), 1, "59.90"), "null", "0",
                 pagamento("PIX", "59.90", 1)));
@@ -173,19 +183,20 @@ class VendasApiTest extends BaseApiTest {
         mvc.perform(patch("/vendas/" + cancelada + "/cancelamento")).andExpect(status().isOk());
 
         String hoje = LocalDate.now().toString();
-        mvc.perform(get("/comissoes").param("de", hoje).param("ate", hoje))
+        mvc.perform(get("/vendas/resumo-vendedores").param("de", hoje).param("ate", hoje))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(3))) // todos os funcionários, mesmo sem vendas
                 .andExpect(jsonPath("$[?(@.vendedor.prontuario == '0001')].quantidadeVendas").value(1))
                 .andExpect(jsonPath("$[?(@.vendedor.prontuario == '0001')].pecas").value(1))
                 .andExpect(jsonPath("$[?(@.vendedor.prontuario == '0001')].totalVendido").value(349.90))
-                .andExpect(jsonPath("$[?(@.vendedor.prontuario == '0001')].valorComissao").value(10.50))
                 .andExpect(jsonPath("$[?(@.vendedor.prontuario == '0003')].pecas").value(2))
-                .andExpect(jsonPath("$[?(@.vendedor.prontuario == '0003')].valorComissao").value(1.80))
+                .andExpect(jsonPath("$[?(@.vendedor.prontuario == '0003')].totalVendido").value(119.80))
                 .andExpect(jsonPath("$[?(@.vendedor.prontuario == '0004')].quantidadeVendas").value(0))
-                .andExpect(jsonPath("$[?(@.vendedor.prontuario == '0004')].totalVendido").value(0.0));
+                .andExpect(jsonPath("$[?(@.vendedor.prontuario == '0004')].totalVendido").value(0.0))
+                .andExpect(jsonPath("$[*].valorComissao").isEmpty());
 
-        mvc.perform(get("/comissoes").param("de", hoje).param("ate", LocalDate.now().minusDays(1).toString()))
+        mvc.perform(get("/vendas/resumo-vendedores").param("de", hoje).param("ate", LocalDate.now().minusDays(1).toString()))
                 .andExpect(status().isBadRequest());
+        mvc.perform(get("/comissoes")).andExpect(status().isNotFound()); // endpoint antigo removido
     }
 }

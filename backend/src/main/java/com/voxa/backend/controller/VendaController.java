@@ -1,5 +1,6 @@
 package com.voxa.backend.controller;
 
+import com.voxa.backend.dto.ResumoVendedor;
 import com.voxa.backend.dto.VendaRequest;
 import com.voxa.backend.dto.VendaResponse;
 import com.voxa.backend.service.VendaService;
@@ -41,6 +42,14 @@ public class VendaController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate ate,
             @RequestParam(required = false) String prontuario) {
         return vendaService.listar(de, ate, prontuario);
+    }
+
+    /*GET /vendas/resumo-vendedores?de=2026-10-01&ate=2026-10-31 — uma linha por funcionário, sem comissão*/
+    @GetMapping("/resumo-vendedores")
+    public List<ResumoVendedor> resumoPorVendedor(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate de,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate ate) {
+        return vendaService.resumoPorVendedor(de, ate);
     }
 
     @PatchMapping("/{numero}/cancelamento")

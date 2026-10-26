@@ -27,8 +27,8 @@
       </p>
     } @else {
       <p class="vx-encontrado">
-        <strong>{{ funcionario.nome }}</strong> · {{ funcionario.funcao }} · vinculado<br />
-        <small>Comissão de {{ vendaService.rascunho().percentualComissao }}% sobre o total da venda</small>
+        <strong>{{ funcionario.nome }}</strong> · {{ funcionario.funcao }}<br />
+        <small>Venda vinculada ao prontuário {{ funcionario.prontuario }}</small>
       </p>
     }
   } @else {

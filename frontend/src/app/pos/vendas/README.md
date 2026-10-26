@@ -1,8 +1,10 @@
 # Módulo de Vendas (frontend)
 
-Telas de venda do VOXA: **Nova venda (PDV)**, **Pagamento**, **Consulta de vendas** e **Painel de vendedores** (comissões por prontuário).
+Telas de venda do VOXA: **Nova venda (PDV)**, **Pagamento**, **Consulta de vendas** e **Painel de vendas** (quem vendeu o quê, por prontuário).
 
-O vendedor de cada venda é um **funcionário** (tabela `funcionario`), identificado pelo **prontuário**. A comissão de cada venda vai para o prontuário do vendedor.
+O vendedor de cada venda é um **funcionário** (tabela `funcionario`), identificado pelo **prontuário**.
+
+> **Comissão não aparece em nenhuma tela.** Todos os funcionários usam o sistema, então as telas mostram só **qual vendedor fez cada venda** e o **valor da venda**. A comissão continua sendo calculada e gravada no banco pelo backend (colunas `percentual_comissao` e `valor_comissao` da tabela `venda`), mas a API não a devolve.
 
 > As telas usam o **backend Spring Boot** (endpoints em [Contrato da API](#contrato-da-api-endpoints)).
 > Para testar sem backend, mude `USAR_DADOS_DE_EXEMPLO` para `true` em `vendas.config.ts`: as telas passam a usar os dados de `vendas.mock.ts`.
@@ -39,7 +41,7 @@ A rota do módulo é registrada em `app.routes.ts` (ajuste o caminho do `import`
 | `/vendas/pdv`       | Nova venda (PDV)        |
 | `/vendas/pagamento` | Pagamento da venda      |
 | `/vendas/consulta`  | Consulta de vendas      |
-| `/vendas/painel-vendedores` | Painel de vendedores (vendas e comissão por prontuário) |
+| `/vendas/painel-vendas` | Painel de vendas (vendas por vendedor e lista das vendas do período, sem comissão). O endereço antigo `/vendas/painel-vendedores` redireciona para cá |
 
 O módulo já configura sozinho o formato brasileiro de moeda e data (`R$ 1.234,56`) em `vendas.routes.ts`, carrega as fontes do design (IBM Plex) e tira a margem do `body` só enquanto as telas de vendas estão abertas.
 
@@ -68,7 +70,7 @@ vendas/
 │   └── cashback/              ← janela Acesso ao cashback
 ├── pagamento/                 ← tela de pagamento e finalização
 ├── consulta/                  ← tela de consulta de vendas
-├── painel-vendedores/         ← painel de vendas e comissões por prontuário
+├── painel-vendas/             ← painel de vendas por vendedor (sem comissão)
 └── compartilhado/
     ├── barra-acoes/           ← rodapé fixo: dicas + ações com tecla de atalho
     ├── etapas/                ← indicador 1 Itens e cliente · 2 Pagamento · 3 Concluída
@@ -92,14 +94,14 @@ vendas/
 
 | Área                      | Funcionamento                                                                                                   |
 | ------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| **Prontuário do vendedor**| Digita o prontuário (ex.: `1` vira `0001`) e Enter. Mostra nome e função e **vincula** a venda ao funcionário, com o percentual de comissão dele. Só funcionário com situação **Trabalhando** é aceito. |
+| **Prontuário do vendedor**| Digita o prontuário (ex.: `1` vira `0001`) e Enter. Mostra nome e função e **vincula** a venda ao funcionário. Só funcionário com situação **Trabalhando** é aceito. |
 | **Dados do cliente**      | Digita o CPF (máscara automática). Ao completar 11 dígitos, valida e mostra *CPF válido/inválido*. CPF válido → busca o cliente. Sem cliente = *Consumidor final*. |
 | **Acesso ao cashback**    | Habilitado com cliente identificado. Mostra o saldo e permite resgatar parte dele na venda.                       |
 | **Item selecionado**      | Foto do item selecionado (ou do último incluído), na coluna lateral. Usa `imagemUrl` da variação.                 |
 | **Lançar produtos**       | Campo "Bipe o código aqui": **REF/TAM** (ex.: `12345/42`) ou **código de barras** + Enter. Cada leitura cria uma linha nova; a "Última leitura" confirma o item. |
 | **Linha do item**         | Nº, descrição, cor/tamanho, referência, quantidade (editável), **símbolo de moeda = alterar valor do item**, valor e lixeira (remover). Valor alterado mostra o original riscado. |
 | **Aplicar desconto total**| **Símbolo de moeda abaixo dos itens = desconto geral** da venda, em R$ ou %. Informar 0 remove o desconto.          |
-| **Totais da venda**       | Total, peças, subtotal, descontos, cashback e a **comissão** do vendedor vinculado.                              |
+| **Totais da venda**       | Total, peças, subtotal, descontos, cashback e o **prontuário** do vendedor vinculado.                              |
 
 **Barra de atalhos:**
 
@@ -116,15 +118,15 @@ Também: **Del** remove a linha selecionada e **Esc** fecha janelas. Os atalhos 
 
 ### Pagamento (`pagamento/`)
 
-Começa pelo **Prontuário do vendedor** (vem preenchido do PDV e pode ser trocado): é o vínculo que leva a comissão para o funcionário. Depois lista as formas de pagamento, permite combinar várias (ex.: crédito 3x + dinheiro), calcula falta pagar e troco e **finaliza** a venda (`POST /vendas`). Atalhos: Voltar (F3), Cancelar venda (F7), Finalizar venda (F2).
+Começa pelo **Prontuário do vendedor** (vem preenchido do PDV e pode ser trocado): é o vínculo da venda com o funcionário. Depois lista as formas de pagamento, permite combinar várias (ex.: crédito 3x + dinheiro), calcula falta pagar e troco e **finaliza** a venda (`POST /vendas`). Atalhos: Voltar (F3), Cancelar venda (F7), Finalizar venda (F2).
 
 ### Consulta de vendas (`consulta/`)
 
-Lista as vendas (`GET /vendas`), com busca por nº, prontuário, vendedor, cliente ou CPF, filtro por situação, detalhe da venda (itens, pagamentos e comissão) e cancelamento (`PATCH /vendas/{numero}/cancelamento`).
+Lista as vendas (`GET /vendas`), com busca por nº, prontuário, vendedor, cliente ou CPF, filtro por situação, detalhe da venda (itens e pagamentos) e cancelamento (`PATCH /vendas/{numero}/cancelamento`).
 
-### Painel de vendedores (`painel-vendedores/`)
+### Painel de vendas (`painel-vendas/`)
 
-Mostra, para o período escolhido (hoje, 7 dias, 30 dias, este mês ou datas livres), uma linha por funcionário com **vendas, peças, total vendido e comissão**, e os totais do período (total vendido, comissões a pagar, vendas e ticket médio). Clicando em um vendedor, aparecem as vendas dele no período. Vem de `GET /comissoes` e `GET /vendas?prontuario=`.
+Mostra, para o período escolhido (hoje, 7 dias, 30 dias, este mês ou datas livres), os totais do período (vendas, total vendido, peças e ticket médio), a tabela **Vendas por vendedor** (prontuário, nome, vendas, peças e total vendido) e a lista **Vendas do período** (nº, data, prontuário, vendedor, cliente, peças, situação e **valor da venda**). Dá para filtrar por vendedor (ou clicar na linha dele) e por situação; vendas canceladas aparecem riscadas e não entram nos totais. **Não mostra comissão.** Vem de `GET /vendas/resumo-vendedores` e `GET /vendas?de=&ate=`.
 
 ---
 
@@ -141,8 +143,8 @@ Implementadas em `venda.service.ts` (com testes em `venda.service.spec.ts`). **O
 | Pagamento | Não aceita valor ≤ 0 nem abaixo do `valorMinimo` da forma. Só formas com `permiteTroco` (dinheiro) aceitam valor acima do restante. Parcelas de 1 até `maxParcelas`. |
 | Troco | `totalPago − total` (quando positivo). |
 | Vendedor | Funcionário encontrado pelo prontuário e com situação **Trabalhando**. Prontuário só com números é completado com zeros à esquerda até 4 dígitos (`1` → `0001`). |
-| Comissão | `total × percentualComissao / 100`, calculada sobre o total **depois** de descontos e cashback. O percentual e o valor ficam gravados na venda. |
-| Comissão no painel | Só vendas **FINALIZADAS** contam. Venda cancelada sai da comissão. |
+| Comissão | Calculada **só no backend** (`total × percentual / 100`, depois de descontos e cashback) e gravada na venda. **Não vai para o frontend.** |
+| Totais do painel | Só vendas **FINALIZADAS** contam. Venda cancelada aparece na lista, mas sai dos totais. |
 | Finalizar | Exige ao menos 1 item, vendedor (prontuário) válido e restante = 0. |
 | Arredondamento | Todos os valores em 2 casas decimais. |
 | CPF | Validado pelos dígitos verificadores antes de consultar o backend (`cpf.ts`). Enviado **somente com números**. |
@@ -175,7 +177,6 @@ Lidos da tabela `funcionario`. **Não envie CPF, RG nem data de nascimento** par
 | ------ | --- | -------- |
 | GET | `/funcionarios` | `200` lista de `Funcionario` |
 | GET | `/funcionarios/{prontuario}` | `200` `Funcionario` · `404` não encontrado |
-| GET | `/funcionarios/{prontuario}/comissao` | `200` `{ "percentual": 3 }` |
 
 ```json
 { "prontuario": "0001", "nome": "Carlos Eduardo Silva", "funcao": "Vendedor", "situacao": "Trabalhando" }
@@ -240,19 +241,18 @@ O `termo` pode ser **REF/TAM** (`referencia/tamanho`, ex.: `12345/42`) ou **cód
 | GET | `/vendas?de=2026-10-01&ate=2026-10-31&prontuario=0001` | — | `200` lista de `Venda`, mais recentes primeiro (todos os filtros são opcionais) |
 | PATCH | `/vendas/{numero}/cancelamento` | — | `200` `Venda` com `"status": "CANCELADA"` · `404` |
 
-### Comissões (painel de vendedores)
+### Resumo por vendedor (painel de vendas)
 
 | Método | URL | Resposta |
 | ------ | --- | -------- |
-| GET | `/comissoes?de=2026-10-01&ate=2026-10-31` | `200` lista de `ResumoComissao`, uma linha por funcionário (inclusive quem não vendeu) |
+| GET | `/vendas/resumo-vendedores?de=2026-10-01&ate=2026-10-31` | `200` lista de `ResumoVendedor`, uma linha por funcionário (inclusive quem não vendeu). **Sem comissão** · `400` se `de` for depois de `ate` |
 
 ```json
 {
   "vendedor": { "prontuario": "0001", "nome": "Carlos Eduardo Silva", "funcao": "Vendedor", "situacao": "Trabalhando" },
   "quantidadeVendas": 2,
   "pecas": 3,
-  "totalVendido": 729.70,
-  "valorComissao": 21.89
+  "totalVendido": 729.70
 }
 ```
 
@@ -283,13 +283,11 @@ Exemplo do corpo do `POST /vendas` (é o que `VendaService.montarVenda()` gera):
       "valor": 249.91, "parcelas": 3 }
   ],
   "troco": 0,
-  "percentualComissao": 3,
-  "valorComissao": 7.50,
   "status": "FINALIZADA"
 }
 ```
 
-> Sugestão: no backend, basta ler os **ids** (`vendedor.prontuario`, `cliente.id`, `variacao.id`, `forma.id`) e **recalcular** subtotal, desconto, total, troco e comissão, para não confiar nos valores enviados pelo navegador.
+> Sugestão: no backend, basta ler os **ids** (`vendedor.prontuario`, `cliente.id`, `variacao.id`, `forma.id`) e **recalcular** subtotal, desconto, total, troco e comissão (que fica só no banco), para não confiar nos valores enviados pelo navegador.
 
 ---
 
@@ -301,11 +299,11 @@ Já existem `Produto` e `ProdutoVariacao`. Os campos abaixo são os que o fronte
 | -------- | ------ | ---------- |
 | `Produto` | id, referencia, nome, marca | **já existe** |
 | `ProdutoVariacao` | id, produto (N:1), codigoBarras, tamanho, cor, preco, imagemUrl | **já existe**, mas faltam os campos codigoBarras, tamanho, cor, preco e imagemUrl |
-| `Funcionario` | prontuario (PK), nome, cpf, rg, dataNascimento, funcao, dataAdmissao, situacao | **já existe no banco** (tabela `funcionario`); falta a entidade Java. Opcional: `percentualComissao` |
+| `Funcionario` | prontuario (PK), nome, cpf, rg, dataNascimento, funcao, dataAdmissao, situacao | **já existe no banco** (tabela `funcionario`); falta a entidade Java. Opcional: `percentualComissao` (só no backend) |
 | `Cliente` | id, cpf (único, só números), nome, email, telefone | |
 | `CashbackCliente` | cliente, saldo | ou um campo `saldoCashback` no Cliente |
 | `FormaPagamento` | id, descricao, valorMinimo, maxParcelas, permiteTroco | |
-| `Venda` | numero (gerado), data, vendedor (→ funcionario.prontuario), cliente (opcional), subtotal, descontoTipo, descontoValor, valorDesconto, cashback, total, troco, percentualComissao, valorComissao, status | status: `FINALIZADA` / `CANCELADA` |
+| `Venda` | numero (gerado), data, vendedor (→ funcionario.prontuario), cliente (opcional), subtotal, descontoTipo, descontoValor, valorDesconto, cashback, total, troco, percentualComissao, valorComissao, status | status: `FINALIZADA` / `CANCELADA`. Comissão gravada, mas **não devolvida** na API |
 | `ItemVenda` | venda (N:1), variacao (N:1), quantidade, precoOriginal, precoUnitario | |
 | `PagamentoVenda` | venda (N:1), formaPagamento (N:1), valor, parcelas | |
 
@@ -376,14 +374,13 @@ CREATE TABLE pagamento_venda (
 );
 ```
 
-Consulta do painel (`GET /comissoes`), uma linha por funcionário:
+Consulta do painel (`GET /vendas/resumo-vendedores`), uma linha por funcionário:
 
 ```sql
 SELECT f.prontuario, f.nome, f.funcao, f.situacao,
        COUNT(v.numero)                   AS quantidade_vendas,
        COALESCE(SUM(p.pecas), 0)         AS pecas,
-       COALESCE(SUM(v.total), 0)         AS total_vendido,
-       COALESCE(SUM(v.valor_comissao), 0) AS valor_comissao
+       COALESCE(SUM(v.total), 0)         AS total_vendido
 FROM funcionario f
 LEFT JOIN venda v
        ON v.prontuario_vendedor = f.prontuario
@@ -403,7 +400,7 @@ Com `USAR_DADOS_DE_EXEMPLO = true`, estes dados funcionam nas telas (`vendas.moc
 
 | Tipo | Valor para digitar | Resultado |
 | ---- | ------------------ | --------- |
-| Prontuário | `0001` (ou `1`), `0002`, `0003` | Carlos Eduardo Silva, Mariana Souza, João Pereira (gerente, comissão 1,5%) |
+| Prontuário | `0001` (ou `1`), `0002`, `0003` | Carlos Eduardo Silva, Mariana Souza, João Pereira (gerente) |
 | Prontuário bloqueado | `0004` | Ana Lima, **Afastado**: não pode ser vinculado |
 | Cliente | CPF `329.700.698-65` | ALEX CAMARGO (cashback R$ 25,50) |
 | Cliente | CPF `529.982.247-25` | BEATRIZ LIMA (sem cashback) |
@@ -423,7 +420,7 @@ Já existem 6 vendas de exemplo nos últimos 12 dias (uma cancelada), para a con
 - [ ] **Autenticação**: as rotas `/vendas` ainda não exigem login (não há *guard*). O login atual (`POST /login`) só devolve texto.
 - [ ] **Vendedor x usuário logado**: decidir se o prontuário vem automaticamente do login.
 - [ ] **Regra de comissão**: confirmar se o percentual é único (padrão 3%) ou por funcionário (`percentual_comissao`), e se incide sobre o total líquido (como está) ou sobre o subtotal.
-- [ ] **Pagamento da comissão**: definir fechamento mensal e se o painel deve marcar comissões como pagas.
+- [ ] **Relatório de comissão**: como as telas não mostram comissão, definir quem consulta os valores gravados (ex.: relatório só para o gerente/RH, com login e permissão).
 - [ ] **Dados pessoais**: a API não deve expor CPF/RG dos funcionários (LGPD).
 - [ ] **Estoque**: ao finalizar a venda, o backend deve dar baixa no estoque da variação.
 - [ ] **Cashback**: definir regra de acúmulo (quanto o cliente ganha por venda) e se o resgate debita o saldo na finalização.

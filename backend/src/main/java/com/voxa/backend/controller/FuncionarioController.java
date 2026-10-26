@@ -1,7 +1,6 @@
 package com.voxa.backend.controller;
 
 import com.voxa.backend.dto.FuncionarioResumo;
-import com.voxa.backend.dto.PercentualComissao;
 import com.voxa.backend.service.FuncionarioService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -28,10 +27,5 @@ public class FuncionarioController {
     @GetMapping("/{prontuario}")
     public FuncionarioResumo buscar(@PathVariable String prontuario) {
         return funcionarioService.buscar(prontuario);
-    }
-
-    @GetMapping("/{prontuario}/comissao")
-    public PercentualComissao comissao(@PathVariable String prontuario) {
-        return new PercentualComissao(funcionarioService.percentualComissao(prontuario));
     }
 }

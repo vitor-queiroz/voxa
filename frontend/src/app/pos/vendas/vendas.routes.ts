@@ -37,8 +37,12 @@ export const VENDAS_ROUTES: Routes = [
         loadComponent: () => import('./consulta/consulta-vendas').then((m) => m.ConsultaVendas)
       },
       {
-        path: 'painel-vendedores',
-        loadComponent: () => import('./painel-vendedores/painel-vendedores').then((m) => m.PainelVendedores)
+        path: 'painel-vendas',
+        loadComponent: () => import('./painel-vendas/painel-vendas').then((m) => m.PainelVendas)
+      },
+      {
+        path: 'painel-vendedores', /*endereço antigo*/
+        redirectTo: 'painel-vendas'
       }
     ]
   }

@@ -67,11 +67,11 @@ describe('VendaService', () => {
     expect(service.troco()).toBe(0.1);
   });
 
-  it('monta a venda somente com vendedor e pagamento completo, com a comissão', () => {
+  it('monta a venda somente com vendedor e pagamento completo, sem comissão', () => {
     service.incluirItem(tenis42);
     expect(service.montarVenda()).toBe('Informe o prontuário do vendedor.');
 
-    service.definirVendedor(carlos, 3);
+    service.definirVendedor(carlos);
     expect(service.montarVenda()).toBe('Ainda há valor restante a pagar.');
 
     service.adicionarPagamento(credito, 349.9, 3);
@@ -80,35 +80,27 @@ describe('VendaService', () => {
     expect(venda.total).toBe(349.9);
     expect(venda.numero).toBeNull();
     expect(venda.vendedor.prontuario).toBe('0001');
-    expect(venda.percentualComissao).toBe(3);
-    expect(venda.valorComissao).toBe(10.5);
+    expect(venda).not.toHaveProperty('percentualComissao'); // comissão é só do backend
+    expect(venda).not.toHaveProperty('valorComissao');
   });
 
-  it('calcula a comissão sobre o total, depois dos descontos', () => {
-    service.definirVendedor(carlos, 3);
-    service.incluirItem(tenis42);
-    service.definirDesconto({ tipo: 'VALOR', valor: 49.9 });
-
-    expect(service.valorComissao()).toBe(9);
-  });
 
   it('não finaliza com funcionário que não está trabalhando', () => {
     service.incluirItem(camisetaM);
-    service.definirVendedor(afastada, 3);
+    service.definirVendedor(afastada);
     service.adicionarPagamento(dinheiro, 59.9);
 
     expect(service.montarVenda()).toContain('Afastado');
   });
 
-  it('nova venda limpa o rascunho mas mantém o vendedor e a comissão', () => {
-    service.definirVendedor(carlos, 3);
+  it('nova venda limpa o rascunho mas mantém o vendedor', () => {
+    service.definirVendedor(carlos);
     service.incluirItem(tenis42);
 
     service.novaVenda();
 
     expect(service.rascunho().itens.length).toBe(0);
     expect(service.rascunho().vendedor?.prontuario).toBe('0001');
-    expect(service.rascunho().percentualComissao).toBe(3);
   });
 
   it('completa o prontuário com zeros e verifica a situação', () => {

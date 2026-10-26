@@ -13,9 +13,6 @@ export const FUNCIONARIOS_MOCK: Funcionario[] = [
   { prontuario: '0004', nome: 'Ana Lima', funcao: 'Vendedora', situacao: 'Afastado' },
 ];
 
-/*Percentual de comissão por prontuário (padrão 3%)*/
-export const PERCENTUAL_COMISSAO_PADRAO = 3;
-export const COMISSAO_MOCK: Record<string, number> = { '0003': 1.5 };
 
 export const CLIENTES_MOCK: Cliente[] = [
   { id: 1, cpf: '32970069865', nome: 'ALEX CAMARGO', email: 'alex@email.com', telefone: '(11) 97777-2001' },
@@ -70,7 +67,6 @@ export function vendasIniciaisMock(): Venda[] {
     status: Venda['status'] = 'FINALIZADA',
   ): Venda => {
     const total = Math.round(itens.reduce((soma, [v, qtd]) => soma + v.preco * qtd, 0) * 100) / 100;
-    const percentualComissao = COMISSAO_MOCK[vendedor.prontuario] ?? PERCENTUAL_COMISSAO_PADRAO;
     return {
       numero,
       data,
@@ -86,8 +82,6 @@ export function vendasIniciaisMock(): Venda[] {
       total,
       pagamentos: [{ forma, valor: total, parcelas: 1 }],
       troco: 0,
-      percentualComissao,
-      valorComissao: Math.round(total * percentualComissao) / 100,
       status,
     };
   };

@@ -183,8 +183,8 @@
             <dd>- {{ vendaService.cashback() | currency }}</dd>
           }
           @if (vendaService.rascunho().vendedor; as vendedor) {
-            <dt>Comissão · {{ vendedor.prontuario }} ({{ vendaService.rascunho().percentualComissao }}%)</dt>
-            <dd>{{ vendaService.valorComissao() | currency }}</dd>
+            <dt>Vendedor</dt>
+            <dd>{{ vendedor.prontuario }}</dd>
           }
         </dl>
         @if (erroPagamento()) {

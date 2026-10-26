@@ -93,8 +93,6 @@
           <dl class="vx-resumo">
             <dt>Vendedor</dt>
             <dd>{{ venda.vendedor.prontuario }} · {{ venda.vendedor.nome }}</dd>
-            <dt>Comissão ({{ venda.percentualComissao }}%)</dt>
-            <dd>{{ venda.valorComissao | currency }}</dd>
             <dt>Cliente</dt>
             <dd>{{ venda.cliente?.nome || 'Consumidor final' }}</dd>
             <dt>Subtotal</dt>
@@ -115,12 +113,12 @@
           @if (venda.status === 'FINALIZADA') {
             <button type="button" class="vx-botao perigo cancelar" (click)="cancelarVenda(venda)">Cancelar venda</button>
           } @else {
-            <p class="vx-aviso cancelar">Venda cancelada: não conta para a comissão.</p>
+            <p class="vx-aviso cancelar">Venda cancelada: não conta nos totais.</p>
           }
         </div>
       } @else {
         <h2 class="vx-cartao-titulo">Detalhe da venda</h2>
-        <p class="vx-cartao-corpo vazio">Clique em uma venda para ver os itens, os pagamentos e a comissão.</p>
+        <p class="vx-cartao-corpo vazio">Clique em uma venda para ver os itens e os pagamentos.</p>
       }
     </section>
   </aside>

@@ -7,7 +7,7 @@ import {
   FormaPagamento,
   Funcionario,
   ProdutoVariacao,
-  ResumoComissao,
+  ResumoVendedor,
   Venda,
 } from './vendas.model';
 import { API_URL } from './vendas.config';
@@ -40,12 +40,6 @@ export class VendasApiService {
       .pipe(catchError(nuloSe404));
   }
 
-  /*GET /funcionarios/{prontuario}/comissao — { "percentual": 3 }*/
-  consultarPercentualComissao(prontuario: string): Observable<number> {
-    return this.http
-      .get<{ percentual: number }>(`${API_URL}/funcionarios/${encodeURIComponent(prontuario)}/comissao`)
-      .pipe(map((resposta) => resposta.percentual), catchError(paraErro));
-  }
 
   /*GET /clientes?cpf={cpf} — 404 vira null*/
   buscarClientePorCpf(cpf: string): Observable<Cliente | null> {
@@ -99,10 +93,10 @@ export class VendasApiService {
       .pipe(catchError(paraErro));
   }
 
-  /*GET /comissoes?de=AAAA-MM-DD&ate=AAAA-MM-DD — uma linha por funcionário*/
-  resumoComissoes(filtro: FiltroVendas = {}): Observable<ResumoComissao[]> {
+  /*GET /vendas/resumo-vendedores?de=AAAA-MM-DD&ate=AAAA-MM-DD — uma linha por funcionário, sem comissão*/
+  resumoVendedores(filtro: FiltroVendas = {}): Observable<ResumoVendedor[]> {
     return this.http
-      .get<ResumoComissao[]>(`${API_URL}/comissoes`, { params: semVazios(filtro) })
+      .get<ResumoVendedor[]>(`${API_URL}/vendas/resumo-vendedores`, { params: semVazios(filtro) })
       .pipe(catchError(paraErro));
   }
 }

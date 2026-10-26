@@ -26,13 +26,14 @@ describe('VendedorProntuario', () => {
     expect(component).toBeTruthy();
   });
 
-  it('deve completar o prontuário e vincular o vendedor com a comissão', () => {
+  it('deve completar o prontuário e vincular o vendedor, sem mostrar comissão', () => {
     component.prontuario = '1';
     component.buscar();
 
     expect(component.prontuario).toBe('0001');
     expect(vendaService.rascunho().vendedor?.nome).toBe('Carlos Eduardo Silva');
-    expect(vendaService.rascunho().percentualComissao).toBe(3);
+    fixture.detectChanges();
+    expect((fixture.nativeElement as HTMLElement).textContent).not.toContain('Comissão');
   });
 
   it('não deve vincular funcionário afastado', () => {

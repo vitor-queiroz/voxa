@@ -7,16 +7,14 @@ import {
   FormaPagamento,
   Funcionario,
   ProdutoVariacao,
-  ResumoComissao,
+  ResumoVendedor,
   Venda,
 } from './vendas.model';
 import {
   CASHBACK_MOCK,
   CLIENTES_MOCK,
-  COMISSAO_MOCK,
   FORMAS_PAGAMENTO_MOCK,
   FUNCIONARIOS_MOCK,
-  PERCENTUAL_COMISSAO_PADRAO,
   VARIACOES_MOCK,
   vendasIniciaisMock,
 } from './vendas.mock';
@@ -42,10 +40,6 @@ export class VendasApiMockService implements ApiVendas {
     return of(FUNCIONARIOS_MOCK.find((f) => f.prontuario === prontuario) ?? null);
   }
 
-  /*GET /funcionarios/{prontuario}/comissao — { "percentual": 3 }*/
-  consultarPercentualComissao(prontuario: string): Observable<number> {
-    return of(COMISSAO_MOCK[prontuario] ?? PERCENTUAL_COMISSAO_PADRAO);
-  }
 
   /*GET /clientes?cpf={cpf} — 404 quando não existe (aqui: null)*/
   buscarClientePorCpf(cpf: string): Observable<Cliente | null> {
@@ -112,11 +106,10 @@ export class VendasApiMockService implements ApiVendas {
   }
 
   /*
-   * GET /comissoes?de=AAAA-MM-DD&ate=AAAA-MM-DD
-   * Uma linha por funcionário com os totais das vendas FINALIZADAS no período.
-   * No backend, isso é um SELECT com GROUP BY prontuario.
+   * GET /vendas/resumo-vendedores?de=AAAA-MM-DD&ate=AAAA-MM-DD
+   * Uma linha por funcionário com os totais das vendas FINALIZADAS no período (sem comissão).
    */
-  resumoComissoes(filtro: FiltroVendas = {}): Observable<ResumoComissao[]> {
+  resumoVendedores(filtro: FiltroVendas = {}): Observable<ResumoVendedor[]> {
     const finalizadas = this.vendas.filter((v) => v.status === 'FINALIZADA' && atendeFiltro(v, filtro));
     return of(
       FUNCIONARIOS_MOCK.map((vendedor) => {
@@ -126,7 +119,6 @@ export class VendasApiMockService implements ApiVendas {
           quantidadeVendas: dele.length,
           pecas: dele.reduce((soma, v) => soma + v.itens.reduce((s, i) => s + i.quantidade, 0), 0),
           totalVendido: arredondar(dele.reduce((soma, v) => soma + v.total, 0)),
-          valorComissao: arredondar(dele.reduce((soma, v) => soma + v.valorComissao, 0)),
         };
       }),
     );

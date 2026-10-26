@@ -49,15 +49,14 @@ describe('Pagamento', () => {
     expect(component.erro()).toBe('Informe o prontuário do vendedor.');
   });
 
-  it('deve registrar a venda com a comissão e iniciar um rascunho novo', () => {
-    vendaService.definirVendedor(FUNCIONARIOS_MOCK[0], 3);
+  it('deve registrar a venda e iniciar um rascunho novo', () => {
+    vendaService.definirVendedor(FUNCIONARIOS_MOCK[0]);
     vendaService.incluirItem(VARIACOES_MOCK[0]);
     component.selecionarForma(component.formas()[0]);
     component.incluirPagamento();
     component.finalizar();
 
     expect(component.vendaFinalizada()?.numero).toBe(7);
-    expect(component.vendaFinalizada()?.valorComissao).toBe(10.5);
     expect(vendaService.rascunho().itens.length).toBe(0);
   });
 });

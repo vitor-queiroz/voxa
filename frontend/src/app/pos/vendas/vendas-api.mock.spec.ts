@@ -50,21 +50,20 @@ describe('VendasApiMockService', () => {
     expect(await firstValueFrom(api.listarVendas({ de: futuro }))).toEqual([]);
   });
 
-  it('deve resumir as comissões por prontuário sem contar canceladas', async () => {
-    const resumo = await firstValueFrom(api.resumoComissoes());
+  it('deve resumir as vendas por prontuário sem comissão e sem contar canceladas', async () => {
+    const resumo = await firstValueFrom(api.resumoVendedores());
     const carlos = resumo.find((r) => r.vendedor.prontuario === '0001')!;
     const ana = resumo.find((r) => r.vendedor.prontuario === '0004')!;
 
     expect(resumo.length).toBe(4);
     expect(carlos.quantidadeVendas).toBe(2);
-    expect(carlos.valorComissao).toBe(21.89);
+    expect(carlos.totalVendido).toBe(729.7);
+    expect(carlos).not.toHaveProperty('valorComissao');
     expect(ana.quantidadeVendas).toBe(0);
   });
 
-  it('deve buscar funcionário e o percentual de comissão', async () => {
+  it('deve buscar funcionário pelo prontuário', async () => {
     expect((await firstValueFrom(api.buscarFuncionario('0001')))?.nome).toBe('Carlos Eduardo Silva');
     expect(await firstValueFrom(api.buscarFuncionario('9999'))).toBeNull();
-    expect(await firstValueFrom(api.consultarPercentualComissao('0001'))).toBe(3);
-    expect(await firstValueFrom(api.consultarPercentualComissao('0003'))).toBe(1.5);
   });
 });

@@ -35,14 +35,13 @@ public class FuncionarioService {
                 .orElseThrow(() -> new NaoEncontradoException("Prontuário " + prontuario + " não encontrado."));
     }
 
-    /*Percentual do funcionário (coluna percentual_comissao) ou o padrão de application.properties*/
+    /*
+     * Percentual do funcionário (coluna percentual_comissao) ou o padrão de application.properties.
+     * Uso interno: a comissão é gravada na venda, mas não é exposta pela API.
+     */
     public BigDecimal percentualComissao(Funcionario funcionario) {
         return funcionario.getPercentualComissao() != null
                 ? funcionario.getPercentualComissao()
                 : percentualComissaoPadrao;
-    }
-
-    public BigDecimal percentualComissao(String prontuario) {
-        return percentualComissao(buscarEntidade(prontuario));
     }
 }

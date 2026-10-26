@@ -30,9 +30,9 @@ class CadastrosApiTest extends BaseApiTest {
     }
 
     @Test
-    void percentualDeComissaoPadraoOuDoFuncionario() throws Exception {
-        mvc.perform(get("/funcionarios/0001/comissao")).andExpect(jsonPath("$.percentual").value(3));
-        mvc.perform(get("/funcionarios/0003/comissao")).andExpect(jsonPath("$.percentual").value(1.5));
+    void naoExpoeOPercentualDeComissao() throws Exception {
+        mvc.perform(get("/funcionarios/0001/comissao")).andExpect(status().isNotFound());
+        mvc.perform(get("/funcionarios/0001")).andExpect(jsonPath("$.percentualComissao").doesNotExist());
     }
 
     @Test

@@ -5,8 +5,8 @@ import { VendaService, normalizarProntuario, podeVender } from '../../venda.serv
 import { Funcionario } from '../../vendas.model';
 
 /*
- * Campo "Prontuário do vendedor": busca o funcionário e vincula à venda junto com o
- * percentual de comissão dele. Usado no PDV e na tela de pagamento.
+ * Campo "Prontuário do vendedor": busca o funcionário e vincula à venda.
+ * Usado no PDV e na tela de pagamento.
  */
 @Component({
   selector: 'app-vendedor-prontuario',
@@ -60,10 +60,7 @@ export class VendedorProntuario {
         if (!podeVender(funcionario)) {
           return; /*mostra o aviso, mas não vincula*/
         }
-        this.api.consultarPercentualComissao(prontuario).subscribe({
-          next: (percentual) => this.vendaService.definirVendedor(funcionario, percentual),
-          error: (erro: Error) => this.erro.set(erro.message),
-        });
+        this.vendaService.definirVendedor(funcionario);
       },
       error: (erro: Error) => this.erro.set(erro.message),
     });

@@ -9,7 +9,11 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
-/*Venda como o frontend espera (mesmos nomes de campos do vendas.model.ts)*/
+/*
+ * Venda como o frontend espera (mesmos nomes de campos do vendas.model.ts).
+ * A comissão NÃO vai na resposta: todos os funcionários usam o sistema.
+ * Ela continua gravada na tabela venda (percentual_comissao / valor_comissao).
+ */
 public record VendaResponse(
         Long numero,
         LocalDateTime data,
@@ -23,8 +27,6 @@ public record VendaResponse(
         BigDecimal total,
         List<PagamentoDto> pagamentos,
         BigDecimal troco,
-        BigDecimal percentualComissao,
-        BigDecimal valorComissao,
         StatusVenda status) {
 
     public record ItemDto(ProdutoVariacaoDto variacao, Integer quantidade, BigDecimal precoOriginal, BigDecimal precoUnitario) {
@@ -62,8 +64,6 @@ public record VendaResponse(
                 venda.getTotal(),
                 venda.getPagamentos().stream().map(PagamentoDto::de).toList(),
                 venda.getTroco(),
-                venda.getPercentualComissao(),
-                venda.getValorComissao(),
                 venda.getStatus());
     }
 }

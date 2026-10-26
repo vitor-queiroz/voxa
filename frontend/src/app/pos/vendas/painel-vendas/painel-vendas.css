@@ -4,6 +4,10 @@
   flex-direction: column;
 }
 
+.unica {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .filtros {
   display: flex;
   flex-wrap: wrap;
@@ -21,13 +25,6 @@
   color: var(--vx-branco);
   background: var(--vx-azul-noite);
   border-color: var(--vx-azul-noite);
-}
-
-.ativos {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding-bottom: 10px;
 }
 
 .indicadores {
@@ -49,18 +46,8 @@ small {
   color: var(--vx-texto-suave);
 }
 
-.situacao::before {
-  content: '● ';
-  color: var(--vx-primaria);
-}
-
-.situacao.inativo::before {
-  content: '○ ';
-  color: var(--vx-aviso-texto);
-}
-
 .barra-coluna {
-  min-width: 170px;
+  min-width: 180px;
 }
 
 .trilho {
@@ -78,55 +65,22 @@ small {
   border-radius: 0 4px 4px 0;
 }
 
-.forte {
-  font-weight: 600;
-}
-
-tfoot td {
-  padding: 10px 12px;
-  font-weight: 600;
-  background: #f7f9fa;
-}
-
-.nota,
-.vazio {
-  margin: 0;
+.cancelada td {
   color: var(--vx-texto-suave);
-}
-
-.nome {
-  margin: 0 0 12px;
-  font-size: 16px;
-  font-weight: 600;
-}
-
-.subtitulo {
-  margin: 18px 0 6px;
-  font-size: 11px;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  color: var(--vx-texto-suave);
-}
-
-.vendas {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.vendas li {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 2px 12px;
-  padding: 8px 0;
-  border-bottom: 1px dashed var(--vx-borda);
-}
-
-.vendas small {
-  grid-column: 1 / -1;
-}
-
-.vendas .cancelada span {
   text-decoration: line-through;
+}
+
+.limpar {
+  font: inherit;
+  letter-spacing: normal;
+  text-transform: none;
+  color: var(--vx-primaria);
+  cursor: pointer;
+  background: none;
+  border: none;
+}
+
+.nota {
+  margin: 0;
   color: var(--vx-texto-suave);
 }

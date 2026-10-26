@@ -73,7 +73,6 @@ export interface PagamentoVenda {
 /*Venda que está sendo montada no PDV, antes de finalizar*/
 export interface RascunhoVenda {
   vendedor: Funcionario | null;
-  percentualComissao: number; /*percentual do vendedor vinculado (ex.: 3 = 3%)*/
   cliente: Cliente | null;
   itens: ItemVenda[];
   desconto: DescontoGeral | null;
@@ -97,8 +96,6 @@ export interface Venda {
   total: number;
   pagamentos: PagamentoVenda[];
   troco: number;
-  percentualComissao: number; /*fica gravado na venda: mudar a regra depois não altera vendas antigas*/
-  valorComissao: number; /*total × percentualComissao / 100*/
   status: StatusVenda;
 }
 
@@ -109,11 +106,14 @@ export interface FiltroVendas {
   prontuario?: string;
 }
 
-/*Linha do painel de vendedores: totais de um prontuário no período*/
-export interface ResumoComissao {
+/*
+ * Linha do painel de vendas: totais de um vendedor no período.
+ * Comissão não vem para o frontend (todos os funcionários usam o sistema);
+ * ela é calculada e gravada só no backend.
+ */
+export interface ResumoVendedor {
   vendedor: Funcionario;
   quantidadeVendas: number;
   pecas: number;
   totalVendido: number;
-  valorComissao: number;
 }

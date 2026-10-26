@@ -30,11 +30,7 @@ describe('VendasApiService (HTTP)', () => {
     expect(await inexistente).toBeNull();
   });
 
-  it('deve ler o percentual de comissão e o saldo de cashback', async () => {
-    const percentual = firstValueFrom(api.consultarPercentualComissao('0003'));
-    http.expectOne(`${API_URL}/funcionarios/0003/comissao`).flush({ percentual: 1.5 });
-    expect(await percentual).toBe(1.5);
-
+  it('deve ler o saldo de cashback', async () => {
     const saldo = firstValueFrom(api.consultarCashback('32970069865'));
     http.expectOne(`${API_URL}/clientes/32970069865/cashback`).flush({ saldo: 25.5 });
     expect(await saldo).toBe(25.5);
@@ -78,8 +74,8 @@ describe('VendasApiService (HTTP)', () => {
     expect(lista.request.params.keys()).toEqual(['de', 'prontuario']);
     lista.flush([]);
 
-    api.resumoComissoes({ de: '2026-10-01', ate: '2026-10-31' }).subscribe();
-    http.expectOne(`${API_URL}/comissoes?de=2026-10-01&ate=2026-10-31`).flush([]);
+    api.resumoVendedores({ de: '2026-10-01', ate: '2026-10-31' }).subscribe();
+    http.expectOne(`${API_URL}/vendas/resumo-vendedores?de=2026-10-01&ate=2026-10-31`).flush([]);
 
     api.cancelarVenda(5).subscribe();
     expect(http.expectOne(`${API_URL}/vendas/5/cancelamento`).request.method).toBe('PATCH');

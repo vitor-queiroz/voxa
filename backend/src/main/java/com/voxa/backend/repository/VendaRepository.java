@@ -14,12 +14,11 @@ import java.util.List;
 /*JpaSpecificationExecutor permite montar os filtros opcionais do GET /vendas*/
 public interface VendaRepository extends JpaRepository<Venda, Long>, JpaSpecificationExecutor<Venda> {
 
-    /*Totais por prontuário (vendas, valor vendido e comissão) no período*/
+    /*Totais por prontuário (quantidade de vendas e valor vendido) no período*/
     @Query("""
             select v.vendedor.prontuario as prontuario,
                    count(v) as quantidadeVendas,
-                   sum(v.total) as totalVendido,
-                   sum(v.valorComissao) as valorComissao
+                   sum(v.total) as totalVendido
             from Venda v
             where v.status = :status and v.data >= :inicio and v.data < :fim
             group by v.vendedor.prontuario
@@ -45,8 +44,6 @@ public interface VendaRepository extends JpaRepository<Venda, Long>, JpaSpecific
         Long getQuantidadeVendas();
 
         BigDecimal getTotalVendido();
-
-        BigDecimal getValorComissao();
     }
 
     interface PecasPorVendedor {

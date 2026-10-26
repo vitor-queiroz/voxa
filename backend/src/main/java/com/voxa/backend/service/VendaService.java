@@ -1,6 +1,8 @@
 package com.voxa.backend.service;
 
 import com.voxa.backend.dto.DescontoDto;
+import com.voxa.backend.dto.FuncionarioResumo;
+import com.voxa.backend.dto.ResumoVendedor;
 import com.voxa.backend.dto.VendaRequest;
 import com.voxa.backend.dto.VendaResponse;
 import com.voxa.backend.exception.NaoEncontradoException;
@@ -16,6 +18,7 @@ import com.voxa.backend.model.TipoDesconto;
 import com.voxa.backend.model.Venda;
 import com.voxa.backend.repository.ClienteRepository;
 import com.voxa.backend.repository.FormaPagamentoRepository;
+import com.voxa.backend.repository.FuncionarioRepository;
 import com.voxa.backend.repository.ProdutoVariacaoRepository;
 import com.voxa.backend.repository.VendaRepository;
 import com.voxa.backend.util.Dinheiro;
@@ -28,6 +31,9 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /*
  * Registra, lista e cancela vendas.
@@ -42,17 +48,22 @@ public class VendaService {
     private final ClienteRepository clienteRepository;
     private final FormaPagamentoRepository formaPagamentoRepository;
     private final FuncionarioService funcionarioService;
+    private final FuncionarioRepository funcionarioRepository;
+
+    private static final LocalDate INICIO_PADRAO = LocalDate.of(2000, 1, 1);
 
     public VendaService(VendaRepository vendaRepository,
                         ProdutoVariacaoRepository variacaoRepository,
                         ClienteRepository clienteRepository,
                         FormaPagamentoRepository formaPagamentoRepository,
-                        FuncionarioService funcionarioService) {
+                        FuncionarioService funcionarioService,
+                        FuncionarioRepository funcionarioRepository) {
         this.vendaRepository = vendaRepository;
         this.variacaoRepository = variacaoRepository;
         this.clienteRepository = clienteRepository;
         this.formaPagamentoRepository = formaPagamentoRepository;
         this.funcionarioService = funcionarioService;
+        this.funcionarioRepository = funcionarioRepository;
     }
 
     @Transactional
@@ -77,6 +88,7 @@ public class VendaService {
         BigDecimal totalPago = incluirPagamentos(venda, pedido.pagamentos(), total);
         venda.setTroco(totalPago.subtract(total));
 
+        //comissão: calculada e gravada no banco, mas não volta na resposta (ver VendaResponse)
         BigDecimal percentual = funcionarioService.percentualComissao(venda.getVendedor());
         venda.setPercentualComissao(percentual);
         venda.setValorComissao(Dinheiro.percentualDe(total, percentual));
@@ -103,7 +115,36 @@ public class VendaService {
                 .stream().map(VendaResponse::de).toList();
     }
 
-    /*Cancela a venda e devolve o cashback resgatado. Venda cancelada sai da comissão*/
+    /*
+     * Painel de vendas: uma linha por funcionário com a quantidade de vendas FINALIZADAS,
+     * as peças e o total vendido no período (datas inclusivas). Não inclui comissão.
+     */
+    @Transactional(readOnly = true)
+    public List<ResumoVendedor> resumoPorVendedor(LocalDate de, LocalDate ate) {
+        LocalDateTime inicio = (de != null ? de : INICIO_PADRAO).atStartOfDay();
+        LocalDateTime fim = (ate != null ? ate : LocalDate.now()).plusDays(1).atStartOfDay();
+        if (!inicio.isBefore(fim)) {
+            throw new RegraNegocioException("A data inicial deve ser antes da data final.");
+        }
+
+        Map<String, VendaRepository.TotaisPorVendedor> totais = vendaRepository
+                .totaisPorVendedor(StatusVenda.FINALIZADA, inicio, fim).stream()
+                .collect(Collectors.toMap(VendaRepository.TotaisPorVendedor::getProntuario, Function.identity()));
+        Map<String, Long> pecas = vendaRepository
+                .pecasPorVendedor(StatusVenda.FINALIZADA, inicio, fim).stream()
+                .collect(Collectors.toMap(VendaRepository.PecasPorVendedor::getProntuario, VendaRepository.PecasPorVendedor::getPecas));
+
+        return funcionarioRepository.findAllByOrderByNomeAsc().stream().map(funcionario -> {
+            VendaRepository.TotaisPorVendedor dele = totais.get(funcionario.getProntuario());
+            return new ResumoVendedor(
+                    FuncionarioResumo.de(funcionario),
+                    dele == null ? 0 : dele.getQuantidadeVendas(),
+                    pecas.getOrDefault(funcionario.getProntuario(), 0L),
+                    dele == null ? Dinheiro.ZERO : Dinheiro.arredondar(dele.getTotalVendido()));
+        }).toList();
+    }
+
+    /*Cancela a venda e devolve o cashback resgatado. Venda cancelada sai dos totais e da comissão*/
     @Transactional
     public VendaResponse cancelar(Long numero) {
         Venda venda = vendaRepository.findById(numero)

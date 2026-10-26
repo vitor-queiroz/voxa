@@ -10,8 +10,6 @@
         <dl class="vx-resumo">
           <dt>Vendedor</dt>
           <dd>{{ venda.vendedor.prontuario }} · {{ venda.vendedor.nome }}</dd>
-          <dt>Comissão ({{ venda.percentualComissao }}%)</dt>
-          <dd>{{ venda.valorComissao | currency }}</dd>
           <dt>Cliente</dt>
           <dd>{{ venda.cliente?.nome ?? 'Consumidor final' }}</dd>
           <dt>Troco</dt>
@@ -122,8 +120,6 @@
             <dd>{{ vendaService.quantidadeItens() }}</dd>
             <dt>Vendedor</dt>
             <dd>{{ vendaService.rascunho().vendedor?.prontuario ?? '—' }}</dd>
-            <dt>Comissão ({{ vendaService.rascunho().percentualComissao }}%)</dt>
-            <dd>{{ vendaService.valorComissao() | currency }}</dd>
           </dl>
         </div>
       </section>
@@ -132,7 +128,7 @@
 }
 
 <app-barra-acoes
-  [dica]="vendaFinalizada() ? 'A comissão já foi registrada no prontuário do vendedor.' : 'Clique na forma de pagamento · Enter inclui o valor · F2 finaliza'"
+  [dica]="vendaFinalizada() ? 'Venda registrada no prontuário do vendedor.' : 'Clique na forma de pagamento · Enter inclui o valor · F2 finaliza'"
   [acoes]="acoes()"
   (acionar)="executar($event)"
 />

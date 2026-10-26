@@ -28,7 +28,7 @@ describe('Vendas', () => {
     expect(Array.from(links).map((a) => a.textContent?.trim())).toEqual([
       'Nova venda',
       'Consulta',
-      'Painel de vendedores',
+      'Painel de vendas',
     ]);
   });
 
