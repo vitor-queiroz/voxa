@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'home_page.dart';
-import 'dashboard_page.dart';
 
 void main() {
   runApp(const VoxaApp());
@@ -9,14 +8,15 @@ void main() {
 class VoxaApp extends StatelessWidget {
   const VoxaApp({super.key});
 
-  static const navy = Color(0xFF142B4A);
+  static const navy = Color(0xFF0B1B38);
   static const blue = Color(0xFF246BFD);
-  static const background = Color(0xFFF5F7FB);
+  static const background = Color(0xFFF5F7FC);
+  static const muted = Color(0xFF758198);
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'VOXA',
+      title: 'VOXA Mobile',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
@@ -26,33 +26,8 @@ class VoxaApp extends StatelessWidget {
           primary: blue,
         ),
         fontFamily: 'Roboto',
-        inputDecorationTheme: InputDecorationTheme(
-          filled: true,
-          fillColor: background,
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 18,
-          ),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
-            borderSide: BorderSide.none,
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
-            borderSide: const BorderSide(
-              color: Color(0xFFE3E8F0),
-            ),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
-            borderSide: const BorderSide(
-              color: blue,
-              width: 1.5,
-            ),
-          ),
-        ),
       ),
-      home: const HomePage(),
+      home: const LoginPage(),
     );
   }
 }
@@ -71,7 +46,6 @@ class _LoginPageState extends State<LoginPage> {
 
   bool _obscurePassword = true;
   bool _rememberCode = false;
-  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -85,245 +59,377 @@ class _LoginPageState extends State<LoginPage> {
 
     if (!_formKey.currentState!.validate()) return;
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text(
-          'Campos validados! A autenticação será integrada ao backend.',
-        ),
-        behavior: SnackBarBehavior.floating,
-      ),
+    _showMessage(
+      'A autenticação será integrada ao backend na próxima etapa.',
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 28,
-              vertical: 24,
-            ),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 420),
-              child: Form(
-                key: _formKey,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: constraints.maxHeight,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const SizedBox(height: 20),
-
-                    // Identidade visual
-                    Center(
-                      child: Container(
-                        width: 76,
-                        height: 76,
-                        decoration: BoxDecoration(
-                          color: VoxaApp.navy,
-                          borderRadius: BorderRadius.circular(24),
-                        ),
-                        child: const Icon(
-                          Icons.inventory_2_rounded,
-                          color: Colors.white,
-                          size: 38,
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    const Text(
-                      'VOXA',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 5,
-                        color: VoxaApp.navy,
-                      ),
-                    ),
-
-                    const SizedBox(height: 8),
-
-                    const Text(
-                      'Gestão inteligente. Vendas eficientes.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Color(0xFF758198),
-                      ),
-                    ),
-
-                    const SizedBox(height: 44),
-
-                    const Text(
-                      'Bem-vindo de volta!',
-                      style: TextStyle(
-                        fontSize: 25,
-                        fontWeight: FontWeight.w700,
-                        color: VoxaApp.navy,
-                      ),
-                    ),
-
-                    const SizedBox(height: 8),
-
-                    const Text(
-                      'Entre com suas credenciais de vendedor.',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Color(0xFF758198),
-                      ),
-                    ),
-
-                    const SizedBox(height: 28),
-
-                    const Text(
-                      'Código do vendedor',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: VoxaApp.navy,
-                      ),
-                    ),
-
-                    const SizedBox(height: 10),
-
-                    TextFormField(
-                      controller: _sellerCodeController,
-                      textInputAction: TextInputAction.next,
-                      keyboardType: TextInputType.text,
-                      autocorrect: false,
-                      decoration: const InputDecoration(
-                        hintText: 'Digite seu código',
-                        prefixIcon: Icon(Icons.badge_outlined),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return 'Informe seu código de vendedor.';
-                        }
-                        return null;
-                      },
-                    ),
-
-                    const SizedBox(height: 22),
-
-                    const Text(
-                      'Senha',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: VoxaApp.navy,
-                      ),
-                    ),
-
-                    const SizedBox(height: 10),
-
-                    TextFormField(
-                      controller: _passwordController,
-                      obscureText: _obscurePassword,
-                      textInputAction: TextInputAction.done,
-                      onFieldSubmitted: (_) => _login(),
-                      decoration: InputDecoration(
-                        hintText: 'Digite sua senha',
-                        prefixIcon: const Icon(Icons.lock_outline_rounded),
-                        suffixIcon: IconButton(
-                          tooltip: _obscurePassword
-                              ? 'Mostrar senha'
-                              : 'Ocultar senha',
-                          onPressed: () {
-                            setState(() {
-                              _obscurePassword = !_obscurePassword;
-                            });
-                          },
-                          icon: Icon(
-                            _obscurePassword
-                                ? Icons.visibility_outlined
-                                : Icons.visibility_off_outlined,
-                          ),
-                        ),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Informe sua senha.';
-                        }
-                        return null;
-                      },
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    CheckboxListTile(
-                      value: _rememberCode,
-                      onChanged: (value) {
-                        setState(() {
-                          _rememberCode = value ?? false;
-                        });
-                      },
-                      contentPadding: EdgeInsets.zero,
-                      controlAffinity: ListTileControlAffinity.leading,
-                      title: const Text(
-                        'Lembrar meu código',
-                        style: TextStyle(fontSize: 13),
-                      ),
-                      activeColor: VoxaApp.blue,
-                      dense: true,
-                    ),
-
-                    const SizedBox(height: 22),
-
+                    // Cabeçalho azul-marinho.
                     SizedBox(
-                      height: 56,
-                      child: FilledButton(
-                        onPressed: _isLoading ? null : _login,
-                        style: FilledButton.styleFrom(
-                          backgroundColor: VoxaApp.blue,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
+                      height: 280,
+                      child: Stack(
+                        clipBehavior: Clip.hardEdge,
+                        children: [
+                          Positioned.fill(
+                            child: Container(color: VoxaApp.navy),
                           ),
+                          Positioned(
+                            right: -65,
+                            top: -105,
+                            child: Container(
+                              width: 225,
+                              height: 225,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: const Color(0xFF1B3158),
+                                  width: 1.2,
+                                ),
+                              ),
+                            ),
+                          ),
+                          Positioned(
+                            right: -35,
+                            top: -75,
+                            child: Container(
+                              width: 165,
+                              height: 165,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: const Color(0xFF1B3158),
+                                  width: 1.2,
+                                ),
+                              ),
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(
+                              25, 30, 25, 28,
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'V O X A',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 27,
+                                    fontWeight: FontWeight.w800,
+                                    letterSpacing: 2.7,
+                                  ),
+                                ),
+                                const Spacer(),
+                                const Text(
+                                  'Feche suas vendas\ncom agilidade.',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 29,
+                                    height: 1.13,
+                                    fontWeight: FontWeight.w800,
+                                    letterSpacing: -0.5,
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
+                                const Text(
+                                  'Acesso exclusivo para vendedores.',
+                                  style: TextStyle(
+                                    color: Color(0xFFD2DDF0),
+                                    fontSize: 13,
+                                  ),
+                                ),
+                                const SizedBox(height: 15),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // Formulário.
+                    Container(
+                      padding: const EdgeInsets.fromLTRB(
+                        24, 25, 24, 30,
+                      ),
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.vertical(
+                          top: Radius.circular(25),
                         ),
-                        child: _isLoading
-                            ? const CircularProgressIndicator(
-                                color: Colors.white,
-                              )
-                            : const Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    'Entrar',
+                      ),
+                      child: Form(
+                        key: _formKey,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            const Text(
+                              'Bem-vindo de volta!',
+                              style: TextStyle(
+                                color: VoxaApp.navy,
+                                fontSize: 24,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                            const SizedBox(height: 7),
+                            const Text(
+                              'Entre com suas credenciais de vendedor.',
+                              style: TextStyle(
+                                color: VoxaApp.muted,
+                                fontSize: 13,
+                              ),
+                            ),
+
+                            const SizedBox(height: 26),
+
+                            _fieldLabel('CÓDIGO DO VENDEDOR'),
+                            const SizedBox(height: 9),
+
+                            TextFormField(
+                              controller: _sellerCodeController,
+                              textInputAction: TextInputAction.next,
+                              autocorrect: false,
+                              style: const TextStyle(fontSize: 14),
+                              decoration: _inputDecoration(
+                                hint: 'Digite seu código',
+                                icon: Icons.badge_outlined,
+                              ),
+                              validator: (value) {
+                                if (value == null ||
+                                    value.trim().isEmpty) {
+                                  return 'Digite seu código de vendedor.';
+                                }
+                                return null;
+                              },
+                            ),
+
+                            const SizedBox(height: 20),
+
+                            _fieldLabel('SENHA'),
+                            const SizedBox(height: 9),
+
+                            TextFormField(
+                              controller: _passwordController,
+                              obscureText: _obscurePassword,
+                              textInputAction: TextInputAction.done,
+                              onFieldSubmitted: (_) => _login(),
+                              style: const TextStyle(fontSize: 14),
+                              decoration: _inputDecoration(
+                                hint: 'Digite sua senha',
+                                icon: Icons.lock_outline_rounded,
+                              ).copyWith(
+                                suffixIcon: IconButton(
+                                  tooltip: _obscurePassword
+                                      ? 'Mostrar senha'
+                                      : 'Ocultar senha',
+                                  onPressed: () {
+                                    setState(() {
+                                      _obscurePassword = !_obscurePassword;
+                                    });
+                                  },
+                                  icon: Icon(
+                                    _obscurePassword
+                                        ? Icons.visibility_outlined
+                                        : Icons.visibility_off_outlined,
+                                    size: 21,
+                                    color: VoxaApp.muted,
+                                  ),
+                                ),
+                              ),
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Digite sua senha.';
+                                }
+                                return null;
+                              },
+                            ),
+
+                            const SizedBox(height: 8),
+
+                            Row(
+                              children: [
+                                Checkbox(
+                                  value: _rememberCode,
+                                  activeColor: VoxaApp.blue,
+                                  side: const BorderSide(
+                                    color: Color(0xFFB8C2D2),
+                                  ),
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _rememberCode = value ?? false;
+                                    });
+                                  },
+                                ),
+                                const Expanded(
+                                  child: Text(
+                                    'Lembrar meu código',
                                     style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w700,
+                                      color: VoxaApp.muted,
+                                      fontSize: 12,
                                     ),
                                   ),
-                                  SizedBox(width: 10),
-                                  Icon(Icons.arrow_forward_rounded),
-                                ],
+                                ),
+                              ],
+                            ),
+
+                            const SizedBox(height: 10),
+
+                            SizedBox(
+                              height: 54,
+                              child: FilledButton(
+                                onPressed: _login,
+                                style: FilledButton.styleFrom(
+                                  backgroundColor: VoxaApp.blue,
+                                  foregroundColor: Colors.white,
+                                  elevation: 4,
+                                  shadowColor: VoxaApp.blue.withValues(
+                                    alpha: 0.25,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                                child: const Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      'Entrar',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                    SizedBox(width: 10),
+                                    Icon(
+                                      Icons.arrow_forward_rounded,
+                                      size: 20,
+                                    ),
+                                  ],
+                                ),
                               ),
+                            ),
+
+                            const SizedBox(height: 28),
+
+                            Center(
+                              child: TextButton(
+                                onPressed: () {
+                                  _showMessage(
+                                    'A recuperação de senha será integrada '
+                                    'ao backend.',
+                                  );
+                                },
+                                child: const Text(
+                                  'Esqueci minha senha',
+                                  style: TextStyle(
+                                    color: VoxaApp.blue,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ),
+
+                            const SizedBox(height: 5),
+
+                            const Center(
+                              child: Text(
+                                'Precisa de ajuda? Fale com seu gestor.',
+                                style: TextStyle(
+                                  color: VoxaApp.muted,
+                                  fontSize: 10,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-
-                    const SizedBox(height: 32),
-
-                    const Text(
-                      'VOXA MOBILE',
-                      textAlign: TextAlign.center,  
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 2,
-                        color: Color(0xFF9AA4B5),
-                      ),
-                    ),
-
-                    const SizedBox(height: 12),
                   ],
                 ),
               ),
-            ),
-          ),
+            );
+          },
         ),
+      ),
+    );
+  }
+
+  Widget _fieldLabel(String text) {
+    return Text(
+      text,
+      style: const TextStyle(
+        color: VoxaApp.navy,
+        fontSize: 11,
+        fontWeight: FontWeight.w700,
+        letterSpacing: 0.3,
+      ),
+    );
+  }
+
+  InputDecoration _inputDecoration({
+    required String hint,
+    required IconData icon,
+  }) {
+    return InputDecoration(
+      hintText: hint,
+      hintStyle: const TextStyle(
+        color: Color(0xFF8A96AA),
+        fontSize: 14,
+      ),
+      prefixIcon: Icon(
+        icon,
+        color: const Color(0xFF71809A),
+        size: 21,
+      ),
+      filled: true,
+      fillColor: const Color(0xFFF2F5FC),
+      contentPadding: const EdgeInsets.symmetric(
+        horizontal: 14,
+        vertical: 18,
+      ),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(
+          color: Color(0xFFE1E8F4),
+        ),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(
+          color: Color(0xFFE1E8F4),
+        ),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(
+          color: VoxaApp.blue,
+          width: 1.5,
+        ),
+      ),
+      errorMaxLines: 2,
+    );
+  }
+
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        behavior: SnackBarBehavior.floating,
       ),
     );
   }
