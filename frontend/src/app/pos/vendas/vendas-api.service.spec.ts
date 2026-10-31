@@ -80,4 +80,16 @@ describe('VendasApiService (HTTP)', () => {
     api.cancelarVenda(5).subscribe();
     expect(http.expectOne(`${API_URL}/vendas/5/cancelamento`).request.method).toBe('PATCH');
   });
+
+  it('deve enviar a foto como multipart e remover com DELETE', () => {
+    const foto = new Blob(['x'], { type: 'image/jpeg' });
+    api.enviarFoto(1, foto).subscribe();
+    const envio = http.expectOne(`${API_URL}/produtos/variacoes/1/imagem`);
+    expect(envio.request.method).toBe('POST');
+    expect((envio.request.body as FormData).get('arquivo')).toBeInstanceOf(Blob);
+    envio.flush({});
+
+    api.removerFoto(1).subscribe();
+    expect(http.expectOne(`${API_URL}/produtos/variacoes/1/imagem`).request.method).toBe('DELETE');
+  });
 });

@@ -1,5 +1,5 @@
 import { Injectable, Provider } from '@angular/core';
-import { Observable, of, throwError } from 'rxjs';
+import { Observable, from, map, of, throwError } from 'rxjs';
 import { ApiVendas, VendasApiService } from './vendas-api.service';
 import {
   Cliente,
@@ -27,6 +27,7 @@ import {
 @Injectable()
 export class VendasApiMockService implements ApiVendas {
   private clientes = [...CLIENTES_MOCK];
+  private variacoes = VARIACOES_MOCK.map((v) => ({ ...v }));
   private vendas: Venda[] = vendasIniciaisMock();
   private proximoNumero = this.vendas.length + 1;
 
@@ -64,12 +65,22 @@ export class VendasApiMockService implements ApiVendas {
   /*GET /produtos/variacoes/busca?termo={termo} — termo = "REF/TAM" (12345/42) ou código de barras*/
   buscarVariacao(termo: string): Observable<ProdutoVariacao | null> {
     const busca = termo.trim().toUpperCase();
-    const variacao = VARIACOES_MOCK.find(
+    const variacao = this.variacoes.find(
       (v) =>
         v.codigoBarras === busca ||
         `${v.produto.referencia}/${v.tamanho}`.toUpperCase() === busca,
     );
     return of(variacao ?? null);
+  }
+
+  /*POST /produtos/variacoes/{id}/imagem — aqui a foto fica só na memória, como data URL*/
+  enviarFoto(variacaoId: number, foto: Blob): Observable<ProdutoVariacao> {
+    return from(lerComoDataUrl(foto)).pipe(map((url) => this.trocarFoto(variacaoId, url)));
+  }
+
+  /*DELETE /produtos/variacoes/{id}/imagem*/
+  removerFoto(variacaoId: number): Observable<ProdutoVariacao> {
+    return of(null).pipe(map(() => this.trocarFoto(variacaoId, null)));
   }
 
   /*GET /formas-pagamento*/
@@ -123,6 +134,29 @@ export class VendasApiMockService implements ApiVendas {
       }),
     );
   }
+
+  /*Mesma regra do backend: troca a foto de todos os tamanhos do mesmo produto e cor*/
+  private trocarFoto(variacaoId: number, imagemUrl: string | null): ProdutoVariacao {
+    const escolhida = this.variacoes.find((v) => v.id === variacaoId);
+    if (!escolhida) {
+      throw new Error(`Produto ${variacaoId} não encontrado.`);
+    }
+    this.variacoes = this.variacoes.map((v) => (mesmaCor(v, escolhida) ? { ...v, imagemUrl } : v));
+    return this.variacoes.find((v) => v.id === variacaoId)!;
+  }
+}
+
+function mesmaCor(a: ProdutoVariacao, b: ProdutoVariacao): boolean {
+  return a.id === b.id || (a.produto.id === b.produto.id && !!a.cor && a.cor.toLowerCase() === b.cor?.toLowerCase());
+}
+
+function lerComoDataUrl(foto: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const leitor = new FileReader();
+    leitor.onload = () => resolve(leitor.result as string);
+    leitor.onerror = () => reject(new Error('Não foi possível ler a imagem.'));
+    leitor.readAsDataURL(foto);
+  });
 }
 
 function atendeFiltro(venda: Venda, filtro: FiltroVendas): boolean {

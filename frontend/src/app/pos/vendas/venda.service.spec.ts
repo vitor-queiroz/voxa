@@ -109,4 +109,16 @@ describe('VendaService', () => {
     expect(podeVender(carlos)).toBe(true);
     expect(podeVender(afastada)).toBe(false);
   });
+
+  it('atualiza a foto em todos os itens do mesmo produto e cor', () => {
+    const [, tenis40] = VARIACOES_MOCK;
+    service.incluirItem(tenis42);
+    service.incluirItem(tenis40);
+    service.incluirItem(camisetaM);
+
+    service.atualizarFoto({ ...tenis42, imagemUrl: '/produtos/imagens/7' });
+
+    const fotos = service.rascunho().itens.map((i) => i.variacao.imagemUrl);
+    expect(fotos).toEqual(['/produtos/imagens/7', '/produtos/imagens/7', null]);
+  });
 });

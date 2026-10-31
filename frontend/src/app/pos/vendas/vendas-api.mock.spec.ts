@@ -66,4 +66,19 @@ describe('VendasApiMockService', () => {
     expect((await firstValueFrom(api.buscarFuncionario('0001')))?.nome).toBe('Carlos Eduardo Silva');
     expect(await firstValueFrom(api.buscarFuncionario('9999'))).toBeNull();
   });
+
+  it('deve guardar a foto para todos os tamanhos da mesma cor e remover depois', async () => {
+    const foto = new Blob(['x'], { type: 'image/jpeg' });
+
+    const tenis42 = await firstValueFrom(api.enviarFoto(1, foto));
+    const tenis40 = await firstValueFrom(api.buscarVariacao('12345/40'));
+    const camiseta = await firstValueFrom(api.buscarVariacao('20010/M'));
+
+    expect(tenis42.imagemUrl).toMatch(/^data:image\/jpeg/);
+    expect(tenis40?.imagemUrl).toBe(tenis42.imagemUrl);
+    expect(camiseta?.imagemUrl).toBeNull();
+
+    await firstValueFrom(api.removerFoto(2));
+    expect((await firstValueFrom(api.buscarVariacao('12345/42')))?.imagemUrl).toBeNull();
+  });
 });

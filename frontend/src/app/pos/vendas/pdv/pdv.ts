@@ -6,6 +6,7 @@ import { VendaService } from '../venda.service';
 import { VendasApiService } from '../vendas-api.service';
 import { Cliente, ItemVenda } from '../vendas.model';
 import { formatarCpf, somenteNumeros, validarCpf } from '../cpf';
+import { TAMANHO_MAXIMO_FOTO, TIPOS_FOTO, enderecoFoto, reduzirFoto } from '../foto';
 import { Acao, BarraAcoes } from '../compartilhado/barra-acoes/barra-acoes';
 import { Etapas } from '../compartilhado/etapas/etapas';
 import { Icone } from '../compartilhado/icone/icone';
@@ -49,6 +50,12 @@ export class Pdv {
   readonly erroCliente = signal<string | null>(null);
   readonly erroDialogo = signal<string | null>(null);
   readonly erroPagamento = signal<string | null>(null);
+  readonly erroFoto = signal<string | null>(null);
+  readonly enviandoFoto = signal(false);
+  readonly tiposFoto = TIPOS_FOTO.join(',');
+
+  /*Reduz a foto antes do envio (trocada nos testes, que não têm canvas)*/
+  prepararFoto: (arquivo: Blob) => Promise<Blob> = reduzirFoto;
 
   readonly estadoCpf = computed<'incompleto' | 'valido' | 'invalido'>(() => {
     const cpf = somenteNumeros(this.cpf());
@@ -80,6 +87,8 @@ export class Pdv {
     const itens = this.vendaService.rascunho().itens;
     return itens[this.indiceSelecionado() ?? itens.length - 1] ?? null;
   });
+
+  readonly fotoVisualizada = computed(() => enderecoFoto(this.itemVisualizado()?.variacao.imagemUrl));
 
   readonly acoes = computed<Acao[]>(() => {
     const rascunho = this.vendaService.rascunho();
@@ -188,6 +197,65 @@ export class Pdv {
         this.termoProduto = '';
       },
       error: (erro: Error) => this.erroProduto.set(erro.message),
+    });
+  }
+
+  /*Foto escolhida no card "Item selecionado": vale para todos os tamanhos da mesma cor*/
+  async aoEscolherFoto(evento: Event) {
+    const campo = evento.target as HTMLInputElement;
+    const arquivo = campo.files?.[0];
+    campo.value = ''; /*permite escolher o mesmo arquivo de novo*/
+    const item = this.itemVisualizado();
+    if (!arquivo || !item) {
+      return;
+    }
+    if (!TIPOS_FOTO.includes(arquivo.type)) {
+      this.erroFoto.set('Escolha uma imagem JPG, PNG ou WEBP.');
+      return;
+    }
+    if (arquivo.size > TAMANHO_MAXIMO_FOTO) {
+      this.erroFoto.set('A imagem é muito grande (máximo de 20 MB).');
+      return;
+    }
+
+    this.erroFoto.set(null);
+    this.enviandoFoto.set(true);
+    let foto: Blob;
+    try {
+      foto = await this.prepararFoto(arquivo);
+    } catch {
+      this.enviandoFoto.set(false);
+      this.erroFoto.set('Não foi possível ler esta imagem. Use JPG, PNG ou WEBP.');
+      return;
+    }
+    this.api.enviarFoto(item.variacao.id, foto).subscribe({
+      next: (variacao) => {
+        this.vendaService.atualizarFoto(variacao);
+        this.enviandoFoto.set(false);
+      },
+      error: (erro: Error) => {
+        this.erroFoto.set(erro.message);
+        this.enviandoFoto.set(false);
+      },
+    });
+  }
+
+  removerFoto() {
+    const item = this.itemVisualizado();
+    if (!item || !confirm(`Remover a foto de ${item.variacao.produto.nome} (${item.variacao.cor})?`)) {
+      return;
+    }
+    this.erroFoto.set(null);
+    this.enviandoFoto.set(true);
+    this.api.removerFoto(item.variacao.id).subscribe({
+      next: (variacao) => {
+        this.vendaService.atualizarFoto(variacao);
+        this.enviandoFoto.set(false);
+      },
+      error: (erro: Error) => {
+        this.erroFoto.set(erro.message);
+        this.enviandoFoto.set(false);
+      },
     });
   }
 
