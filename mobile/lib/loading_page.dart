@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'home_page.dart';
 
 class LoadingPage extends StatefulWidget {
   final String sellerName;
@@ -107,7 +106,7 @@ class _LoadingPageState extends State<LoadingPage>
                           ? Image.network(
                               widget.photoUrl!,
                               fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) =>
+                              errorBuilder: (context, error, stackTrace) =>
                                   _defaultAvatar(),
                             )
                           : _defaultAvatar(),
