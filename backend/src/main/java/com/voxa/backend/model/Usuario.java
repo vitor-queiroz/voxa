@@ -4,6 +4,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
 
 @Entity
 public class Usuario {
@@ -15,6 +17,14 @@ public class Usuario {
     private String usuario;
     private String senha;
     private String perfil;
+
+    @OneToOne
+    @JoinColumn(
+            name = "prontuario",
+            referencedColumnName = "prontuario",
+            unique = true
+    )
+    private Funcionario funcionario;
 
     public Long getId() {
         return id;
@@ -46,5 +56,13 @@ public class Usuario {
 
     public void setPerfil(String perfil) {
         this.perfil = perfil;
+    }
+
+    public Funcionario getFuncionario() {
+        return funcionario;
+    }
+
+    public void setFuncionario(Funcionario funcionario) {
+        this.funcionario = funcionario;
     }
 }

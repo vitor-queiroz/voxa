@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'services/auth_service.dart';
+import 'loading_page.dart';
+import 'models/funcionario_resumo.dart';
 
 void main() {
   runApp(const VoxaApp());
@@ -66,18 +68,28 @@ class _LoginPageState extends State<LoginPage> {
     });
 
       try {
-        final resposta = await _authService.login(
+        final FuncionarioResumo funcionario = await _authService.login(
           prontuario: _sellerCodeController.text.trim(),
           senha: _passwordController.text,
         );
 
         if(!mounted) return;
 
-        _showMessage(resposta);
-      } catch (e) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => LoadingPage(
+              sellerName: funcionario.nome,
+              sellerCode: funcionario.prontuario,
+              photoUrl: null,
+            ),
+          ),
+        );
+        } catch (e) {
         if (!mounted) return;
       
-        _showMessage('Não foi possível conectar ao servidor: $e');
+        _showMessage(
+          e.toString().replaceFirst('Exception: ', ''),
+        );
       } finally {
         if (mounted) {
           setState(() {

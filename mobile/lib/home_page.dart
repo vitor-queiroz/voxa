@@ -3,7 +3,15 @@ import 'package:flutter/material.dart';
 import 'dashboard_page.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  final String sellerName;
+  final String sellerCode;
+  
+
+  const HomePage({
+    super.key,
+    required this.sellerName,
+    required this.sellerCode,
+    });
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -155,18 +163,18 @@ class _HomePageState extends State<HomePage> {
                         ],
                       ),
                       const SizedBox(height: 14),
-                      const Text(
-                        'Olá, Gisele!',
-                        style: TextStyle(
+                       Text(
+                        'Olá, ${widget.sellerName}!',
+                          style: const TextStyle(
                           color: Colors.white,
                           fontSize: 24,
                           fontWeight: FontWeight.w800,
                         ),
                       ),
                       const SizedBox(height: 5),
-                      const Text(
-                        'Código do vendedor: 0042 (exemplo)',
-                        style: TextStyle(
+                       Text(
+                        'Código do vendedor: ${widget.sellerCode}',
+                          style: const TextStyle(
                           color: Color(0xFFD2DFF3),
                           fontSize: 12,
                         ),
