@@ -80,7 +80,7 @@ class _LoginPageState extends State<LoginPage> {
             builder: (context) => LoadingPage(
               sellerName: funcionario.nome,
               sellerCode: funcionario.prontuario,
-              photoUrl: null,
+              photoUrl: funcionario.fotoUrl,
             ),
           ),
         );
