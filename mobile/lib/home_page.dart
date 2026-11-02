@@ -1,6 +1,6 @@
-
 import 'package:flutter/material.dart';
 import 'dashboard_page.dart';
+import 'estoque_page.dart';
 
 class HomePage extends StatefulWidget {
   final String sellerName;
@@ -54,11 +54,7 @@ class _HomePageState extends State<HomePage> {
           index: _selectedIndex,
           children: [
             _buildHome(),
-            _buildPlaceholder(
-              Icons.inventory_2_outlined,
-              'Estoque',
-              'Consulte produtos, referências e variantes.',
-            ),
+            const EstoquePage(),  
             _buildScanner(),
             _buildPlaceholder(
               Icons.shopping_cart_outlined,
@@ -67,7 +63,7 @@ class _HomePageState extends State<HomePage> {
             ),
           ],
         ),
-      ),
+      ),  
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedIndex,
         backgroundColor: Colors.white,
@@ -591,9 +587,9 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildPlaceholder(
-    IconData icon,
-    String title,
-    String description,
+      IconData icon,
+      String title,
+      String description,
   ) {
     return Center(
       child: Padding(
