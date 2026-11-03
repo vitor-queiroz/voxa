@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import java.util.List;
 
 import java.time.Duration;
 
@@ -27,10 +28,9 @@ public class ProdutoController {
         this.produtoService = produtoService;
     }
 
-    /*GET /produtos/variacoes/busca?termo=12345142 ou ?termo=12345/42*/
-    @GetMapping("/variacoes/busca")
-    public ProdutoVariacaoDto buscarVariacao(@RequestParam String termo) {
-        return produtoService.buscarVariacao(termo);
+    @GetMapping("/variacoes")
+    public List<ProdutoVariacaoDto> listarVariacoes() {
+        return produtoService.listarVariacoes();
     }
 
     /*POST /produtos/variacoes/{id}/imagem (multipart, campo "arquivo") — vale para todos os tamanhos da mesma cor*/

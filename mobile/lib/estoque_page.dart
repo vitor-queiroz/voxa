@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 
 class EstoquePage extends StatefulWidget {
@@ -17,6 +18,48 @@ class _EstoquePageState extends State<EstoquePage> {
       TextEditingController();
 
   String _selectedFilter = 'Todos';
+  String _searchText = '';
+  int? _expandedProductId;
+
+  // Dados demonstrativos: serão substituídos pela API.
+  final List<Map<String, dynamic>> _products = [
+    {
+      'id': 1,
+      'name': 'Tênis Casual',
+      'reference': '12345',
+      'color': 'Preto / Branco',
+      'quantity': 12,
+      'image': Icons.directions_run_rounded,
+      'sizes': {'37': 2, '38': 3, '39': 4, '40': 3},
+    },
+    {
+      'id': 2,
+      'name': 'Tênis Esportivo',
+      'reference': '12346',
+      'color': 'Azul / Branco',
+      'quantity': 5,
+      'image': Icons.directions_run_rounded,
+      'sizes': {'34': 1, '35': 0, '36': 2, '37': 2},
+    },
+    {
+      'id': 3,
+      'name': 'Sapato Social',
+      'reference': '12347',
+      'color': 'Marrom',
+      'quantity': 0,
+      'image': Icons.shopping_bag_outlined,
+      'sizes': {'38': 0, '39': 0, '40': 0, '41': 0},
+    },
+    {
+      'id': 4,
+      'name': 'Tênis Street',
+      'reference': '12348',
+      'color': 'Bege / Branco',
+      'quantity': 18,
+      'image': Icons.directions_run_rounded,
+      'sizes': {'36': 3, '37': 4, '38': 5, '39': 6},
+    },
+  ];
 
   @override
   void dispose() {
@@ -24,127 +67,546 @@ class _EstoquePageState extends State<EstoquePage> {
     super.dispose();
   }
 
+  void _openScanner() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          'Leitor de código de barras será implementado futuramente.',
+        ),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  List<Map<String, dynamic>> get _filteredProducts {
+    final query = _searchText.toLowerCase().trim();
+
+    return _products.where((product) {
+      final matchesSearch =
+          product['name'].toString().toLowerCase().contains(query) ||
+          product['reference'].toString().toLowerCase().contains(query) ||
+          product['color'].toString().toLowerCase().contains(query);
+
+      final quantity = product['quantity'] as int;
+
+      final matchesFilter = switch (_selectedFilter) {
+        'Baixo estoque' => quantity > 0 && quantity <= 5,
+        'Zerados' => quantity == 0,
+        _ => true,
+      };
+
+      return matchesSearch && matchesFilter;
+    }).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
+    final products = _filteredProducts;
+
     return Scaffold(
       backgroundColor: background,
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Cabeçalho
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: const [
-                  Text(
-                    'Estoque',
-                    style: TextStyle(
-                      color: navy,
-                      fontSize: 25,
-                      fontWeight: FontWeight.w800,
-                    ),
+                children: [
+                  const Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Estoque',
+                        style: TextStyle(
+                          color: navy,
+                          fontSize: 26,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        'Consulte os produtos da loja',
+                        style: TextStyle(
+                          color: muted,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
                   ),
-                  Text(
-                    'Loja 01',
-                    style: TextStyle(
-                      color: muted,
-                      fontSize: 12,
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 9,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Row(
+                      children: [
+                        Icon(
+                          Icons.storefront_outlined,
+                          color: navy,
+                          size: 17,
+                        ),
+                        SizedBox(width: 6),
+                        Text(
+                          'Loja 01',
+                          style: TextStyle(
+                            color: navy,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 22),
 
+              const SizedBox(height: 24),
+
+              // Pesquisa e scanner
               Row(
                 children: [
                   Expanded(
                     child: TextField(
                       controller: _searchController,
+                      onChanged: (value) {
+                        setState(() {
+                          _searchText = value;
+                          _expandedProductId = null;
+                        });
+                      },
                       decoration: InputDecoration(
-                        hintText: 'Referência, nome ou cor',
-                        prefixIcon: const Icon(Icons.search),
+                        hintText: 'Nome, referência ou cor',
+                        hintStyle: const TextStyle(
+                          color: muted,
+                          fontSize: 13,
+                        ),
+                        prefixIcon: const Icon(
+                          Icons.search,
+                          color: muted,
+                        ),
+                        suffixIcon: _searchText.isNotEmpty
+                            ? IconButton(
+                                onPressed: () {
+                                  _searchController.clear();
+                                  setState(() {
+                                    _searchText = '';
+                                  });
+                                },
+                                icon: const Icon(
+                                  Icons.close,
+                                  color: muted,
+                                  size: 19,
+                                ),
+                              )
+                            : null,
                         filled: true,
                         fillColor: Colors.white,
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 16,
+                        ),
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(14),
+                          borderRadius: BorderRadius.circular(15),
                           borderSide: BorderSide.none,
                         ),
                       ),
                     ),
                   ),
                   const SizedBox(width: 10),
-                  Container(
-                    width: 52,
-                    height: 52,
-                    decoration: BoxDecoration(
-                      color: navy,
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: const Icon(
-                      Icons.qr_code_scanner_rounded,
-                      color: Colors.white,
+                  Material(
+                    color: navy,
+                    borderRadius: BorderRadius.circular(15),
+                    child: InkWell(
+                      onTap: _openScanner,
+                      borderRadius: BorderRadius.circular(15),
+                      child: const SizedBox(
+                        width: 54,
+                        height: 54,
+                        child: Icon(
+                          Icons.qr_code_scanner_rounded,
+                          color: Colors.white,
+                          size: 25,
+                        ),
+                      ),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 18),
-
-              Wrap(
-                spacing: 9,
-                children: ['Todos', 'Baixo estoque', 'Zerados'].map(
-                  (filter) {
-                    final selected = _selectedFilter == filter;
-
-                    return ChoiceChip(
-                      label: Text(filter),
-                      selected: selected,
-                      onSelected: (_) {
-                        setState(() {
-                          _selectedFilter = filter;
-                        });
-                      },
-                      selectedColor: navy,
-                      labelStyle: TextStyle(
-                        color: selected ? Colors.white : navy,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      backgroundColor: Colors.white,
-                    );
-                  },
-                ).toList(),
-              ),
 
               const SizedBox(height: 24),
 
-              const Expanded(
-                child: Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.inventory_2_outlined,
-                        size: 55,
-                        color: muted,
+              // Filtros
+              const Text(
+                'Filtrar produtos',
+                style: TextStyle(
+                  color: navy,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: ['Todos', 'Baixo estoque', 'Zerados'].map(
+                    (filter) {
+                      final selected = _selectedFilter == filter;
+
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 9),
+                        child: ChoiceChip(
+                          label: Text(filter),
+                          selected: selected,
+                          onSelected: (_) {
+                            setState(() {
+                              _selectedFilter = filter;
+                              _expandedProductId = null;
+                            });
+                          },
+                          showCheckmark: false,
+                          selectedColor: navy,
+                          backgroundColor: Colors.white,
+                          side: BorderSide.none,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(11),
+                          ),
+                          labelStyle: TextStyle(
+                            color: selected ? Colors.white : navy,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      );
+                    },
+                  ).toList(),
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              // Identificação dos resultados
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Produtos',
+                    style: TextStyle(
+                      color: navy,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  Text(
+                    '${products.length} ${products.length == 1 ? 'produto' : 'produtos'}',
+                    style: const TextStyle(
+                      color: muted,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 12),
+
+              // Lista expansível
+              Expanded(
+                child: products.isEmpty
+                    ? _buildEmptyState()
+                    : ListView.separated(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        itemCount: products.length,
+                        separatorBuilder: (_, __) =>
+                            const SizedBox(height: 10),
+                        itemBuilder: (context, index) {
+                          final product = products[index];
+                          final expanded =
+                              _expandedProductId == product['id'];
+
+                          return _buildProductCard(
+                            product,
+                            expanded,
+                          );
+                        },
                       ),
-                      SizedBox(height: 12),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProductCard(
+    Map<String, dynamic> product,
+    bool expanded,
+  ) {
+    final quantity = product['quantity'] as int;
+    final sizes = product['sizes'] as Map<String, int>;
+
+    final statusColor = quantity == 0
+        ? Colors.red
+        : quantity <= 5
+            ? Colors.orange.shade800
+            : Colors.green.shade700;
+
+    final statusText = quantity == 0
+        ? 'Sem estoque'
+        : quantity <= 5
+            ? 'Estoque baixo'
+            : 'Disponível';
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: expanded ? blue.withOpacity(0.45) : Colors.transparent,
+        ),
+      ),
+      child: Column(
+        children: [
+          InkWell(
+            onTap: () {
+              setState(() {
+                _expandedProductId =
+                    expanded ? null : product['id'] as int;
+              });
+            },
+            borderRadius: BorderRadius.circular(16),
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Row(
+                children: [
+                  Container(
+                    width: 66,
+                    height: 66,
+                    decoration: BoxDecoration(
+                      color: background,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      product['image'] as IconData,
+                      color: navy,
+                      size: 32,
+                    ),
+                  ),
+
+                  const SizedBox(width: 12),
+
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          product['name'],
+                          style: const TextStyle(
+                            color: navy,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        const SizedBox(height: 5),
+                        Text(
+                          '${product['color']} · REF. ${product['reference']}',
+                          style: const TextStyle(
+                            color: muted,
+                            fontSize: 11,
+                          ),
+                        ),
+                        const SizedBox(height: 5),
+                        Text(
+                          statusText,
+                          style: TextStyle(
+                            color: statusColor,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(width: 8),
+
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
                       Text(
-                        'Sua consulta de estoque começa aqui',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
+                        '$quantity',
+                        style: const TextStyle(
                           color: navy,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
+                          fontSize: 20,
+                          fontWeight: FontWeight.w800,
                         ),
                       ),
-                      SizedBox(height: 6),
-                      Text(
-                        'Os produtos serão carregados do VOXA.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: muted),
+                      const Text(
+                        'unidades',
+                        style: TextStyle(
+                          color: muted,
+                          fontSize: 10,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Icon(
+                        expanded
+                            ? Icons.keyboard_arrow_up_rounded
+                            : Icons.keyboard_arrow_down_rounded,
+                        color: muted,
+                        size: 21,
                       ),
                     ],
                   ),
+                ],
+              ),
+            ),
+          ),
+
+          // Grade de tamanhos
+          AnimatedCrossFade(
+            firstChild: const SizedBox(width: double.infinity),
+            secondChild: _buildSizeGrid(sizes),
+            crossFadeState: expanded
+                ? CrossFadeState.showSecond
+                : CrossFadeState.showFirst,
+            duration: const Duration(milliseconds: 220),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSizeGrid(Map<String, int> sizes) {
+    final sortedSizes = sizes.entries.toList()
+      ..sort((a, b) {
+        final aNumber = double.tryParse(a.key);
+        final bNumber = double.tryParse(b.key);
+
+        if (aNumber != null && bNumber != null) {
+          return aNumber.compareTo(bNumber);
+        }
+
+        return a.key.compareTo(b.key);
+      });
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 0, 12, 14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Divider(color: background),
+          const SizedBox(height: 8),
+          const Text(
+            'Quantidade por tamanho',
+            style: TextStyle(
+              color: navy,
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 9,
+            runSpacing: 9,
+            children: sortedSizes.map((entry) {
+              final available = entry.value > 0;
+
+              return Container(
+                width: 62,
+                padding: const EdgeInsets.symmetric(vertical: 9),
+                decoration: BoxDecoration(
+                  color: available ? background : const Color(0xFFFFEEEE),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: available
+                        ? background
+                        : const Color(0xFFFFD6D6),
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    Text(
+                      entry.key,
+                      style: const TextStyle(
+                        color: navy,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      '${entry.value} un.',
+                      style: TextStyle(
+                        color: available ? muted : Colors.red,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 76,
+                height: 76,
+                decoration: BoxDecoration(
+                  color: background,
+                  borderRadius: BorderRadius.circular(22),
+                ),
+                child: const Icon(
+                  Icons.inventory_2_outlined,
+                  size: 38,
+                  color: navy,
+                ),
+              ),
+              const SizedBox(height: 18),
+              Text(
+                _searchText.isNotEmpty
+                    ? 'Nenhum resultado encontrado'
+                    : 'Nenhum produto nesta categoria',
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: navy,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                _searchText.isNotEmpty
+                    ? 'Confira o nome, a referência ou a cor pesquisada.'
+                    : 'Não encontramos produtos para este filtro.',
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: muted,
+                  fontSize: 13,
+                  height: 1.5,
                 ),
               ),
             ],

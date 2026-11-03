@@ -38,12 +38,11 @@ public class ProdutoService {
 
     /*Termo = código de barras (12345142) ou REF/TAM (12345/42)*/
     @Transactional(readOnly = true)
-    public ProdutoVariacaoDto buscarVariacao(String termo) {
-        String busca = termo == null ? "" : termo.trim();
-        return porCodigoDeBarras(busca)
-                .or(() -> porReferenciaETamanho(busca))
+    public List<ProdutoVariacaoDto> listarVariacoes() {
+        return variacaoRepository.findAll()
+                .stream()
                 .map(ProdutoVariacaoDto::de)
-                .orElseThrow(() -> new NaoEncontradoException("Código " + busca + " não encontrado."));
+                .toList();
     }
 
     /*Grava a foto e liga em todas as variações do mesmo produto e cor (a foto não muda com o tamanho)*/
