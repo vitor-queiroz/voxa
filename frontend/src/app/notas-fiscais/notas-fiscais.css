@@ -1,0 +1,108 @@
+.manager-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background-color: #121212;
+  color: #ffffff;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  padding: 20px;
+}
+
+.manager-title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  letter-spacing: 2px;
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+.manager-title span {
+  color: #0070d1; /* Azul estilo PlayStation */
+  margin-left: 10px;
+}
+
+.manager-content-card {
+  background-color: #1e1e1e;
+  border-radius: 12px;
+  padding: 30px;
+  width: 100%;
+  max-width: 800px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+.content-header h2 {
+  margin: 0 0 5px 0;
+  font-size: 1.5rem;
+}
+
+.content-header p {
+  color: #aaaaaa;
+  margin-bottom: 20px;
+  font-size: 0.95rem;
+}
+
+.table-container {
+  overflow-x: auto;
+  margin-bottom: 25px;
+}
+
+.styled-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.95rem;
+}
+
+.styled-table th, .styled-table td {
+  padding: 12px 15px;
+  border-bottom: 1px solid #333333;
+}
+
+.styled-table th {
+  background-color: #2a2a2a;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.styled-table tr:hover {
+  background-color: #252525;
+}
+
+.badge {
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+
+.badge.emitida {
+  background-color: #1b5e20;
+  color: #a5d6a7;
+}
+
+.badge.pendente {
+  background-color: #e65100;
+  color: #ffe0b2;
+}
+
+.actions-footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn-voltar {
+  background-color: #333333;
+  color: #ffffff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.2s;
+}
+
+.btn-voltar:hover {
+  background-color: #444444;
+}

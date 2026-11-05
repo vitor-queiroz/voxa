@@ -1,20 +1,21 @@
 <div class="login-container">
-  <div class="login-box">
-
-    <div class="logo">
-      VOXA
+  <div class="login-card">
+    <div class="logo-container">
+      <h1 class="logo-title">VOXA</h1>
+      <span class="logo-subtitle">MANAGER</span>
     </div>
 
-    <form #loginForm="ngForm" (ngSubmit)="acessar(loginForm)">
+    <form class="login-form" #formRef="ngForm" (ngSubmit)="acessar(formRef)">
       <div class="form-group">
-        <label for="usuario">Acesso</label>
+        <label for="acesso">Acesso</label>
         <input
           type="text"
-          id="usuario"
+          id="acesso"
           name="usuario"
-          placeholder="Digite seu usuário"
           [(ngModel)]="usuario"
+          placeholder="Digite seu usuário"
           required
+          autocomplete="off"
         />
       </div>
 
@@ -24,16 +25,13 @@
           type="password"
           id="senha"
           name="senha"
-          placeholder="Digite sua senha"
           [(ngModel)]="senha"
+          placeholder="Digite sua senha"
           required
         />
       </div>
 
-      <button type="submit">
-        Acessar
-      </button>
+      <button type="submit" class="btn-acessar">Acessar</button>
     </form>
-
   </div>
 </div>

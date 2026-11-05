@@ -1,61 +1,81 @@
-.estoque-container {
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    align-items: center;
-    background: #ffffff;
-    padding: 60px 40px;
-    box-sizing: border-box;
+/* Fundo geral idêntico ao Manager */
+:host, html, body {
+  background-color: #2b2d31 !important;
+  color: #ffffff !important;
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  min-height: 100vh;
 }
 
+.estoque-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 20px;
+  background: linear-gradient(135deg, #23252b 0%, #1a1c23 100%);
+}
+
+/* Título padronizado com o Manager */
 .estoque-title {
-    margin-top: 100px;
-    text-align: center;
-    font-family: 'Scoria', sans-serif;
-    font-size: 64px;
+  font-size: 2.5rem;
+  font-weight: 800;
+  letter-spacing: 2px;
+  margin-bottom: 40px;
+  text-align: center;
+  color: #ffffff;
 }
 
 .estoque-title span {
-    display: block;
-    font-family: Arial, sans-serif;
-    font-size: 18px;
-    letter-spacing: 6px;
-    margin-top: 8px;
+  color: #0070d1;
+  margin-left: 10px;
 }
 
+/* Grelha de botões idêntica à do Manager */
 .estoque-menu {
-    display: flex;
-    justify-content: center;
-    align-items: flex-end;
-    gap: 50px;
-    margin-bottom: 40px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 25px;
+  width: 100%;
+  max-width: 900px;
+  justify-content: center;
 }
 
-.estoque-menu button {
-    width: 120px;
-    height: 120px;
-    border: none;
-    background: transparent;
-    cursor: pointer;
-
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-
-    font-size: 14px;
-    font-family: Arial, sans-serif;
-    text-align: center;
+/* Cartões brancos arredondados idênticos ao Manager */
+.estoque-menu button,
+.estoque-menu a {
+  background-color: #f0f2f5 !important;
+  border: none !important;
+  border-radius: 12px !important;
+  padding: 30px 20px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: #1a1a1a !important;
+  text-decoration: none !important;
+  font-weight: 600 !important;
+  font-size: 1rem !important;
+  cursor: pointer !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3) !important;
+  transition: all 0.2s ease-in-out !important;
 }
 
-.estoque-menu button img {
-    width: 55px;
-    height: 55px;
-    object-fit: contain;
-    margin-bottom: 10px;
+.estoque-menu button:hover,
+.estoque-menu a:hover {
+  background-color: #ffffff !important;
+  transform: translateY(-4px);
+  box-shadow: 0 12px 28px rgba(0, 112, 209, 0.4) !important;
 }
 
-.estoque-menu button:hover {
-    transform: scale(1.05);
+/* Tamanho e proporção perfeita dos ícones */
+.estoque-menu img {
+  width: 52px !important;
+  height: 52px !important;
+  max-width: 52px !important;
+  max-height: 52px !important;
+  margin-bottom: 15px !important;
+  object-fit: contain !important;
 }
