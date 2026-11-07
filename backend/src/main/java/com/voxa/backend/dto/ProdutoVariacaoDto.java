@@ -12,7 +12,8 @@ public record ProdutoVariacaoDto(
         String tamanho,
         String cor,
         BigDecimal preco,
-        String imagemUrl) {
+        String imagemUrl,
+        Integer quantidade) {
 
     public record ProdutoDto(Long id, String referencia, String nome, String marca) {
 
@@ -21,7 +22,7 @@ public record ProdutoVariacaoDto(
         }
     }
 
-    public static ProdutoVariacaoDto de(ProdutoVariacao variacao) {
+    public static ProdutoVariacaoDto de(ProdutoVariacao variacao, Integer quantidade) {
         return new ProdutoVariacaoDto(
                 variacao.getId(),
                 ProdutoDto.de(variacao.getProduto()),
@@ -29,6 +30,12 @@ public record ProdutoVariacaoDto(
                 variacao.getTamanho(),
                 variacao.getCor(),
                 variacao.getPreco(),
-                variacao.getImagemUrl());
+                variacao.getImagemUrl(),
+                quantidade
+        );
+    }
+
+    public static ProdutoVariacaoDto de(ProdutoVariacao variacao) {
+        return de(variacao, null);
     }
 }

@@ -7,6 +7,8 @@ import com.voxa.backend.model.ProdutoImagem;
 import com.voxa.backend.model.ProdutoVariacao;
 import com.voxa.backend.repository.ProdutoImagemRepository;
 import com.voxa.backend.repository.ProdutoVariacaoRepository;
+import com.voxa.backend.repository.EstoqueRepository;
+import com.voxa.backend.model.Estoque;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -19,6 +21,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.Map;
 
 @Service
 public class ProdutoService {
@@ -30,18 +33,42 @@ public class ProdutoService {
 
     private final ProdutoVariacaoRepository variacaoRepository;
     private final ProdutoImagemRepository imagemRepository;
+    private final EstoqueRepository estoqueRepository;
 
-    public ProdutoService(ProdutoVariacaoRepository variacaoRepository, ProdutoImagemRepository imagemRepository) {
+    public ProdutoService(ProdutoVariacaoRepository variacaoRepository, ProdutoImagemRepository imagemRepository, EstoqueRepository estoqueRepository) {
+
         this.variacaoRepository = variacaoRepository;
         this.imagemRepository = imagemRepository;
+        this.estoqueRepository = estoqueRepository;
     }
 
     /*Termo = código de barras (12345142) ou REF/TAM (12345/42)*/
     @Transactional(readOnly = true)
     public List<ProdutoVariacaoDto> listarVariacoes() {
-        return variacaoRepository.findAll()
+
+        List<ProdutoVariacao> variacoes = variacaoRepository.findAll();
+
+        if (variacoes.isEmpty()) {
+            return List.of();
+        }
+
+        List<Long> ids = variacoes.stream()
+                .map(ProdutoVariacao::getId)
+                .toList();
+
+        Map<Long, Integer> quantidades = estoqueRepository
+                .findAllByProdutoVariacaoIdIn(ids)
                 .stream()
-                .map(ProdutoVariacaoDto::de)
+                .collect(Collectors.toMap(
+                        estoque -> estoque.getProdutoVariacao().getId(),
+                        Estoque::getQuantidade
+                ));
+
+        return variacoes.stream()
+                .map(variacao -> ProdutoVariacaoDto.de(
+                        variacao,
+                        quantidades.getOrDefault(variacao.getId(), 0)
+                ))
                 .toList();
     }
 
