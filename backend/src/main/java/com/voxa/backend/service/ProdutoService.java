@@ -9,9 +9,17 @@ import com.voxa.backend.repository.ProdutoImagemRepository;
 import com.voxa.backend.repository.ProdutoVariacaoRepository;
 import com.voxa.backend.repository.EstoqueRepository;
 import com.voxa.backend.model.Estoque;
+import com.voxa.backend.repository.ProdutoRepository;
+import com.voxa.backend.model.Produto;
+import com.voxa.backend.dto.ProdutoCadastroDto;
+import com.voxa.backend.dto.ProdutoVariacaoCadastroDto;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.Locale;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -34,12 +42,129 @@ public class ProdutoService {
     private final ProdutoVariacaoRepository variacaoRepository;
     private final ProdutoImagemRepository imagemRepository;
     private final EstoqueRepository estoqueRepository;
+    private final ProdutoRepository produtoRepository;
 
-    public ProdutoService(ProdutoVariacaoRepository variacaoRepository, ProdutoImagemRepository imagemRepository, EstoqueRepository estoqueRepository) {
+
+    public ProdutoService(ProdutoVariacaoRepository variacaoRepository, ProdutoImagemRepository imagemRepository, EstoqueRepository estoqueRepository,
+                          ProdutoRepository produtoRepository) {
 
         this.variacaoRepository = variacaoRepository;
         this.imagemRepository = imagemRepository;
         this.estoqueRepository = estoqueRepository;
+        this.produtoRepository = produtoRepository;
+    }
+
+    @Transactional
+    public List<ProdutoVariacaoDto> cadastrarProduto(ProdutoCadastroDto dto) {
+
+        // Validação dos dados principais
+        if (dto == null
+                || dto.referencia() == null || dto.referencia().isBlank()
+                || dto.nome() == null || dto.nome().isBlank()
+                || dto.marca() == null || dto.marca().isBlank()) {
+            throw new RegraNegocioException(
+                    "Informe a referência, o nome e a marca do produto."
+            );
+        }
+
+        String referencia = dto.referencia().trim();
+
+
+        if (dto.variacoes() == null || dto.variacoes().isEmpty()) {
+            throw new RegraNegocioException(
+                    "Cadastre pelo menos uma variação para o produto."
+            );
+        }
+
+        Set<String> tamanhosECores = new HashSet<>();
+        Set<String> codigosBarras = new HashSet<>();
+
+        // Valida todas as variações antes de salvar
+        for (ProdutoVariacaoCadastroDto variacao : dto.variacoes()) {
+
+            if (variacao == null
+                    || variacao.tamanho() == null || variacao.tamanho().isBlank()
+                    || variacao.cor() == null || variacao.cor().isBlank()
+                    || variacao.preco() == null
+                    || variacao.preco().compareTo(java.math.BigDecimal.ZERO) <= 0
+                    || variacao.quantidade() == null
+                    || variacao.quantidade() < 0) {
+                throw new RegraNegocioException(
+                        "Verifique tamanho, cor, preço e quantidade das variações."
+                );
+            }
+
+            String chave = variacao.cor().trim().toLowerCase(Locale.ROOT)
+                    + "|" + variacao.tamanho().trim().toLowerCase(Locale.ROOT);
+
+            if (!tamanhosECores.add(chave)) {
+                throw new RegraNegocioException(
+                        "Existe uma variação duplicada de cor e tamanho."
+                );
+            }
+
+            String codigo = variacao.codigoBarras();
+
+            if (codigo != null && !codigo.isBlank()) {
+
+                codigo = codigo.trim();
+
+                if (!codigosBarras.add(codigo)) {
+                    throw new RegraNegocioException(
+                            "O mesmo código de barras foi informado mais de uma vez."
+                    );
+                }
+
+                if (variacaoRepository.findByCodigoBarras(codigo).isPresent()) {
+                    throw new RegraNegocioException(
+                            "O código de barras " + codigo + " já está cadastrado."
+                    );
+                }
+            }
+        }
+
+        // Cria o produto principal
+        Produto produto = new Produto();
+        produto.setReferencia(referencia);
+        produto.setNome(dto.nome().trim());
+        produto.setMarca(dto.marca().trim());
+
+        produto = produtoRepository.save(produto);
+
+        List<ProdutoVariacaoDto> resultado = new ArrayList<>();
+
+        // Cria as variações e seus respectivos estoques
+        for (ProdutoVariacaoCadastroDto dados : dto.variacoes()) {
+
+            ProdutoVariacao variacao = new ProdutoVariacao();
+
+            variacao.setProduto(produto);
+            variacao.setTamanho(dados.tamanho().trim());
+            variacao.setCor(dados.cor().trim());
+            variacao.setPreco(dados.preco());
+
+            String codigo = dados.codigoBarras();
+
+            variacao.setCodigoBarras(
+                    codigo == null || codigo.isBlank()
+                            ? null
+                            : codigo.trim()
+            );
+
+            variacao = variacaoRepository.save(variacao);
+
+            Estoque estoque = new Estoque();
+            estoque.setProdutoVariacao(variacao);
+            estoque.setQuantidade(dados.quantidade());
+
+            estoqueRepository.save(estoque);
+
+            resultado.add(
+                    ProdutoVariacaoDto.de(variacao, estoque.getQuantidade())
+            );
+        }
+
+        return resultado;
     }
 
     /*Termo = código de barras (12345142) ou REF/TAM (12345/42)*/

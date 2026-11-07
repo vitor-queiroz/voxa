@@ -1,8 +1,10 @@
 package com.voxa.backend.controller;
 
 import com.voxa.backend.dto.ProdutoVariacaoDto;
+import com.voxa.backend.dto.ProdutoCadastroDto;
 import com.voxa.backend.model.ProdutoImagem;
 import com.voxa.backend.service.ProdutoService;
+
 import org.springframework.http.CacheControl;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -14,8 +16,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-import java.util.List;
+import org.springframework.web.bind.annotation.RequestBody;
 
+import java.util.List;
 import java.time.Duration;
 
 @RestController
@@ -31,6 +34,11 @@ public class ProdutoController {
     @GetMapping("/variacoes")
     public List<ProdutoVariacaoDto> listarVariacoes() {
         return produtoService.listarVariacoes();
+    }
+
+    @PostMapping
+    public List<ProdutoVariacaoDto> cadastrarProduto(@RequestBody ProdutoCadastroDto dto) {
+        return produtoService.cadastrarProduto(dto);
     }
 
     /*POST /produtos/variacoes/{id}/imagem (multipart, campo "arquivo") — vale para todos os tamanhos da mesma cor*/
