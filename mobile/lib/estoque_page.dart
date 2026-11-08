@@ -1,5 +1,7 @@
-
 import 'package:flutter/material.dart';
+import 'services/produto_service.dart';
+import 'services/auth_service.dart';
+import 'models/produto_variacao.dart';
 
 class EstoquePage extends StatefulWidget {
   const EstoquePage({super.key});
@@ -17,49 +19,76 @@ class _EstoquePageState extends State<EstoquePage> {
   final TextEditingController _searchController =
       TextEditingController();
 
+  final ProdutoService _produtoService = ProdutoService();
+
   String _selectedFilter = 'Todos';
   String _searchText = '';
   int? _expandedProductId;
 
-  // Dados demonstrativos: serão substituídos pela API.
-  final List<Map<String, dynamic>> _products = [
-    {
-      'id': 1,
-      'name': 'Tênis Casual',
-      'reference': '12345',
-      'color': 'Preto / Branco',
-      'quantity': 12,
-      'image': Icons.directions_run_rounded,
-      'sizes': {'37': 2, '38': 3, '39': 4, '40': 3},
-    },
-    {
-      'id': 2,
-      'name': 'Tênis Esportivo',
-      'reference': '12346',
-      'color': 'Azul / Branco',
-      'quantity': 5,
-      'image': Icons.directions_run_rounded,
-      'sizes': {'34': 1, '35': 0, '36': 2, '37': 2},
-    },
-    {
-      'id': 3,
-      'name': 'Sapato Social',
-      'reference': '12347',
-      'color': 'Marrom',
-      'quantity': 0,
-      'image': Icons.shopping_bag_outlined,
-      'sizes': {'38': 0, '39': 0, '40': 0, '41': 0},
-    },
-    {
-      'id': 4,
-      'name': 'Tênis Street',
-      'reference': '12348',
-      'color': 'Bege / Branco',
-      'quantity': 18,
-      'image': Icons.directions_run_rounded,
-      'sizes': {'36': 3, '37': 4, '38': 5, '39': 6},
-    },
-  ];
+  List<Map<String, dynamic>> _products = [];
+
+  bool _isLoading = true;
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _carregarProdutos();
+  }
+
+  Future<void> _carregarProdutos() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final variacoes = await _produtoService.listarVariacoes();
+
+      final Map<int, Map<String, dynamic>> agrupados = {};
+
+      for (final ProdutoVariacao variacao in variacoes) {
+        final produtoId = variacao.produto.id;
+
+        agrupados.putIfAbsent(produtoId, () {
+          return {
+            'id': produtoId,
+            'name': variacao.produto.nome,
+            'reference': variacao.produto.referencia,
+            'color': variacao.cor,
+            'quantity': 0,
+            'image': Icons.directions_run_rounded,
+            'imageUrl': variacao.imagemUrl,
+            'sizes': <String, int>{},
+          };
+        });
+
+        final produto = agrupados[produtoId]!;
+
+        final quantidade = variacao.quantidade ?? 0;
+
+        produto['sizes'][variacao.tamanho] = quantidade;
+
+        produto['quantity'] =
+            (produto['quantity'] as int) + quantidade;
+      }
+
+      if (!mounted) return;
+
+      setState(() {
+        _products = agrupados.values.toList();
+        _isLoading = false;
+        _errorMessage = null;
+      });
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _errorMessage = e.toString();
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   void dispose() {
@@ -305,7 +334,9 @@ class _EstoquePageState extends State<EstoquePage> {
                     ),
                   ),
                   Text(
-                    '${products.length} ${products.length == 1 ? 'produto' : 'produtos'}',
+                    _isLoading
+                        ? 'Carregando...'
+                        : '${products.length} ${products.length == 1 ? 'produto' : 'produtos'}',
                     style: const TextStyle(
                       color: muted,
                       fontSize: 12,
@@ -316,26 +347,34 @@ class _EstoquePageState extends State<EstoquePage> {
 
               const SizedBox(height: 12),
 
-              // Lista expansível
+              // Lista, carregamento ou erro
               Expanded(
-                child: products.isEmpty
-                    ? _buildEmptyState()
-                    : ListView.separated(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        itemCount: products.length,
-                        separatorBuilder: (_, __) =>
-                            const SizedBox(height: 10),
-                        itemBuilder: (context, index) {
-                          final product = products[index];
-                          final expanded =
-                              _expandedProductId == product['id'];
+                child: _isLoading
+                    ? const Center(
+                        child: CircularProgressIndicator(
+                          color: blue,
+                        ),
+                      )
+                    : _errorMessage != null
+                        ? _buildErrorState()
+                        : products.isEmpty
+                            ? _buildEmptyState()
+                            : ListView.separated(
+                                padding: const EdgeInsets.only(bottom: 12),
+                                itemCount: products.length,
+                                separatorBuilder: (context, index) =>
+                                    const SizedBox(height: 10),
+                                itemBuilder: (context, index) {
+                                  final product = products[index];
+                                  final expanded =
+                                      _expandedProductId == product['id'];
 
-                          return _buildProductCard(
-                            product,
-                            expanded,
-                          );
-                        },
-                      ),
+                                  return _buildProductCard(
+                                    product,
+                                    expanded,
+                                  );
+                                },
+                              ),
               ),
             ],
           ),
@@ -368,7 +407,9 @@ class _EstoquePageState extends State<EstoquePage> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: expanded ? blue.withOpacity(0.45) : Colors.transparent,
+          color: expanded
+              ? blue.withValues(alpha: 0.45)
+              : Colors.transparent,
         ),
       ),
       child: Column(
@@ -392,12 +433,30 @@ class _EstoquePageState extends State<EstoquePage> {
                       color: background,
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: Icon(
-                      product['image'] as IconData,
-                      color: navy,
-                      size: 32,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: product['imageUrl'] != null &&
+                             (product['imageUrl'] as String).isNotEmpty
+                          ? Image.network(
+                            '${AuthService.baseUrl}${product['imageUrl']}',
+                            width: 66,
+                            height: 66,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return const Icon(
+                                Icons.image_not_supported_outlined,
+                                color: muted,
+                                size: 32,
+                               );
+                              },
+                            )
+                          : const Icon(
+                              Icons.directions_run_rounded,
+                              color: navy,
+                              size: 32,
+                            )
+                      ),
                     ),
-                  ),
 
                   const SizedBox(width: 12),
 
@@ -406,7 +465,7 @@ class _EstoquePageState extends State<EstoquePage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          product['name'],
+                          product['name'].toString(),
                           style: const TextStyle(
                             color: navy,
                             fontSize: 14,
@@ -522,7 +581,9 @@ class _EstoquePageState extends State<EstoquePage> {
                 width: 62,
                 padding: const EdgeInsets.symmetric(vertical: 9),
                 decoration: BoxDecoration(
-                  color: available ? background : const Color(0xFFFFEEEE),
+                  color: available
+                      ? background
+                      : const Color(0xFFFFEEEE),
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
                     color: available
@@ -607,6 +668,61 @@ class _EstoquePageState extends State<EstoquePage> {
                   color: muted,
                   fontSize: 13,
                   height: 1.5,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildErrorState() {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                Icons.cloud_off_rounded,
+                size: 48,
+                color: Colors.red,
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Não foi possível carregar o estoque',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: navy,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                _errorMessage ?? 'Verifique sua conexão com o servidor.',
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: muted,
+                  fontSize: 12,
+                  height: 1.5,
+                ),
+              ),
+              const SizedBox(height: 18),
+              ElevatedButton.icon(
+                onPressed: _carregarProdutos,
+                icon: const Icon(Icons.refresh),
+                label: const Text('Tentar novamente'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: navy,
+                  foregroundColor: Colors.white,
                 ),
               ),
             ],

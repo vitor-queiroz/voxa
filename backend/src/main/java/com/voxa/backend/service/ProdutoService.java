@@ -63,43 +63,172 @@ public class ProdutoService {
         this.produtoCorRepository = produtoCorRepository;
     }
 
+    /* CADASTRA UM PRODUTO, SUAS CORES, VARIAÇÕES E ESTOQUES
+        */
+
+    @Transactional
+    public List<ProdutoVariacaoDto> cadastrarProduto(ProdutoCadastroDto dados) {
+
+        if (dados == null
+                || dados.nome() == null || dados.nome().isBlank()
+                || dados.marca() == null || dados.marca().isBlank()
+                || dados.cores() == null || dados.cores().isEmpty()) {
+
+            throw new RegraNegocioException(
+                    "Informe nome, marca e pelo menos uma cor para o produto."
+            );
+        }
+
+        Set<String> codigosUtilizados = new HashSet<>();
+        List<ProdutoVariacaoDto> resultado = new ArrayList<>();
+
+        Produto produto = new Produto();
+        produto.setNome(dados.nome().trim());
+        produto.setMarca(dados.marca().trim());
+
+        produto = produtoRepository.save(produto);
+
+        for (ProdutoCorCadastroDto corDados : dados.cores()) {
+
+            if (corDados == null
+                    || corDados.referencia() == null
+                    || corDados.referencia().isBlank()
+                    || corDados.cor() == null
+                    || corDados.cor().isBlank()
+                    || corDados.variacoes() == null
+                    || corDados.variacoes().isEmpty()) {
+
+                throw new RegraNegocioException(
+                        "Informe referência, cor e pelo menos uma variação."
+                );
+            }
+
+            ProdutoCor produtoCor = new ProdutoCor();
+            produtoCor.setProduto(produto);
+            produtoCor.setReferencia(corDados.referencia().trim());
+            produtoCor.setCor(corDados.cor().trim());
+
+            produtoCor = produtoCorRepository.save(produtoCor);
+
+            Set<String> tamanhosUtilizados = new HashSet<>();
+
+            for (ProdutoVariacaoCadastroDto variacaoDados : corDados.variacoes()) {
+
+                if (variacaoDados == null
+                        || variacaoDados.tamanho() == null
+                        || variacaoDados.tamanho().isBlank()
+                        || variacaoDados.preco() == null
+                        || variacaoDados.preco().compareTo(
+                        java.math.BigDecimal.ZERO
+                ) <= 0
+                        || variacaoDados.quantidade() == null
+                        || variacaoDados.quantidade() < 0) {
+
+                    throw new RegraNegocioException(
+                            "Verifique tamanho, preço e quantidade das variações."
+                    );
+                }
+
+                String tamanho = variacaoDados.tamanho().trim();
+
+                if (!tamanhosUtilizados.add(
+                        tamanho.toLowerCase(Locale.ROOT)
+                )) {
+                    throw new RegraNegocioException(
+                            "O tamanho " + tamanho + " está duplicado nessa cor."
+                    );
+                }
+
+                String codigo = variacaoDados.codigoBarras();
+
+                if (codigo != null && !codigo.isBlank()) {
+
+                    codigo = codigo.trim();
+
+                    if (!codigosUtilizados.add(codigo)) {
+                        throw new RegraNegocioException(
+                                "Código de barras duplicado na solicitação."
+                        );
+                    }
+
+                    if (variacaoRepository.findByCodigoBarras(codigo).isPresent()) {
+                        throw new RegraNegocioException(
+                                "O código de barras " + codigo
+                                        + " já está cadastrado."
+                        );
+                    }
+                }
+
+                ProdutoVariacao variacao = new ProdutoVariacao();
+
+                variacao.setProduto(produto);
+                variacao.setProdutoCor(produtoCor);
+                variacao.setTamanho(tamanho);
+                variacao.setPreco(variacaoDados.preco());
+                variacao.setCodigoBarras(codigo);
+
+                variacao = variacaoRepository.save(variacao);
+
+                Estoque estoque = new Estoque();
+                estoque.setProdutoVariacao(variacao);
+                estoque.setQuantidade(variacaoDados.quantidade());
+
+                estoqueRepository.save(estoque);
+
+                resultado.add(
+                        ProdutoVariacaoDto.de(
+                                variacao,
+                                estoque.getQuantidade()
+                        )
+                );
+            }
+        }
+
+        return resultado;
+    }
+
+    /* CADASTRA NOVAS VARIAÇÕES EM UMA COR JÁ EXISTENTE
+      */
 
     @Transactional
     public List<ProdutoVariacaoDto> cadastrarVariacoesNaCor(
             Long produtoCorId,
-            List<ProdutoVariacaoCadastroDto> variacoes) {
+            List<ProdutoVariacaoCadastroDto> variacoes
+    ) {
+
+        ProdutoCor produtoCor = produtoCorRepository.findById(produtoCorId)
+                .orElseThrow(() -> new NaoEncontradoException(
+                        "Cor do produto " + produtoCorId + " não encontrada."
+                ));
 
         if (variacoes == null || variacoes.isEmpty()) {
             throw new RegraNegocioException(
-                    "Informe pelo menos um tamanho para cadastrar."
+                    "Informe pelo menos uma variação."
             );
         }
 
-        // Localiza a cor já cadastrada
-        ProdutoCor produtoCor = produtoCorRepository.findById(produtoCorId)
-                .orElseThrow(() -> new NaoEncontradoException(
-                        "Cor do produto não encontrada."
-                ));
-
-        // Busca os tamanhos que já existem nessa cor
         List<ProdutoVariacao> existentes =
                 variacaoRepository.findByProdutoCorId(produtoCorId);
 
-        Set<String> tamanhosExistentes = existentes.stream()
-                .map(v -> v.getTamanho().trim().toLowerCase(Locale.ROOT))
+        Set<String> tamanhosUtilizados = existentes.stream()
+                .map(ProdutoVariacao::getTamanho)
+                .filter(Objects::nonNull)
+                .map(tamanho -> tamanho.trim().toLowerCase(Locale.ROOT))
                 .collect(Collectors.toSet());
 
-        Set<String> novosTamanhos = new HashSet<>();
-        Set<String> novosCodigos = new HashSet<>();
+        Set<String> codigosUtilizados = new HashSet<>();
 
-        // Valida antes de salvar
+        List<ProdutoVariacaoDto> resultado = new ArrayList<>();
+
         for (ProdutoVariacaoCadastroDto dados : variacoes) {
 
             if (dados == null
                     || dados.tamanho() == null
                     || dados.tamanho().isBlank()
                     || dados.preco() == null
-                    || dados.preco().compareTo(java.math.BigDecimal.ZERO) <= 0
+                    || dados.preco().compareTo(
+                    java.math.BigDecimal.ZERO
+            ) <= 0
                     || dados.quantidade() == null
                     || dados.quantidade() < 0) {
 
@@ -108,13 +237,13 @@ public class ProdutoService {
                 );
             }
 
-            String tamanho = dados.tamanho().trim().toLowerCase(Locale.ROOT);
+            String tamanho = dados.tamanho().trim();
 
-            if (tamanhosExistentes.contains(tamanho)
-                    || !novosTamanhos.add(tamanho)) {
-
+            if (!tamanhosUtilizados.add(
+                    tamanho.toLowerCase(Locale.ROOT)
+            )) {
                 throw new RegraNegocioException(
-                        "O tamanho " + dados.tamanho()
+                        "O tamanho " + tamanho
                                 + " já está cadastrado nessa cor."
                 );
             }
@@ -125,7 +254,7 @@ public class ProdutoService {
 
                 codigo = codigo.trim();
 
-                if (!novosCodigos.add(codigo)) {
+                if (!codigosUtilizados.add(codigo)) {
                     throw new RegraNegocioException(
                             "Código de barras duplicado na solicitação."
                     );
@@ -138,31 +267,14 @@ public class ProdutoService {
                     );
                 }
             }
-        }
-
-        List<ProdutoVariacaoDto> resultado = new ArrayList<>();
-
-        // Cadastra as novas variações e seus estoques
-        for (ProdutoVariacaoCadastroDto dados : variacoes) {
 
             ProdutoVariacao variacao = new ProdutoVariacao();
 
-            // Mantém compatibilidade com a estrutura antiga
             variacao.setProduto(produtoCor.getProduto());
-
-            // Relaciona à cor existente
             variacao.setProdutoCor(produtoCor);
-
-            variacao.setTamanho(dados.tamanho().trim());
+            variacao.setTamanho(tamanho);
             variacao.setPreco(dados.preco());
-
-            String codigo = dados.codigoBarras();
-
-            variacao.setCodigoBarras(
-                    codigo == null || codigo.isBlank()
-                            ? null
-                            : codigo.trim()
-            );
+            variacao.setCodigoBarras(codigo);
 
             variacao = variacaoRepository.save(variacao);
 
@@ -173,15 +285,19 @@ public class ProdutoService {
             estoqueRepository.save(estoque);
 
             resultado.add(
-                    ProdutoVariacaoDto.de(variacao, estoque.getQuantidade())
+                    ProdutoVariacaoDto.de(
+                            variacao,
+                            estoque.getQuantidade()
+                    )
             );
         }
 
         return resultado;
     }
 
+    /* LISTA TODAS AS VARIAÇÕES E SEUS ESTOQUES
+       */
 
-    /* Lista todas as variações e seus estoques */
     @Transactional(readOnly = true)
     public List<ProdutoVariacaoDto> listarVariacoes() {
 
@@ -211,9 +327,14 @@ public class ProdutoService {
                 .toList();
     }
 
-    /* Salva a imagem associada à cor do produto */
+    /* SALVA A IMAGEM ASSOCIADA À COR DO PRODUTO
+       */
+
     @Transactional
-    public ProdutoVariacaoDto salvarImagem(Long variacaoId, MultipartFile arquivo) {
+    public ProdutoVariacaoDto salvarImagem(
+            Long variacaoId,
+            MultipartFile arquivo
+    ) {
 
         ProdutoVariacao variacao = variacao(variacaoId);
         byte[] dados = lerArquivo(arquivo);
@@ -243,6 +364,9 @@ public class ProdutoService {
         return ProdutoVariacaoDto.de(variacao);
     }
 
+    /*  REMOVE A IMAGEM DO PRODUTO
+        */
+
     @Transactional
     public ProdutoVariacaoDto removerImagem(Long variacaoId) {
 
@@ -262,6 +386,9 @@ public class ProdutoService {
         return ProdutoVariacaoDto.de(variacao);
     }
 
+    /* BUSCA UMA IMAGEM PELO ID
+        */
+
     @Transactional(readOnly = true)
     public ProdutoImagem buscarImagem(Long id) {
 
@@ -271,6 +398,9 @@ public class ProdutoService {
                 ));
     }
 
+    /* BUSCA UMA VARIAÇÃO PELO ID
+       */
+
     private ProdutoVariacao variacao(Long id) {
 
         return variacaoRepository.findById(id)
@@ -279,8 +409,13 @@ public class ProdutoService {
                 ));
     }
 
-    /* Atualização da imagem na estrutura antiga */
-    private void trocarImagemLegada(ProdutoVariacao variacao, String novaUrl) {
+    /* ATUALIZA A IMAGEM NA ESTRUTURA ANTIGA
+       */
+
+    private void trocarImagemLegada(
+            ProdutoVariacao variacao,
+            String novaUrl
+    ) {
 
         List<ProdutoVariacao> mesmaCor = mesmaCorLegada(variacao);
 
@@ -296,7 +431,9 @@ public class ProdutoService {
         antigas.forEach(this::apagarSeSemUso);
     }
 
-    private List<ProdutoVariacao> mesmaCorLegada(ProdutoVariacao variacao) {
+    private List<ProdutoVariacao> mesmaCorLegada(
+            ProdutoVariacao variacao
+    ) {
 
         if (variacao.getCor() == null || variacao.getCor().isBlank()) {
             return List.of(variacao);
@@ -308,7 +445,9 @@ public class ProdutoService {
         );
     }
 
-    /* Remove somente imagens antigas da estrutura legada que não estão em uso */
+    /* REMOVE IMAGENS ANTIGAS QUE NÃO ESTÃO MAIS EM USO
+       */
+
     private void apagarSeSemUso(String url) {
 
         if (!url.startsWith(URL_IMAGENS)
@@ -324,6 +463,9 @@ public class ProdutoService {
             // URL preenchida manualmente: não altera
         }
     }
+
+    /* LÊ E VALIDA O ARQUIVO DE IMAGEM
+        */
 
     private byte[] lerArquivo(MultipartFile arquivo) {
 
@@ -348,7 +490,9 @@ public class ProdutoService {
         }
     }
 
-    /* Identifica o formato pelos bytes do arquivo */
+    /* IDENTIFICA O FORMATO DA IMAGEM PELOS BYTES
+       */
+
     private Optional<String> tipoDaImagem(byte[] dados) {
 
         if (comecaCom(dados, 0, 0xFF, 0xD8, 0xFF)) {
@@ -368,13 +512,18 @@ public class ProdutoService {
                 Arrays.copyOfRange(dados, 8, 12),
                 StandardCharsets.US_ASCII
         ).equals("WEBP")) {
+
             return Optional.of("image/webp");
         }
 
         return Optional.empty();
     }
 
-    private boolean comecaCom(byte[] dados, int inicio, int... bytes) {
+    private boolean comecaCom(
+            byte[] dados,
+            int inicio,
+            int... bytes
+    ) {
 
         if (dados.length < inicio + bytes.length) {
             return false;
@@ -389,11 +538,16 @@ public class ProdutoService {
         return true;
     }
 
+    /*  BUSCA POR CÓDIGO DE BARRAS
+        */
+
     private Optional<ProdutoVariacao> porCodigoDeBarras(String busca) {
         return variacaoRepository.findByCodigoBarras(busca);
     }
 
-    /* Procura primeiro na estrutura nova e depois na antiga */
+    /* BUSCA POR REFERÊNCIA E TAMANHO PRIMEIRO NA ESTRUTURA NOVA, DEPOIS NA ANTIGA
+        */
+
     private Optional<ProdutoVariacao> porReferenciaETamanho(String busca) {
 
         int barra = busca.lastIndexOf('/');
