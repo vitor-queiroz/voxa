@@ -20,6 +20,9 @@ public class ProdutoVariacao {
     @ManyToOne // 1 - N
     private Produto produto;
 
+    @ManyToOne
+    private ProdutoCor produtoCor;
+
     @Column(name = "codigo_barras", unique = true)
     private String codigoBarras; //código lido no PDV, ex.: 12345142
 
@@ -47,6 +50,14 @@ public class ProdutoVariacao {
 
     public void setProduto(Produto produto) {
         this.produto = produto;
+    }
+
+    public ProdutoCor getProdutoCor() {
+        return produtoCor;
+    }
+
+    public void setProdutoCor(ProdutoCor produtoCor) {
+        this.produtoCor = produtoCor;
     }
 
     public String getCodigoBarras() {

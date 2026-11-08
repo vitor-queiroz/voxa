@@ -8,4 +8,7 @@ import java.util.Optional; //Permite que o metodo indique que pode existir ou n√
 public interface UsuarioRepository extends JpaRepository<Usuario, Long> { //Usuario = a entidade que o repository manipula // Long == o tipo do ID dessa entidade.
 
     Optional<Usuario> findByUsuario(String usuario);
+
+    Optional<Usuario> findByFuncionario_Prontuario(String prontuario);
+
 }

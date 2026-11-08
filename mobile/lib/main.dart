@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'home_page.dart';
+import 'services/auth_service.dart';
+import 'loading_page.dart';
+import 'models/funcionario_resumo.dart';
 
 void main() {
   runApp(const VoxaApp());
@@ -43,9 +45,11 @@ class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   final _sellerCodeController = TextEditingController();
   final _passwordController = TextEditingController();
+  final AuthService _authService = AuthService();
 
   bool _obscurePassword = true;
   bool _rememberCode = false;
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -54,15 +58,47 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
-  void _login() {
+  Future<void> _login() async {
     FocusScope.of(context).unfocus();
 
     if (!_formKey.currentState!.validate()) return;
 
-    _showMessage(
-      'A autenticação será integrada ao backend na próxima etapa.',
-    );
-  }
+    setState(() {
+      _isLoading = true;
+    });
+
+      try {
+        final FuncionarioResumo funcionario = await _authService.login(
+          prontuario: _sellerCodeController.text.trim(),
+          senha: _passwordController.text,
+        );
+
+        if(!mounted) return;
+
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => LoadingPage(
+              sellerName: funcionario.nome,
+              sellerCode: funcionario.prontuario,
+              photoUrl: funcionario.fotoUrl,
+            ),
+          ),
+        );
+        } catch (e) {
+        if (!mounted) return;
+      
+        _showMessage(
+          e.toString().replaceFirst('Exception: ', ''),
+        );
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
+      }
+    }
+    
 
   @override
   Widget build(BuildContext context) {
@@ -291,7 +327,7 @@ class _LoginPageState extends State<LoginPage> {
                             SizedBox(
                               height: 54,
                               child: FilledButton(
-                                onPressed: _login,
+                                onPressed: _isLoading ? null : _login,
                                 style: FilledButton.styleFrom(
                                   backgroundColor: VoxaApp.blue,
                                   foregroundColor: Colors.white,
@@ -303,7 +339,16 @@ class _LoginPageState extends State<LoginPage> {
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                 ),
-                                child: const Row(
+                                child: _isLoading
+                                  ? const SizedBox(
+                                     width: 22,
+                                     height: 22,
+                                     child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : const Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     Text(

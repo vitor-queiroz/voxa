@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'home_page.dart';
+import 'dart:async';
 
 class LoadingPage extends StatefulWidget {
   final String sellerName;
+  final String sellerCode;
   final String? photoUrl;
 
   const LoadingPage({
     super.key,
     required this.sellerName,
+    required this.sellerCode,
     this.photoUrl,
   });
 
@@ -22,6 +25,8 @@ class _LoadingPageState extends State<LoadingPage>
 
   late final AnimationController _controller;
 
+  Timer? _navigationTimer;
+
   @override
   void initState() {
     super.initState();
@@ -30,10 +35,27 @@ class _LoadingPageState extends State<LoadingPage>
       vsync: this,
       duration: const Duration(milliseconds: 1800),
     )..repeat();
-  }
+
+  _navigationTimer = Timer(
+    const Duration(seconds: 2),
+    () {
+      if (!mounted) return;
+
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (_) => HomePage(
+            sellerName: widget.sellerName,
+            sellerCode: widget.sellerCode,
+          )),
+        );
+      },
+    );
+    }
+  
 
   @override
   void dispose() {
+    _navigationTimer?.cancel();
     _controller.dispose();
     super.dispose();
   }
@@ -107,7 +129,7 @@ class _LoadingPageState extends State<LoadingPage>
                           ? Image.network(
                               widget.photoUrl!,
                               fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) =>
+                              errorBuilder: (context, error, stackTrace) =>
                                   _defaultAvatar(),
                             )
                           : _defaultAvatar(),

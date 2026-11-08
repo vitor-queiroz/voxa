@@ -1,9 +1,17 @@
-
 import 'package:flutter/material.dart';
 import 'dashboard_page.dart';
+import 'estoque_page.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  final String sellerName;
+  final String sellerCode;
+  
+
+  const HomePage({
+    super.key,
+    required this.sellerName,
+    required this.sellerCode,
+    });
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -46,11 +54,7 @@ class _HomePageState extends State<HomePage> {
           index: _selectedIndex,
           children: [
             _buildHome(),
-            _buildPlaceholder(
-              Icons.inventory_2_outlined,
-              'Estoque',
-              'Consulte produtos, referências e variantes.',
-            ),
+            const EstoquePage(),  
             _buildScanner(),
             _buildPlaceholder(
               Icons.shopping_cart_outlined,
@@ -59,7 +63,7 @@ class _HomePageState extends State<HomePage> {
             ),
           ],
         ),
-      ),
+      ),  
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedIndex,
         backgroundColor: Colors.white,
@@ -155,18 +159,18 @@ class _HomePageState extends State<HomePage> {
                         ],
                       ),
                       const SizedBox(height: 14),
-                      const Text(
-                        'Olá, Gisele!',
-                        style: TextStyle(
+                       Text(
+                        'Olá, ${widget.sellerName}!',
+                          style: const TextStyle(
                           color: Colors.white,
                           fontSize: 24,
                           fontWeight: FontWeight.w800,
                         ),
                       ),
                       const SizedBox(height: 5),
-                      const Text(
-                        'Código do vendedor: 0042 (exemplo)',
-                        style: TextStyle(
+                       Text(
+                        'Código do vendedor: ${widget.sellerCode}',
+                          style: const TextStyle(
                           color: Color(0xFFD2DFF3),
                           fontSize: 12,
                         ),
@@ -583,9 +587,9 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildPlaceholder(
-    IconData icon,
-    String title,
-    String description,
+      IconData icon,
+      String title,
+      String description,
   ) {
     return Center(
       child: Padding(

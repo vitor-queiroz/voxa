@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.CrossOrigin;
 
+import com.voxa.backend.dto.FuncionarioResumo;
+
 @CrossOrigin
 @RestController
 public class UsuarioController {
@@ -32,5 +34,13 @@ public class UsuarioController {
         }
 
         return "Login Autorizado";
+    }
+
+    @PostMapping("/mobile/login")
+    public FuncionarioResumo loginMobile(@RequestBody LoginRequest loginRequest) {
+        return usuarioService.autenticarMobile(
+                loginRequest.getUsuario(),
+                loginRequest.getSenha()
+        );
     }
 }
