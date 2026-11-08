@@ -17,4 +17,10 @@ public interface ProdutoVariacaoRepository extends JpaRepository<ProdutoVariacao
     List<ProdutoVariacao> findByProdutoIdAndCorIgnoreCase(Long produtoId, String cor);
 
     boolean existsByImagemUrl(String imagemUrl);
+
+    Optional<ProdutoVariacao> findFirstByProdutoCorReferenciaIgnoreCaseAndTamanhoIgnoreCase(
+            String referencia, String tamanho);
+
+    List<ProdutoVariacao> findByProdutoCorId(Long produtoCorId);
 }
+
