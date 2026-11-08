@@ -63,152 +63,123 @@ public class ProdutoService {
         this.produtoCorRepository = produtoCorRepository;
     }
 
+
     @Transactional
-    public List<ProdutoVariacaoDto> cadastrarProduto(ProdutoCadastroDto dto) {
+    public List<ProdutoVariacaoDto> cadastrarVariacoesNaCor(
+            Long produtoCorId,
+            List<ProdutoVariacaoCadastroDto> variacoes) {
 
-        if (dto == null
-                || dto.nome() == null || dto.nome().isBlank()
-                || dto.marca() == null || dto.marca().isBlank()) {
+        if (variacoes == null || variacoes.isEmpty()) {
             throw new RegraNegocioException(
-                    "Informe o nome e a marca do produto."
+                    "Informe pelo menos um tamanho para cadastrar."
             );
         }
 
-        if (dto.cores() == null || dto.cores().isEmpty()) {
-            throw new RegraNegocioException(
-                    "Cadastre pelo menos uma cor para o produto."
-            );
-        }
+        // Localiza a cor já cadastrada
+        ProdutoCor produtoCor = produtoCorRepository.findById(produtoCorId)
+                .orElseThrow(() -> new NaoEncontradoException(
+                        "Cor do produto não encontrada."
+                ));
 
-        Set<String> referenciasECores = new HashSet<>();
-        Set<String> codigosBarras = new HashSet<>();
+        // Busca os tamanhos que já existem nessa cor
+        List<ProdutoVariacao> existentes =
+                variacaoRepository.findByProdutoCorId(produtoCorId);
 
-        // Valida todas as cores e variações antes de salvar
-        for (ProdutoCorCadastroDto cor : dto.cores()) {
+        Set<String> tamanhosExistentes = existentes.stream()
+                .map(v -> v.getTamanho().trim().toLowerCase(Locale.ROOT))
+                .collect(Collectors.toSet());
 
-            if (cor == null
-                    || cor.referencia() == null || cor.referencia().isBlank()
-                    || cor.cor() == null || cor.cor().isBlank()) {
+        Set<String> novosTamanhos = new HashSet<>();
+        Set<String> novosCodigos = new HashSet<>();
+
+        // Valida antes de salvar
+        for (ProdutoVariacaoCadastroDto dados : variacoes) {
+
+            if (dados == null
+                    || dados.tamanho() == null
+                    || dados.tamanho().isBlank()
+                    || dados.preco() == null
+                    || dados.preco().compareTo(java.math.BigDecimal.ZERO) <= 0
+                    || dados.quantidade() == null
+                    || dados.quantidade() < 0) {
+
                 throw new RegraNegocioException(
-                        "Informe a referência e a cor do produto."
+                        "Verifique tamanho, preço e quantidade das variações."
                 );
             }
 
-            if (cor.variacoes() == null || cor.variacoes().isEmpty()) {
+            String tamanho = dados.tamanho().trim().toLowerCase(Locale.ROOT);
+
+            if (tamanhosExistentes.contains(tamanho)
+                    || !novosTamanhos.add(tamanho)) {
+
                 throw new RegraNegocioException(
-                        "Cadastre pelo menos um tamanho para cada cor."
+                        "O tamanho " + dados.tamanho()
+                                + " já está cadastrado nessa cor."
                 );
             }
 
-            String chaveCor = cor.referencia().trim().toLowerCase(Locale.ROOT)
-                    + "|" + cor.cor().trim().toLowerCase(Locale.ROOT);
+            String codigo = dados.codigoBarras();
 
-            if (!referenciasECores.add(chaveCor)) {
-                throw new RegraNegocioException(
-                        "Existe uma cor duplicada com a mesma referência."
-                );
-            }
+            if (codigo != null && !codigo.isBlank()) {
 
-            Set<String> tamanhos = new HashSet<>();
+                codigo = codigo.trim();
 
-            for (ProdutoVariacaoCadastroDto variacao : cor.variacoes()) {
-
-                if (variacao == null
-                        || variacao.tamanho() == null || variacao.tamanho().isBlank()
-                        || variacao.preco() == null
-                        || variacao.preco().compareTo(java.math.BigDecimal.ZERO) <= 0
-                        || variacao.quantidade() == null
-                        || variacao.quantidade() < 0) {
+                if (!novosCodigos.add(codigo)) {
                     throw new RegraNegocioException(
-                            "Verifique tamanho, preço e quantidade das variações."
+                            "Código de barras duplicado na solicitação."
                     );
                 }
 
-                String tamanho = variacao.tamanho().trim().toLowerCase(Locale.ROOT);
-
-                if (!tamanhos.add(tamanho)) {
+                if (variacaoRepository.findByCodigoBarras(codigo).isPresent()) {
                     throw new RegraNegocioException(
-                            "Existe um tamanho duplicado na mesma cor."
+                            "O código de barras " + codigo
+                                    + " já está cadastrado."
                     );
-                }
-
-                String codigo = variacao.codigoBarras();
-
-                if (codigo != null && !codigo.isBlank()) {
-
-                    codigo = codigo.trim();
-
-                    if (!codigosBarras.add(codigo)) {
-                        throw new RegraNegocioException(
-                                "O mesmo código de barras foi informado mais de uma vez."
-                        );
-                    }
-
-                    if (variacaoRepository.findByCodigoBarras(codigo).isPresent()) {
-                        throw new RegraNegocioException(
-                                "O código de barras " + codigo + " já está cadastrado."
-                        );
-                    }
                 }
             }
         }
-
-        // Cria o produto principal
-        Produto produto = new Produto();
-        produto.setNome(dto.nome().trim());
-        produto.setMarca(dto.marca().trim());
-
-        produto = produtoRepository.save(produto);
 
         List<ProdutoVariacaoDto> resultado = new ArrayList<>();
 
-        // Cria cada cor e suas respectivas variações
-        for (ProdutoCorCadastroDto dadosCor : dto.cores()) {
+        // Cadastra as novas variações e seus estoques
+        for (ProdutoVariacaoCadastroDto dados : variacoes) {
 
-            ProdutoCor produtoCor = new ProdutoCor();
-            produtoCor.setProduto(produto);
-            produtoCor.setReferencia(dadosCor.referencia().trim());
-            produtoCor.setCor(dadosCor.cor().trim());
+            ProdutoVariacao variacao = new ProdutoVariacao();
 
-            produtoCor = produtoCorRepository.save(produtoCor);
+            // Mantém compatibilidade com a estrutura antiga
+            variacao.setProduto(produtoCor.getProduto());
 
-            for (ProdutoVariacaoCadastroDto dados : dadosCor.variacoes()) {
+            // Relaciona à cor existente
+            variacao.setProdutoCor(produtoCor);
 
-                ProdutoVariacao variacao = new ProdutoVariacao();
+            variacao.setTamanho(dados.tamanho().trim());
+            variacao.setPreco(dados.preco());
 
-                // Mantém o relacionamento antigo durante a migração
-                variacao.setProduto(produto);
+            String codigo = dados.codigoBarras();
 
-                // Novo relacionamento
-                variacao.setProdutoCor(produtoCor);
+            variacao.setCodigoBarras(
+                    codigo == null || codigo.isBlank()
+                            ? null
+                            : codigo.trim()
+            );
 
-                variacao.setTamanho(dados.tamanho().trim());
-                variacao.setPreco(dados.preco());
+            variacao = variacaoRepository.save(variacao);
 
-                String codigo = dados.codigoBarras();
+            Estoque estoque = new Estoque();
+            estoque.setProdutoVariacao(variacao);
+            estoque.setQuantidade(dados.quantidade());
 
-                variacao.setCodigoBarras(
-                        codigo == null || codigo.isBlank()
-                                ? null
-                                : codigo.trim()
-                );
+            estoqueRepository.save(estoque);
 
-                variacao = variacaoRepository.save(variacao);
-
-                Estoque estoque = new Estoque();
-                estoque.setProdutoVariacao(variacao);
-                estoque.setQuantidade(dados.quantidade());
-
-                estoqueRepository.save(estoque);
-
-                resultado.add(
-                        ProdutoVariacaoDto.de(variacao, estoque.getQuantidade())
-                );
-            }
+            resultado.add(
+                    ProdutoVariacaoDto.de(variacao, estoque.getQuantidade())
+            );
         }
 
         return resultado;
     }
+
 
     /* Lista todas as variações e seus estoques */
     @Transactional(readOnly = true)
