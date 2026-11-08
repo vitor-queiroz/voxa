@@ -3,7 +3,6 @@ import { Login } from './login/login';
 import { Manager } from './manager/manager';
 import { Estoque } from './estoque/estoque';
 import { EntradaMercadoria } from './entrada-mercadoria/entrada-mercadoria';
-import { NotasFiscais } from './notas-fiscais/notas-fiscais';
 
 export const routes: Routes = [
   {
@@ -26,10 +25,6 @@ export const routes: Routes = [
   {
     path: 'entrada-mercadoria',
     component: EntradaMercadoria
-  },
-  {
-    path: 'notas-fiscais',
-    component: NotasFiscais
   },
   {
     path: 'vendas',

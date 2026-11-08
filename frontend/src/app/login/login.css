@@ -1,136 +1,66 @@
+@font-face {
+  font-family: 'Scoria';
+  src: url('/fonts/Scoria-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+.logo {
+  font-family: 'Scoria', sans-serif;
+}
+
 .login-container {
-  width: 100vw;
-  height: 100vh;
+  min-height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
-  position: relative;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: radial-gradient(circle at 90% 10%, #687385 0%, #2a2f38 45%, #121519 100%);
 }
 
-.login-container::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background:
-    radial-gradient(ellipse at 85% 15%, rgba(255, 255, 255, 0.25) 0%, transparent 35%),
-    radial-gradient(ellipse at 70% 30%, rgba(140, 150, 165, 0.18) 0%, transparent 50%),
-    radial-gradient(ellipse at 40% 60%, rgba(45, 52, 64, 0.3) 0%, transparent 60%);
-  transform: rotate(-45deg);
-  pointer-events: none;
-  animation: ps4WaveCinza 12s ease-in-out infinite alternate;
-}
-
-@keyframes ps4WaveCinza {
-  0% { transform: rotate(-45deg) translateY(0px) scale(1); }
-  100% { transform: rotate(-45deg) translateY(-30px) scale(1.05); }
-}
-
-.login-card {
-  position: relative;
-  z-index: 2;
-  width: 100%;
-  max-width: 380px;
-  padding: 40px 32px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  background-color: #e5e9f0;
-  border-radius: 12px;
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5);
-  border: 1px solid #d0d7de;
-}
-
-.logo-container {
+.login-box {
+  width: 360px;
   text-align: center;
-  margin-bottom: 30px;
 }
 
-.logo-title {
-  font-size: 3rem;
-  font-weight: 900;
-  letter-spacing: 4px;
-  color: #1a1a1a;
-  margin: 0;
-  line-height: 1;
-}
-
-.logo-subtitle {
-  font-size: 1.05rem;
-  font-weight: 800;
-  letter-spacing: 5px;
-  color: #3b4252;
-  display: block;
-  margin-top: 4px;
-  text-transform: uppercase;
-}
-
-.login-form {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
+.logo {
+  font-family: 'Scoria', sans-serif;
+  font-size: 84px;
+  margin-bottom: 40px;
 }
 
 .form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+  text-align: left;
+  margin-bottom: 20px;
 }
 
 .form-group label {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #333333;
+  display: block;
+  margin-bottom: 7px;
+  font-size: 14px;
 }
 
 .form-group input {
   width: 100%;
-  padding: 12px 14px;
-  font-size: 0.95rem;
-  border: 1px solid #cccccc;
-  border-radius: 6px;
-  background-color: #ffffff;
-  color: #333333;
   box-sizing: border-box;
-  outline: none;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  padding: 12px;
+  font-size: 15px;
+  border: 1px solid #cccccc;
+  border-radius: 4px;
+  background: #ffffff;
+  transition: border-color 0.2s ease;
 }
 
 .form-group input:focus {
-  border-color: #4c566a;
-  box-shadow: 0 0 0 3px rgba(76, 86, 106, 0.2);
+  outline: none;
+  border-color: #555555;
 }
 
-.form-group input::placeholder {
-  color: #888888;
-}
-
-.btn-acessar {
+button {
   width: 100%;
   padding: 12px;
-  margin-top: 10px;
-  font-size: 1rem;
-  font-weight: 600;
-  color: #333333;
-  background: linear-gradient(180deg, #d2d7e0 0%, #b8bec8 100%);
-  border: 1px solid #a0a7b5;
-  border-radius: 6px;
+  margin-top: 5px;
+  font-size: 15px;
   cursor: pointer;
-  transition: background 0.2s ease, transform 0.1s ease;
-}
-
-.btn-acessar:hover {
-  background: linear-gradient(180deg, #c5cbd6 0%, #adb4c0 100%);
-}
-
-.btn-acessar:active {
-  transform: scale(0.98);
+  border: none;
+  border-radius: 4px;
+  background: #b9bac5;
 }
