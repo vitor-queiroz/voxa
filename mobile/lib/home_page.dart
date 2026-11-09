@@ -57,11 +57,6 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  void _backToHome() {
-    setState(() {
-      _selectedIndex = 0;
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -75,9 +70,7 @@ class _HomePageState extends State<HomePage> {
 
             const EstoquePage(),
 
-            IdentificarProdutoPage(
-              onBack: _backToHome,
-            ),
+            const IdentificarProdutoPage(),
 
             _buildPlaceholder(
               Icons.shopping_cart_outlined,
