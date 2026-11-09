@@ -3,14 +3,10 @@ import 'package:flutter/material.dart';
 import 'services/produto_service.dart';
 import 'services/auth_service.dart';
 import 'models/produto_variacao.dart';
+import 'selecionar_tamanho_page.dart';
 
 class IdentificarProdutoPage extends StatefulWidget {
-  final VoidCallback onBack;
-
-  const IdentificarProdutoPage({
-    super.key,
-    required this.onBack,
-  });
+  const IdentificarProdutoPage({super.key});
 
   @override
   State<IdentificarProdutoPage> createState() =>
@@ -27,6 +23,8 @@ class _IdentificarProdutoPageState
   final TextEditingController _referenciaController =
       TextEditingController();
 
+  final FocusNode _pesquisaFocus = FocusNode();
+
   final ProdutoService _produtoService = ProdutoService();
 
   List<ProdutoVariacao> _variacoes = [];
@@ -34,6 +32,7 @@ class _IdentificarProdutoPageState
   bool _carregando = true;
   String? _erro;
   String _pesquisa = '';
+  bool _pesquisaAtiva = false;
 
   @override
   void initState() {
@@ -44,6 +43,7 @@ class _IdentificarProdutoPageState
   @override
   void dispose() {
     _referenciaController.dispose();
+    _pesquisaFocus.dispose();
     super.dispose();
   }
 
@@ -72,12 +72,38 @@ class _IdentificarProdutoPageState
     }
   }
 
+  void _ativarPesquisa() {
+    setState(() {
+      _pesquisaAtiva = true;
+    });
+  }
+
+  void _limparPesquisa() {
+    _referenciaController.clear();
+
+    setState(() {
+      _pesquisa = '';
+      _pesquisaAtiva = true;
+    });
+
+    _pesquisaFocus.requestFocus();
+  }
+
+  void _voltarParaScanner() {
+    _referenciaController.clear();
+    _pesquisaFocus.unfocus();
+
+    setState(() {
+        _pesquisa = '';
+        _pesquisaAtiva = false;
+      });
+    }
+
   List<_ProdutoPesquisa> get _produtosEncontrados {
     final termo = _pesquisa.trim().toLowerCase();
 
     if (termo.isEmpty) return [];
 
-    // Agrupa as variações pelo ID do produto.
     final Map<int, List<ProdutoVariacao>> agrupados = {};
 
     for (final variacao in _variacoes) {
@@ -91,7 +117,6 @@ class _IdentificarProdutoPageState
     for (final grupo in agrupados.values) {
       final produto = grupo.first.produto;
 
-      // Pesquisa somente pela referência.
       if (!produto.referencia.toLowerCase().contains(termo)) {
         continue;
       }
@@ -121,22 +146,42 @@ class _IdentificarProdutoPageState
       );
     }
 
-    // IDs maiores como aproximação dos cadastros mais recentes.
     resultados.sort((a, b) => b.id.compareTo(a.id));
 
     return resultados;
   }
 
-  void _selecionarProduto(_ProdutoPesquisa produto) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'Produto ${produto.referencia} selecionado. '
-          'A próxima etapa será a escolha do tamanho.',
-        ),
+  
+  Future<void> _selecionarProduto(_ProdutoPesquisa produto) async {
+  _pesquisaFocus.unfocus();
+
+  // Recupera todas as variações do produto selecionado.
+  final variacoesProduto = _variacoes
+      .where((variacao) => variacao.produto.id == produto.id)
+      .toList();
+
+  // Abre a tela de seleção de tamanho.
+  final variacaoSelecionada = await Navigator.push<ProdutoVariacao>(
+    context,
+    MaterialPageRoute(
+      builder: (context) => SelecionarTamanhoPage(
+        variacoes: variacoesProduto,
       ),
-    );
-  }
+    ),
+  );
+  
+
+  if (!mounted || variacaoSelecionada == null) return;
+
+  // Confirmação temporária para validar a seleção.
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text(
+        'Tamanho ${variacaoSelecionada.tamanho} selecionado!',
+      ),
+    ),
+  );
+}
 
   Widget _buildImagemProduto(_ProdutoPesquisa produto) {
     final imagemUrl = produto.imagemUrl;
@@ -164,14 +209,10 @@ class _IdentificarProdutoPageState
                   },
                 ),
         ),
-
         if (produto.quantidade == 0) ...[
-          // Camada suave sobre a imagem.
           Container(
             color: Colors.white.withValues(alpha: 0.48),
           ),
-
-          // Cadeado centralizado.
           Center(
             child: Container(
               padding: const EdgeInsets.all(11),
@@ -194,116 +235,105 @@ class _IdentificarProdutoPageState
   Widget _buildCardProduto(_ProdutoPesquisa produto) {
     final esgotado = produto.quantidade == 0;
 
-    return Opacity(
-      opacity: esgotado ? 0.85 : 1,
-      child: Card(
-        color: Colors.white,
-        elevation: 0,
-        margin: const EdgeInsets.only(bottom: 12),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: const BorderSide(
-            color: Color(0xFFE3E9F2),
-          ),
+    return Card(
+      color: Colors.white,
+      elevation: 0,
+      margin: const EdgeInsets.only(bottom: 12),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: const BorderSide(
+          color: Color(0xFFE3E9F2),
         ),
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: esgotado
-              ? null
-              : () => _selecionarProduto(produto),
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Row(
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: SizedBox(
-                    width: 100,
-                    height: 100,
-                    child: _buildImagemProduto(produto),
-                  ),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: esgotado
+            ? null
+            : () => _selecionarProduto(produto),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: SizedBox(
+                  width: 104,
+                  height: 104,
+                  child: _buildImagemProduto(produto),
                 ),
-
-                const SizedBox(width: 14),
-
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment:
-                        CrossAxisAlignment.start,
-                    children: [
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      produto.nome,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: navy,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Ref. ${produto.referencia}',
+                      style: const TextStyle(
+                        color: muted,
+                        fontSize: 12,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      produto.cor,
+                      style: const TextStyle(
+                        color: muted,
+                        fontSize: 12,
+                      ),
+                    ),
+                    const SizedBox(height: 9),
+                    if (esgotado)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 9,
+                          vertical: 5,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFFE8EB),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: const Text(
+                          'ESGOTADO',
+                          style: TextStyle(
+                            color: Color(0xFFC52E42),
+                            fontSize: 10,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.4,
+                          ),
+                        ),
+                      )
+                    else
                       Text(
-                        produto.nome,
+                        '${produto.quantidade} '
+                        '${produto.quantidade == 1 ? 'unidade disponível' : 'unidades disponíveis'}',
                         style: const TextStyle(
-                          color: navy,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF168653),
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
-
-                      const SizedBox(height: 5),
-
-                      Text(
-                        'Ref. ${produto.referencia}',
-                        style: const TextStyle(
-                          color: muted,
-                          fontSize: 12,
-                        ),
-                      ),
-
-                      const SizedBox(height: 3),
-
-                      Text(
-                        produto.cor,
-                        style: const TextStyle(
-                          color: muted,
-                          fontSize: 12,
-                        ),
-                      ),
-
-                      const SizedBox(height: 8),
-
-                      if (esgotado)
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 9,
-                            vertical: 5,
-                          ),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFFFE8EB),
-                            borderRadius:
-                                BorderRadius.circular(6),
-                          ),
-                          child: const Text(
-                            'ESGOTADO',
-                            style: TextStyle(
-                              color: Color(0xFFC52E42),
-                              fontSize: 10,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: 0.4,
-                            ),
-                          ),
-                        )
-                      else
-                        Text(
-                          '${produto.quantidade} '
-                          '${produto.quantidade == 1 ? 'unidade disponível' : 'unidades disponíveis'}',
-                          style: const TextStyle(
-                            color: Color(0xFF168653),
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                    ],
-                  ),
+                  ],
                 ),
-
-                if (!esgotado)
-                  const Icon(
-                    Icons.chevron_right_rounded,
-                    color: muted,
-                  ),
-              ],
-            ),
+              ),
+              if (!esgotado)
+                const Icon(
+                  Icons.chevron_right_rounded,
+                  color: muted,
+                ),
+            ],
           ),
         ),
       ),
@@ -312,13 +342,15 @@ class _IdentificarProdutoPageState
 
   Widget _buildResultados() {
     if (_pesquisa.trim().isEmpty) {
-      return const Center(
+      return Center(
         child: Text(
-          'Digite uma referência para pesquisar produtos.',
+          _carregando
+              ? 'Carregando produtos...'
+              : 'Digite uma referência para ver as sugestões.',
           textAlign: TextAlign.center,
-          style: TextStyle(
+          style: const TextStyle(
             color: muted,
-            fontSize: 12,
+            fontSize: 13,
           ),
         ),
       );
@@ -326,9 +358,7 @@ class _IdentificarProdutoPageState
 
     if (_carregando) {
       return const Center(
-        child: CircularProgressIndicator(
-          color: blue,
-        ),
+        child: CircularProgressIndicator(color: blue),
       );
     }
 
@@ -345,10 +375,7 @@ class _IdentificarProdutoPageState
             const SizedBox(height: 8),
             const Text(
               'Não foi possível carregar os produtos.',
-              style: TextStyle(
-                color: navy,
-                fontSize: 12,
-              ),
+              style: TextStyle(color: navy, fontSize: 12),
             ),
             TextButton(
               onPressed: _carregarProdutos,
@@ -368,14 +395,16 @@ class _IdentificarProdutoPageState
           textAlign: TextAlign.center,
           style: TextStyle(
             color: muted,
-            fontSize: 12,
+            fontSize: 13,
           ),
         ),
       );
     }
 
     return ListView.builder(
-      padding: const EdgeInsets.only(bottom: 12),
+      keyboardDismissBehavior:
+          ScrollViewKeyboardDismissBehavior.onDrag,
+      padding: const EdgeInsets.only(bottom: 16),
       itemCount: produtos.length,
       itemBuilder: (context, index) {
         return _buildCardProduto(produtos[index]);
@@ -383,201 +412,224 @@ class _IdentificarProdutoPageState
     );
   }
 
+  Widget _buildScanner() {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: double.infinity,
+          height: 180,
+          decoration: BoxDecoration(
+            color: const Color(0xFF07172F),
+            borderRadius: BorderRadius.circular(22),
+            gradient: const RadialGradient(
+              center: Alignment.center,
+              radius: 1.1,
+              colors: [
+                Color(0xFF102B55),
+                Color(0xFF07172F),
+              ],
+            ),
+          ),
+          child: const CustomPaint(
+            painter: ScannerVisualPainter(),
+          ),
+        ),
+        const SizedBox(height: 14),
+        SizedBox(
+          width: double.infinity,
+          height: 48,
+          child: FilledButton(
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text(
+                    'Vamos conectar o leitor de código de barras na próxima etapa.',
+                  ),
+                ),
+              );
+            },
+            style: FilledButton.styleFrom(
+              backgroundColor: blue,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                CustomPaint(
+                  size: const Size(24, 24),
+                  painter: BarcodeIconPainter(
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                const Text('Escanear código de barras'),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+        const Row(
+          children: [
+            Expanded(child: Divider()),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 12),
+              child: Text(
+                'OU',
+                style: TextStyle(
+                  color: muted,
+                  fontSize: 10,
+                ),
+              ),
+            ),
+            Expanded(child: Divider()),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCampoPesquisa() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const Text(
+          'DIGITE A REFERÊNCIA',
+          style: TextStyle(
+            color: navy,
+            fontSize: 10,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextField(
+          controller: _referenciaController,
+          focusNode: _pesquisaFocus,
+          keyboardType: TextInputType.text,
+          textInputAction: TextInputAction.search,
+          onTap: _ativarPesquisa,
+          onChanged: (valor) {
+            setState(() {
+              _pesquisa = valor;
+              _pesquisaAtiva = true;
+            });
+          },
+          decoration: InputDecoration(
+            hintText: 'Ex.: 12350011-1',
+            prefixIcon: const Icon(
+              Icons.search,
+              color: muted,
+              size: 21,
+            ),
+            suffixIcon: _pesquisa.isEmpty
+                ? null
+                : IconButton(
+                    onPressed: _limparPesquisa,
+                    icon: const Icon(
+                      Icons.close_rounded,
+                      color: muted,
+                    ),
+                  ),
+            filled: true,
+            fillColor: Colors.white,
+            contentPadding: const EdgeInsets.symmetric(
+              vertical: 15,
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(
+                color: Color(0xFFE0E6F0),
+              ),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(
+                color: Color(0xFFE0E6F0),
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(
+                color: blue,
+                width: 1.5,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: background,
+      resizeToAvoidBottomInset: true,
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 20, 24, 12),
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+             if (_pesquisaAtiva)   
               TextButton.icon(
-                onPressed: widget.onBack,
+                onPressed: _voltarParaScanner,
                 icon: const Icon(Icons.arrow_back, size: 18),
-                label: const Text('Finalizar venda'),
+                label: const Text('Voltar'),
                 style: TextButton.styleFrom(
                   foregroundColor: navy,
                   padding: EdgeInsets.zero,
                 ),
               ),
-
-              const SizedBox(height: 25),
-
+              const SizedBox(height: 12),
               const Text(
                 'Identifique o produto',
                 style: TextStyle(
                   color: navy,
-                  fontSize: 23,
+                  fontSize: 22,
                   fontWeight: FontWeight.w800,
                 ),
               ),
-
               const SizedBox(height: 5),
-
-              const Text(
-                'Escaneie o código de barras ou busque pela referência.',
-                style: TextStyle(
-                  color: muted,
-                  fontSize: 12,
-                ),
-              ),
-
-              const SizedBox(height: 22),
-
-              Container(
-                width: double.infinity,
-                height: 180,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF07172F),
-                  borderRadius: BorderRadius.circular(22),
-                  gradient: const RadialGradient(
-                    center: Alignment.center,
-                    radius: 1.1,
-                    colors: [
-                      Color(0xFF102B55),
-                      Color(0xFF07172F),
-                    ],
-                  ),
-                ),
-                child: const CustomPaint(
-                  painter: ScannerVisualPainter(),
-                ),
-              ),
-
-              const SizedBox(height: 14),
-
-              SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: FilledButton(
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                          'Vamos conectar o leitor de código de barras na próxima etapa.',
-                        ),
-                      ),
-                    );
-                  },
-                  style: FilledButton.styleFrom(
-                    backgroundColor: blue,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+              if (!_pesquisaAtiva)
+                const Padding(
+                  padding: EdgeInsets.only(bottom: 16),
+                  child: Text(
+                    'Escaneie o código de barras ou busque pela referência.',
+                    style: TextStyle(
+                      color: muted,
+                      fontSize: 12,
                     ),
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      CustomPaint(
-                        size: const Size(24, 24),
-                        painter: BarcodeIconPainter(
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      const Text('Escanear código de barras'),
-                    ],
-                  ),
-                ),
-              ),
+                )
+              else
+                const SizedBox(height: 14),
 
-              const SizedBox(height: 16),
+              if (!_pesquisaAtiva) ...[
+                _buildScanner(),
+                const SizedBox(height: 14),
+              ],
 
-              const Row(
-                children: [
-                  Expanded(child: Divider()),
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 12),
-                    child: Text(
-                      'OU',
-                      style: TextStyle(
-                        color: muted,
-                        fontSize: 10,
-                      ),
-                    ),
-                  ),
-                  Expanded(child: Divider()),
-                ],
-              ),
+              _buildCampoPesquisa(),
 
-              const SizedBox(height: 14),
-
-              const Text(
-                'DIGITE A REFERÊNCIA',
-                style: TextStyle(
-                  color: navy,
-                  fontSize: 10,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-
-              const SizedBox(height: 8),
-
-              TextField(
-                controller: _referenciaController,
-                keyboardType: TextInputType.text,
-                onChanged: (valor) {
-                  setState(() {
-                    _pesquisa = valor;
-                  });
-                },
-                decoration: InputDecoration(
-                  hintText: 'Ex.: 12350011-1',
-                  prefixIcon: const Icon(
-                    Icons.tag,
-                    color: muted,
-                    size: 19,
-                  ),
-                  suffixIcon: _pesquisa.isEmpty
-                      ? null
-                      : IconButton(
-                          onPressed: () {
-                            _referenciaController.clear();
-                            setState(() {
-                              _pesquisa = '';
-                            });
-                          },
-                          icon: const Icon(
-                            Icons.close_rounded,
-                            color: muted,
-                          ),
-                        ),
-                  filled: true,
-                  fillColor: Colors.white,
-                  contentPadding: const EdgeInsets.symmetric(
-                    vertical: 14,
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(
-                      color: Color(0xFFE0E6F0),
-                    ),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(
-                      color: Color(0xFFE0E6F0),
-                    ),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 16),
-
-              if (_pesquisa.isNotEmpty)
+              if (_pesquisaAtiva) ...[
+                const SizedBox(height: 18),
                 const Text(
-                  'RESULTADOS DA PESQUISA',
+                  'SUGESTÕES DE PRODUTOS',
                   style: TextStyle(
                     color: navy,
-                    fontSize: 10,
-                    fontWeight: FontWeight.w700,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.5,
                   ),
                 ),
-
-              const SizedBox(height: 8),
+                const SizedBox(height: 10),
+              ] else
+                const SizedBox(height: 12),
 
               Expanded(
                 child: _buildResultados(),
