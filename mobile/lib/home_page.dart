@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'dashboard_page.dart';
 import 'estoque_page.dart';
+import 'identificar_produto_page.dart';
 
 class HomePage extends StatefulWidget {
   final String sellerName;
   final String sellerCode;
-  
 
   const HomePage({
     super.key,
     required this.sellerName,
     required this.sellerCode,
-    });
+  });
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -45,6 +45,24 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  void _openIdentificarProduto() {
+    setState(() {
+      _selectedIndex = 2;
+    });
+  }
+
+  void _openEstoque() {
+    setState(() {
+      _selectedIndex = 1;
+    });
+  }
+
+  void _backToHome() {
+    setState(() {
+      _selectedIndex = 0;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -54,8 +72,13 @@ class _HomePageState extends State<HomePage> {
           index: _selectedIndex,
           children: [
             _buildHome(),
-            const EstoquePage(),  
-            _buildScanner(),
+
+            const EstoquePage(),
+
+            IdentificarProdutoPage(
+              onBack: _backToHome,
+            ),
+
             _buildPlaceholder(
               Icons.shopping_cart_outlined,
               'Carrinho',
@@ -63,13 +86,15 @@ class _HomePageState extends State<HomePage> {
             ),
           ],
         ),
-      ),  
+      ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedIndex,
         backgroundColor: Colors.white,
         indicatorColor: blue.withValues(alpha: 0.12),
         onDestinationSelected: (index) {
-          setState(() => _selectedIndex = index);
+          setState(() {
+            _selectedIndex = index;
+          });
         },
         destinations: const [
           NavigationDestination(
@@ -99,10 +124,8 @@ class _HomePageState extends State<HomePage> {
   Widget _buildHome() {
     return CustomScrollView(
       slivers: [
-        // Cabeçalho e cartão sobreposto.
         SliverToBoxAdapter(
           child: SizedBox(
-            // Altura total reservada para o cabeçalho + cartão.
             height: 310,
             child: Stack(
               clipBehavior: Clip.none,
@@ -110,9 +133,7 @@ class _HomePageState extends State<HomePage> {
                 Container(
                   height: 235,
                   width: double.infinity,
-                  padding: const EdgeInsets.fromLTRB(
-                    22, 18, 22, 0,
-                  ),
+                  padding: const EdgeInsets.fromLTRB(22, 18, 22, 0),
                   decoration: const BoxDecoration(
                     color: navy,
                     borderRadius: BorderRadius.vertical(
@@ -159,18 +180,18 @@ class _HomePageState extends State<HomePage> {
                         ],
                       ),
                       const SizedBox(height: 14),
-                       Text(
+                      Text(
                         'Olá, ${widget.sellerName}!',
-                          style: const TextStyle(
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 24,
                           fontWeight: FontWeight.w800,
                         ),
                       ),
                       const SizedBox(height: 5),
-                       Text(
+                      Text(
                         'Código do vendedor: ${widget.sellerCode}',
-                          style: const TextStyle(
+                        style: const TextStyle(
                           color: Color(0xFFD2DFF3),
                           fontSize: 12,
                         ),
@@ -178,8 +199,6 @@ class _HomePageState extends State<HomePage> {
                     ],
                   ),
                 ),
-
-                // O cartão ultrapassa o limite inferior do azul.
                 Positioned(
                   top: 174,
                   left: 20,
@@ -191,7 +210,6 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
 
-        // Conteúdo principal.
         SliverPadding(
           padding: const EdgeInsets.fromLTRB(20, 0, 20, 26),
           sliver: SliverList(
@@ -207,7 +225,6 @@ class _HomePageState extends State<HomePage> {
               ),
               const SizedBox(height: 20),
 
-              // Ação principal de escaneamento.
               Center(
                 child: Column(
                   children: [
@@ -218,9 +235,7 @@ class _HomePageState extends State<HomePage> {
                       shape: const CircleBorder(),
                       child: InkWell(
                         customBorder: const CircleBorder(),
-                        onTap: () {
-                          setState(() => _selectedIndex = 2);
-                        },
+                        onTap: _openIdentificarProduto,
                         child: const SizedBox(
                           width: 132,
                           height: 132,
@@ -258,9 +273,9 @@ class _HomePageState extends State<HomePage> {
                   ],
                 ),
               ),
+
               const SizedBox(height: 26),
 
-              // Atalhos.
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -269,7 +284,7 @@ class _HomePageState extends State<HomePage> {
                       icon: Icons.search_rounded,
                       title: 'Buscar produto',
                       subtitle: 'Por referência',
-                      onTap: () => _message('Busca por referência'),
+                      onTap: _openIdentificarProduto,
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -278,16 +293,14 @@ class _HomePageState extends State<HomePage> {
                       icon: Icons.inventory_2_outlined,
                       title: 'Consultar',
                       subtitle: 'Estoque',
-                      onTap: () {
-                        setState(() => _selectedIndex = 1);
-                      },
+                      onTap: _openEstoque,
                     ),
                   ),
                 ],
               ),
+
               const SizedBox(height: 20),
 
-              // Atalho para o dashboard completo.
               Material(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(18),
@@ -350,7 +363,9 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
               ),
+
               const SizedBox(height: 24),
+
               const Center(
                 child: Text(
                   'V O X A   M O B I L E',
@@ -519,77 +534,10 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildScanner() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(26),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 94,
-              height: 94,
-              decoration: BoxDecoration(
-                color: blue.withValues(alpha: 0.10),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.qr_code_scanner_rounded,
-                color: blue,
-                size: 46,
-              ),
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              'Escanear produto',
-              style: TextStyle(
-                color: navy,
-                fontSize: 23,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-            const SizedBox(height: 10),
-            const Text(
-              'Escolha como deseja localizar o produto.',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: muted, fontSize: 14),
-            ),
-            const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton.icon(
-                onPressed: () => _message('Leitura pela câmera'),
-                icon: const Icon(Icons.camera_alt_outlined),
-                label: const Text('Ler código pela câmera'),
-                style: FilledButton.styleFrom(
-                  backgroundColor: blue,
-                  padding: const EdgeInsets.all(16),
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: () => _message('Busca manual por referência'),
-                icon: const Icon(Icons.search_rounded),
-                label: const Text('Buscar por referência'),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: navy,
-                  padding: const EdgeInsets.all(16),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildPlaceholder(
-      IconData icon,
-      String title,
-      String description,
+    IconData icon,
+    String title,
+    String description,
   ) {
     return Center(
       child: Padding(
