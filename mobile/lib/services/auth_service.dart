@@ -4,7 +4,10 @@ import '../models/funcionario_resumo.dart';
 
 
 class AuthService {
-  static const String baseUrl = 'http://192.168.0.108:8080';
+  static const String baseUrl = String.fromEnvironment(
+  'API_URL',
+  defaultValue: 'https://voxa-backend-thoc.onrender.com',
+);
   Future<FuncionarioResumo> login({
     required String prontuario,
     required String senha,
