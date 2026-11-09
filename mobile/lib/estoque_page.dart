@@ -3,6 +3,8 @@ import 'services/produto_service.dart';
 import 'services/auth_service.dart';
 import 'models/produto_variacao.dart';
 
+import 'package:mobile_scanner/mobile_scanner.dart';
+
 class EstoquePage extends StatefulWidget {
   const EstoquePage({super.key});
 
@@ -26,6 +28,7 @@ class _EstoquePageState extends State<EstoquePage> {
   int? _expandedProductId;
 
   List<Map<String, dynamic>> _products = [];
+  List<ProdutoVariacao> _variacoes = [];
 
   bool _isLoading = true;
   String? _errorMessage;
@@ -76,6 +79,7 @@ class _EstoquePageState extends State<EstoquePage> {
       if (!mounted) return;
 
       setState(() {
+        _variacoes = variacoes;
         _products = agrupados.values.toList();
         _isLoading = false;
         _errorMessage = null;
@@ -96,16 +100,57 @@ class _EstoquePageState extends State<EstoquePage> {
     super.dispose();
   }
 
-  void _openScanner() {
+  
+  
+  Future<void> _openScanner() async {
+  final codigo = await Navigator.of(context).push<String>(
+    MaterialPageRoute(
+      builder: (context) => const _ScannerPage(),
+    ),
+  );
+
+  if (codigo == null || !mounted) return;
+
+  ProdutoVariacao? encontrada;
+
+  for (final variacao in _variacoes) {
+    if (variacao.codigoBarras?.trim() == codigo.trim()) {
+      encontrada = variacao;
+      break;
+    }
+  }
+
+  if (encontrada == null) {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text(
-          'Leitor de código de barras será implementado futuramente.',
-        ),
+      SnackBar(
+        content: Text('Produto não encontrado para o código: $codigo'),
         behavior: SnackBarBehavior.floating,
       ),
     );
+    return;
   }
+
+  setState(() {
+    _selectedFilter = 'Todos';
+
+    _searchText = encontrada!.produto.referencia;
+    _searchController.text = encontrada.produto.referencia;
+
+    _expandedProductId = encontrada.produto.id;
+  });
+
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text(
+        '${encontrada.produto.nome} - ${encontrada.cor} - '
+        'Tamanho ${encontrada.tamanho}',
+      ),
+      behavior: SnackBarBehavior.floating,
+    ),
+  );
+}
+
+
 
   List<Map<String, dynamic>> get _filteredProducts {
     final query = _searchText.toLowerCase().trim();
@@ -258,7 +303,7 @@ class _EstoquePageState extends State<EstoquePage> {
                         width: 54,
                         height: 54,
                         child: Icon(
-                          Icons.qr_code_scanner_rounded,
+                          Icons.view_week_rounded,
                           color: Colors.white,
                           size: 25,
                         ),
@@ -730,5 +775,107 @@ class _EstoquePageState extends State<EstoquePage> {
         ),
       ),
     );
+  }
+}
+
+class _ScannerPage extends StatefulWidget {
+  const _ScannerPage();
+
+  @override
+  State<_ScannerPage> createState() => _ScannerPageState();
+}
+
+  
+class _ScannerPageState extends State<_ScannerPage> {
+  bool _hasScanned = false;
+  String? _candidateCode;
+  int _candidateCount = 0;
+
+  final MobileScannerController _scannerController =
+      MobileScannerController(
+    detectionSpeed: DetectionSpeed.normal,
+    detectionTimeoutMs: 300,
+  );
+
+  void _onDetect(BarcodeCapture capture) {
+    if (_hasScanned) return;
+
+    for (final barcode in capture.barcodes) {
+      final codigo = barcode.rawValue?.trim();
+
+      if (codigo == null || codigo.isEmpty) continue;
+
+      if (codigo == _candidateCode) {
+        _candidateCount++;
+      } else {
+        _candidateCode = codigo;
+        _candidateCount = 1;
+      }
+
+      if (_candidateCount >= 2) {
+        _hasScanned = true;
+        Navigator.of(context).pop(codigo);
+        return;
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        title: const Text('Escanear produto'),
+        backgroundColor: const Color(0xFF142B4A),
+        foregroundColor: Colors.white,
+      ),
+      body: Stack(
+        children: [
+          MobileScanner(
+            controller: _scannerController,
+            onDetect: _onDetect,
+          ),
+          Center(
+            child: Container(
+              width: 270,
+              height: 160,
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: Colors.white,
+                  width: 3,
+                ),
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: 55,
+            left: 20,
+            right: 20,
+            child: Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.65),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Text(
+                'Posicione o código de barras dentro da área indicada.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _scannerController.dispose();
+    super.dispose();
   }
 }

@@ -4,8 +4,7 @@ import '../models/funcionario_resumo.dart';
 
 
 class AuthService {
-  static const String baseUrl = 'http://10.0.2.2:8080';
-
+  static const String baseUrl = 'http://192.168.0.108:8080';
   Future<FuncionarioResumo> login({
     required String prontuario,
     required String senha,
