@@ -327,6 +327,18 @@ public class ProdutoService {
                 .toList();
     }
 
+    /* BUSCA UMA VARIAÇÃO PELO CÓDIGO DE BARRAS (12345142) OU REF/TAM (12345/42) — usada pelo PDV
+       */
+
+    @Transactional(readOnly = true)
+    public ProdutoVariacaoDto buscarVariacao(String termo) {
+        String busca = termo == null ? "" : termo.trim();
+        return porCodigoDeBarras(busca)
+                .or(() -> porReferenciaETamanho(busca))
+                .map(ProdutoVariacaoDto::de)
+                .orElseThrow(() -> new NaoEncontradoException("Código " + busca + " não encontrado."));
+    }
+
     /* SALVA A IMAGEM ASSOCIADA À COR DO PRODUTO
        */
 

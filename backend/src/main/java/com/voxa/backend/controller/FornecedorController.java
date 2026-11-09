@@ -10,7 +10,6 @@ import java.util.List;
 
 @RestController //indica que a classe disponibiliza endpoints HTTP.
 @RequestMapping("/api/fornecedores") //define o endereço-base da API.
-@CrossOrigin(origins = "http://localhost:4200") //permite que o Angular, rodando localmente na porta 4200, faça requisições ao endpoint.
 public class FornecedorController {
 
     private final FornecedorRepository fornecedorRepository;

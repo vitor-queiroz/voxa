@@ -37,6 +37,12 @@ public class ProdutoController {
         return produtoService.listarVariacoes();
     }
 
+    /*GET /produtos/variacoes/busca?termo=12345142 ou ?termo=12345/42 (usado pelo PDV)*/
+    @GetMapping("/variacoes/busca")
+    public ProdutoVariacaoDto buscarVariacao(@RequestParam String termo) {
+        return produtoService.buscarVariacao(termo);
+    }
+
     @PostMapping
     public List<ProdutoVariacaoDto> cadastrarProduto(
             @RequestBody ProdutoCadastroDto dto) {
