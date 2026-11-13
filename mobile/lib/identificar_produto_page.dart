@@ -4,9 +4,12 @@ import 'services/produto_service.dart';
 import 'services/auth_service.dart';
 import 'models/produto_variacao.dart';
 import 'selecionar_tamanho_page.dart';
+import 'scanner_codigo_barras_page.dart';
 
 class IdentificarProdutoPage extends StatefulWidget {
-  const IdentificarProdutoPage({super.key});
+  final ValueChanged<ProdutoVariacao> onAdicionarCarrinho;
+
+  const IdentificarProdutoPage({super.key, required this.onAdicionarCarrinho});
 
   @override
   State<IdentificarProdutoPage> createState() =>
@@ -169,19 +172,272 @@ class _IdentificarProdutoPageState
       ),
     ),
   );
+      if (!mounted || variacaoSelecionada == null) return;
+      await _confirmarProduto(variacaoSelecionada);
+  }
+
+
   
-
-  if (!mounted || variacaoSelecionada == null) return;
-
-  // Confirmação temporária para validar a seleção.
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
-      content: Text(
-        'Tamanho ${variacaoSelecionada.tamanho} selecionado!',
-      ),
+  Future<void> _abrirScanner() async {
+  final codigo = await Navigator.push<String>(
+    context,
+    MaterialPageRoute(
+      builder: (context) => const ScannerCodigoBarrasPage(),
     ),
   );
+
+  if (!mounted || codigo == null) return;
+
+  final codigoLimpo = codigo.trim();
+
+  final resultado = _variacoes.where(
+    (variacao) =>
+        variacao.codigoBarras?.trim() == codigoLimpo,
+  );
+
+  if (resultado.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          'Código de barras não encontrado no cadastro.',
+        ),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+    return;
+  }
+
+  final variacao = resultado.first;
+
+  if ((variacao.quantidade ?? 0) <= 0) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          'Este produto está sem estoque disponível.',
+        ),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+    return;
+  }
+
+  await _confirmarProduto(variacao);
 }
+
+Future<void> _confirmarProduto(ProdutoVariacao variacao) async {
+  if (!mounted) return;
+
+  final imagemUrl = variacao.imagemUrl;
+
+  await showDialog<void>(
+    context: context,
+    builder: (dialogContext) {
+      return Dialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(22),
+        ),
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.check_circle_outline_rounded,
+                  color: Color(0xFF21C779),
+                  size: 38,
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Produto identificado!',
+                  style: TextStyle(
+                    color: navy,
+                    fontSize: 19,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 18),
+
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: Container(
+                    width: 190,
+                    height: 170,
+                    color: const Color(0xFFF0F2F6),
+                    child: imagemUrl == null
+                        ? const Icon(
+                            Icons.image_not_supported_outlined,
+                            size: 48,
+                            color: muted,
+                          )
+                        : Image.network(
+                            '${AuthService.baseUrl}$imagemUrl',
+                            fit: BoxFit.contain,
+                            errorBuilder: (_, _, _) {
+                              return const Icon(
+                                Icons.image_not_supported_outlined,
+                                size: 48,
+                                color: muted,
+                              );
+                            },
+                          ),
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                Text(
+                  variacao.produto.nome,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: navy,
+                    fontSize: 17,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+
+                const SizedBox(height: 8),
+
+                Text(
+                  'Referência: ${variacao.produto.referencia}',
+                  style: const TextStyle(
+                    color: muted,
+                    fontSize: 12,
+                  ),
+                ),
+
+                const SizedBox(height: 5),
+
+                Text(
+                  'Cor: ${variacao.cor}',
+                  style: const TextStyle(
+                    color: muted,
+                    fontSize: 13,
+                  ),
+                ),
+
+                const SizedBox(height: 5),
+
+                Text(
+                  'Tamanho: ${variacao.tamanho}',
+                  style: const TextStyle(
+                    color: navy,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+
+                const SizedBox(height: 12),
+
+                Text(
+                  'R\$ ${variacao.preco.toStringAsFixed(2).replaceAll('.', ',')}',
+                  style: const TextStyle(
+                    color: blue,
+                    fontSize: 23,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+
+                const SizedBox(height: 6),
+
+                Text(
+                  'Estoque disponível: ${variacao.quantidade ?? 0}',
+                  style: const TextStyle(
+                    color: Color(0xFF168653),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+
+                const SizedBox(height: 22),
+
+                SizedBox(
+                  width: double.infinity,
+                  height: 49,
+                  child: FilledButton.icon(
+                    onPressed: () {
+                      widget.onAdicionarCarrinho(variacao);
+                      Navigator.pop(dialogContext);
+                    },
+                    icon: const Icon(
+                      Icons.shopping_cart_checkout_rounded,
+                    ),
+                    label: const Text(
+                      'Adicionar ao carrinho',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: blue,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 8),
+
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton(
+                    onPressed: () async {
+                      Navigator.pop(dialogContext);
+
+                      final variacoesProduto = _variacoes
+                          .where(
+                            (v) =>
+                                v.produto.id == variacao.produto.id,
+                          )
+                          .toList();
+
+                      final outraVariacao =
+                          await Navigator.push<ProdutoVariacao>(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              SelecionarTamanhoPage(
+                            variacoes: variacoesProduto,
+                          ),
+                        ),
+                      );
+
+                      if (!mounted || outraVariacao == null) return;
+
+                      await _confirmarProduto(outraVariacao);
+                    },
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: navy,
+                      side: const BorderSide(color: Color(0xFFDCE3EF)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text('Ver grade completa'),
+                  ),
+                ),
+
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(dialogContext);
+                  },
+                  child: const Text(
+                    'Cancelar',
+                    style: TextStyle(color: muted),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    },
+  );
+}
+
 
   Widget _buildImagemProduto(_ProdutoPesquisa produto) {
     final imagemUrl = produto.imagemUrl;
@@ -440,15 +696,7 @@ class _IdentificarProdutoPageState
           width: double.infinity,
           height: 48,
           child: FilledButton(
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text(
-                    'Vamos conectar o leitor de código de barras na próxima etapa.',
-                  ),
-                ),
-              );
-            },
+            onPressed: _abrirScanner,   
             style: FilledButton.styleFrom(
               backgroundColor: blue,
               foregroundColor: Colors.white,
