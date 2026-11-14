@@ -8,8 +8,10 @@ import 'scanner_codigo_barras_page.dart';
 
 class IdentificarProdutoPage extends StatefulWidget {
   final ValueChanged<ProdutoVariacao> onAdicionarCarrinho;
+  final Set<int> variacoesNoCarrinho;
 
-  const IdentificarProdutoPage({super.key, required this.onAdicionarCarrinho});
+  const IdentificarProdutoPage({super.key, required this.onAdicionarCarrinho,
+    required this.variacoesNoCarrinho});
 
   @override
   State<IdentificarProdutoPage> createState() =>
@@ -169,6 +171,7 @@ class _IdentificarProdutoPageState
     MaterialPageRoute(
       builder: (context) => SelecionarTamanhoPage(
         variacoes: variacoesProduto,
+        variacoesNoCarrinho: widget.variacoesNoCarrinho,
       ),
     ),
   );
@@ -401,6 +404,7 @@ Future<void> _confirmarProduto(ProdutoVariacao variacao) async {
                           builder: (context) =>
                               SelecionarTamanhoPage(
                             variacoes: variacoesProduto,
+                            variacoesNoCarrinho: widget.variacoesNoCarrinho,
                           ),
                         ),
                       );

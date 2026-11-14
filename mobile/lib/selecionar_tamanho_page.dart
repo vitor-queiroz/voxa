@@ -5,10 +5,12 @@ import 'services/auth_service.dart';
 
 class SelecionarTamanhoPage extends StatefulWidget {
   final List<ProdutoVariacao> variacoes;
+  final Set<int> variacoesNoCarrinho;
 
   const SelecionarTamanhoPage({
     super.key,
     required this.variacoes,
+    this.variacoesNoCarrinho = const {},
   });
 
   @override
@@ -74,7 +76,10 @@ class _SelecionarTamanhoPageState
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(
-                  20, 8, 20, 20,
+                  20,
+                  8,
+                  20,
+                  20,
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -160,9 +165,7 @@ class _SelecionarTamanhoPageState
                         ],
                       ),
                     ),
-
                     const SizedBox(height: 26),
-
                     const Text(
                       'ESCOLHA O TAMANHO',
                       style: TextStyle(
@@ -172,9 +175,7 @@ class _SelecionarTamanhoPageState
                         letterSpacing: 0.5,
                       ),
                     ),
-
                     const SizedBox(height: 6),
-
                     const Text(
                       'Selecione uma opção disponível em estoque.',
                       style: TextStyle(
@@ -182,9 +183,7 @@ class _SelecionarTamanhoPageState
                         fontSize: 12,
                       ),
                     ),
-
                     const SizedBox(height: 16),
-
                     GridView.builder(
                       shrinkWrap: true,
                       physics:
@@ -203,12 +202,29 @@ class _SelecionarTamanhoPageState
 
                         final quantidade =
                             variacao.quantidade ?? 0;
-
                         final esgotado = quantidade <= 0;
 
                         final selecionado =
                             _variacaoSelecionada?.id ==
                                 variacao.id;
+
+                        final noCarrinho =
+                            widget.variacoesNoCarrinho
+                                .contains(variacao.id);
+
+                        final corFundo = esgotado
+                            ? const Color(0xFFECEFF4)
+                            : noCarrinho
+                                ? const Color(0xFFFFF4D6)
+                                : selecionado
+                                    ? const Color(0xFFEAF0FF)
+                                    : Colors.white;
+
+                        final corBorda = noCarrinho
+                            ? const Color(0xFFE5AD32)
+                            : selecionado
+                                ? blue
+                                : const Color(0xFFE0E6F0);
 
                         return InkWell(
                           borderRadius:
@@ -223,18 +239,15 @@ class _SelecionarTamanhoPageState
                                 },
                           child: Container(
                             decoration: BoxDecoration(
-                              color: esgotado
-                                  ? const Color(0xFFECEFF4)
-                                  : selecionado
-                                      ? const Color(0xFFEAF0FF)
-                                      : Colors.white,
+                              color: corFundo,
                               borderRadius:
                                   BorderRadius.circular(14),
                               border: Border.all(
-                                color: selecionado
-                                    ? blue
-                                    : const Color(0xFFE0E6F0),
-                                width: selecionado ? 2 : 1,
+                                color: corBorda,
+                                width:
+                                    noCarrinho || selecionado
+                                        ? 2
+                                        : 1,
                               ),
                             ),
                             child: Column(
@@ -248,25 +261,59 @@ class _SelecionarTamanhoPageState
                                         ? muted
                                         : navy,
                                     fontSize: 23,
-                                    fontWeight: FontWeight.w800,
+                                    fontWeight:
+                                        FontWeight.w800,
                                   ),
                                 ),
                                 const SizedBox(height: 5),
-                                Text(
-                                  esgotado
-                                      ? 'Esgotado'
-                                      : '$quantidade disponível',
-                                  style: TextStyle(
-                                    color: esgotado
-                                        ? const Color(0xFFC52E42)
-                                        : const Color(0xFF168653),
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w600,
+                                if (esgotado)
+                                  const Text(
+                                    'Esgotado',
+                                    style: TextStyle(
+                                      color: Color(0xFFC52E42),
+                                      fontSize: 10,
+                                      fontWeight:
+                                          FontWeight.w600,
+                                    ),
+                                  )
+                                else if (noCarrinho)
+                                  const Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.shopping_cart_rounded,
+                                        color:
+                                            Color(0xFFC58A13),
+                                        size: 13,
+                                      ),
+                                      SizedBox(width: 3),
+                                      Text(
+                                        'No carrinho',
+                                        style: TextStyle(
+                                          color:
+                                              Color(0xFF9A6900),
+                                          fontSize: 10,
+                                          fontWeight:
+                                              FontWeight.w700,
+                                        ),
+                                      ),
+                                    ],
+                                  )
+                                else
+                                  Text(
+                                    '$quantidade disponível',
+                                    style: const TextStyle(
+                                      color: Color(0xFF168653),
+                                      fontSize: 10,
+                                      fontWeight:
+                                          FontWeight.w600,
+                                    ),
                                   ),
-                                ),
-                                if (selecionado)
+                                if (selecionado && !noCarrinho)
                                   const Padding(
-                                    padding: EdgeInsets.only(top: 4),
+                                    padding:
+                                        EdgeInsets.only(top: 4),
                                     child: Icon(
                                       Icons.check_circle,
                                       color: blue,
@@ -283,10 +330,12 @@ class _SelecionarTamanhoPageState
                 ),
               ),
             ),
-
             Container(
               padding: const EdgeInsets.fromLTRB(
-                20, 14, 20, 16,
+                20,
+                14,
+                20,
+                16,
               ),
               decoration: const BoxDecoration(
                 color: Colors.white,
