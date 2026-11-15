@@ -9,10 +9,12 @@ import 'services/cliente_service.dart';
 
 class CadastroClientePage extends StatefulWidget {
   final String? cpfInicial;
+  final Cliente? cliente;
 
   const CadastroClientePage({
     super.key,
     this.cpfInicial,
+    this.cliente,
   });
 
   @override
@@ -40,6 +42,9 @@ class _CadastroClientePageState extends State<CadastroClientePage> {
   bool _consultandoCep = false;
   bool _salvando = false;
 
+  // Guarda se o último CEP consultado foi identificado como inexistente.
+  String? _cepInvalido;
+
   static const Color _navy = Color(0xFF172B4D);
   static const Color _blue = Color(0xFF246BFD);
   static const Color _background = Color(0xFFF5F7FB);
@@ -55,7 +60,24 @@ class _CadastroClientePageState extends State<CadastroClientePage> {
   void initState() {
     super.initState();
 
-    _cpfController.text = widget.cpfInicial ?? '';
+    final cliente = widget.cliente;
+
+    if (cliente != null) {
+      _nomeController.text = cliente.nome;
+      _cpfController.text = cliente.cpf ?? '';
+      _telefoneController.text = cliente.telefone ?? '';
+      _emailController.text = cliente.email ?? '';
+      _cepController.text = cliente.cep ?? '';
+      _logradouroController.text = cliente.logradouro ?? '';
+      _numeroController.text = cliente.numero ?? '';
+      _complementoController.text = cliente.complemento ?? '';
+      _bairroController.text = cliente.bairro ?? '';
+      _cidadeController.text = cliente.cidade ?? '';
+
+      _estadoSelecionado = cliente.estado;
+    } else {
+      _cpfController.text = widget.cpfInicial ?? '';
+    }
   }
 
   @override
@@ -79,17 +101,61 @@ class _CadastroClientePageState extends State<CadastroClientePage> {
     return texto.isEmpty ? null : texto;
   }
 
+  String? _validarEmail(String? valor) {
+    final email = valor?.trim() ?? '';
+
+    if (email.isEmpty) {
+      return null;
+    }
+
+    final regex = RegExp(
+      r'^[^\s@]+@[^\s@]+\.[^\s@]+$',
+    );
+
+    if (!regex.hasMatch(email) || email.contains('..')) {
+      return 'Informe um e-mail válido (ex.: nome@dominio.com).';
+    }
+
+    return null;
+  }
+
+  void _limparEnderecoDoCep() {
+    _logradouroController.clear();
+    _bairroController.clear();
+    _cidadeController.clear();
+    _estadoSelecionado = null;
+  }
+
+  void _aoAlterarCep(String valor) {
+    final cep = valor.replaceAll(RegExp(r'\D'), '');
+
+    setState(() {
+      if (cep.isEmpty) {
+        _limparEnderecoDoCep();
+        _cepInvalido = null;
+      } else if (_cepInvalido != null && _cepInvalido != cep) {
+        _cepInvalido = null;
+      }
+    });
+  }
+
   Future<void> _consultarCep() async {
     FocusScope.of(context).unfocus();
 
     final cep = _cepController.text.replaceAll(RegExp(r'\D'), '');
 
     if (cep.length != 8) {
-      _mostrarMensagem('Informe um CEP com 8 números.');
+      _mostrarMensagem(
+        'Informe um CEP com exatamente 8 números.',
+        erro: true,
+      );
       return;
     }
 
-    setState(() => _consultandoCep = true);
+    setState(() {
+      _consultandoCep = true;
+      _cepInvalido = null;
+    });
 
     try {
       final url = Uri.parse(
@@ -103,7 +169,10 @@ class _CadastroClientePageState extends State<CadastroClientePage> {
       if (!mounted) return;
 
       if (response.statusCode != 200) {
-        _mostrarMensagem('Não foi possível consultar o CEP.');
+        _mostrarMensagem(
+          'Não foi possível consultar o CEP. Preencha o endereço manualmente.',
+          erro: true,
+        );
         return;
       }
 
@@ -111,34 +180,78 @@ class _CadastroClientePageState extends State<CadastroClientePage> {
         utf8.decode(response.bodyBytes),
       ) as Map<String, dynamic>;
 
+      // O ViaCEP informa explicitamente quando o CEP não existe.
       if (dados['erro'] == true) {
+        setState(() {
+          _cepInvalido = cep;
+        });
+
         _mostrarMensagem(
-          'CEP não encontrado. Você pode preencher o endereço manualmente.',
+          'CEP inexistente. Confira os números e tente novamente.',
+          erro: true,
+        );
+        return;
+      }
+
+      final logradouro =
+          dados['logradouro']?.toString().trim() ?? '';
+
+      final bairro =
+          dados['bairro']?.toString().trim() ?? '';
+
+      final cidade =
+          dados['localidade']?.toString().trim() ?? '';
+
+      final uf = dados['uf']?.toString().trim() ?? '';
+
+      // Verifica se a consulta trouxe alguma informação útil.
+      final possuiDados = logradouro.isNotEmpty ||
+          bairro.isNotEmpty ||
+          cidade.isNotEmpty ||
+          uf.isNotEmpty;
+
+      if (!possuiDados) {
+        setState(() {
+          _cepInvalido = cep;
+        });
+
+        _mostrarMensagem(
+          'Não foi possível localizar dados para esse CEP. Confira o número.',
+          erro: true,
         );
         return;
       }
 
       setState(() {
-        _logradouroController.text =
-            dados['logradouro']?.toString() ?? '';
-
-        _bairroController.text =
-            dados['bairro']?.toString() ?? '';
-
-        _cidadeController.text =
-            dados['localidade']?.toString() ?? '';
-
-        final uf = dados['uf']?.toString();
+        // Substitui os dados anteriores pelos dados do novo CEP.
+        _logradouroController.text = logradouro;
+        _bairroController.text = bairro;
+        _cidadeController.text = cidade;
 
         _estadoSelecionado =
             _estados.contains(uf) ? uf : null;
+
+        _cepInvalido = null;
       });
 
-      _mostrarMensagem('Endereço preenchido pelo CEP.');
+      final enderecoCompleto = logradouro.isNotEmpty &&
+          bairro.isNotEmpty &&
+          cidade.isNotEmpty &&
+          _estados.contains(uf);
+
+      if (enderecoCompleto) {
+        _mostrarMensagem('Endereço preenchido pelo CEP.');
+      } else {
+        _mostrarMensagem(
+          'CEP localizado, mas o endereço está incompleto. Confira e complete os dados.',
+          erro: true,
+        );
+      }
     } catch (_) {
       if (mounted) {
         _mostrarMensagem(
-          'Não foi possível consultar o CEP. Preencha o endereço manualmente.',
+          'Não foi possível consultar o CEP. Você pode preencher o endereço manualmente.',
+          erro: true,
         );
       }
     } finally {
@@ -148,6 +261,60 @@ class _CadastroClientePageState extends State<CadastroClientePage> {
     }
   }
 
+  String? _validarEndereco() {
+    final cep = _cepController.text.replaceAll(RegExp(r'\D'), '');
+
+    final logradouro = _logradouroController.text.trim();
+    final numero = _numeroController.text.trim();
+    final complemento = _complementoController.text.trim();
+    final bairro = _bairroController.text.trim();
+    final cidade = _cidadeController.text.trim();
+    final estado = _estadoSelecionado;
+
+    final enderecoIniciado = cep.isNotEmpty ||
+        logradouro.isNotEmpty ||
+        numero.isNotEmpty ||
+        complemento.isNotEmpty ||
+        bairro.isNotEmpty ||
+        cidade.isNotEmpty ||
+        estado != null;
+
+    // O cliente pode ser cadastrado sem endereço.
+    if (!enderecoIniciado) {
+      return null;
+    }
+
+    if (cep.isEmpty) {
+      return 'Informe o CEP para cadastrar o endereço.';
+    }
+
+    if (cep.length != 8) {
+      return 'O CEP deve conter exatamente 8 números.';
+    }
+
+    if (_cepInvalido == cep) {
+      return 'Esse CEP não foi localizado. Confira o número antes de salvar.';
+    }
+
+    if (logradouro.isEmpty) {
+      return 'Informe a rua ou o logradouro.';
+    }
+
+    if (bairro.isEmpty) {
+      return 'Informe o bairro.';
+    }
+
+    if (cidade.isEmpty) {
+      return 'Informe a cidade.';
+    }
+
+    if (estado == null || !_estados.contains(estado)) {
+      return 'Selecione o estado do endereço.';
+    }
+
+    return null;
+  }
+
   Future<void> _salvarCliente() async {
     FocusScope.of(context).unfocus();
 
@@ -155,28 +322,54 @@ class _CadastroClientePageState extends State<CadastroClientePage> {
       return;
     }
 
+    final erroEndereco = _validarEndereco();
+
+    if (erroEndereco != null) {
+      _mostrarMensagem(erroEndereco, erro: true);
+      return;
+    }
+
     setState(() => _salvando = true);
 
     try {
       final cpf = _textoOuNull(_cpfController.text);
+      final clienteExistente = widget.cliente;
 
-      final Cliente cliente = await _clienteService.cadastrar(
-        nome: _nomeController.text.trim(),
-        cpf: cpf,
-        telefone: _textoOuNull(_telefoneController.text),
-        email: _textoOuNull(_emailController.text),
-        cep: _textoOuNull(_cepController.text),
-        logradouro: _textoOuNull(_logradouroController.text),
-        numero: _textoOuNull(_numeroController.text),
-        complemento: _textoOuNull(_complementoController.text),
-        bairro: _textoOuNull(_bairroController.text),
-        cidade: _textoOuNull(_cidadeController.text),
-        estado: _estadoSelecionado,
-      );
+      late final Cliente cliente;
+
+      if (clienteExistente == null) {
+        cliente = await _clienteService.cadastrar(
+          nome: _nomeController.text.trim(),
+          cpf: cpf,
+          telefone: _textoOuNull(_telefoneController.text),
+          email: _textoOuNull(_emailController.text),
+          cep: _textoOuNull(_cepController.text),
+          logradouro: _textoOuNull(_logradouroController.text),
+          numero: _textoOuNull(_numeroController.text),
+          complemento: _textoOuNull(_complementoController.text),
+          bairro: _textoOuNull(_bairroController.text),
+          cidade: _textoOuNull(_cidadeController.text),
+          estado: _estadoSelecionado,
+        );
+      } else {
+        cliente = await _clienteService.atualizar(
+          id: clienteExistente.id,
+          nome: _nomeController.text.trim(),
+          cpf: cpf,
+          telefone: _textoOuNull(_telefoneController.text),
+          email: _textoOuNull(_emailController.text),
+          cep: _textoOuNull(_cepController.text),
+          logradouro: _textoOuNull(_logradouroController.text),
+          numero: _textoOuNull(_numeroController.text),
+          complemento: _textoOuNull(_complementoController.text),
+          bairro: _textoOuNull(_bairroController.text),
+          cidade: _textoOuNull(_cidadeController.text),
+          estado: _estadoSelecionado,
+        );
+      }
 
       if (!mounted) return;
 
-      // Retorna o cliente cadastrado para a tela anterior.
       Navigator.pop(context, cliente);
     } catch (e) {
       if (!mounted) return;
@@ -309,13 +502,14 @@ class _CadastroClientePageState extends State<CadastroClientePage> {
           tooltip: 'Consultar CEP',
         ),
       ),
+      onChanged: _aoAlterarCep,
       onFieldSubmitted: (_) => _consultarCep(),
     );
   }
 
   Widget _buildEstado() {
     return DropdownButtonFormField<String>(
-      value: _estadoSelecionado,
+      initialValue: _estadoSelecionado,
       decoration: _decoracao(
         'Estado',
         icone: Icons.map_outlined,
@@ -342,9 +536,11 @@ class _CadastroClientePageState extends State<CadastroClientePage> {
         backgroundColor: Colors.white,
         foregroundColor: _navy,
         elevation: 0,
-        title: const Text(
-          'Cadastrar cliente',
-          style: TextStyle(
+        title: Text(
+          widget.cliente == null
+              ? 'Cadastrar cliente'
+              : 'Editar cliente',
+          style: const TextStyle(
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -366,9 +562,13 @@ class _CadastroClientePageState extends State<CadastroClientePage> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                const Text(
-                  'Preencha os dados para cadastrar o cliente.',
-                  style: TextStyle(color: Colors.blueGrey),
+                Text(
+                  widget.cliente == null
+                      ? 'Preencha os dados para cadastrar o cliente.'
+                      : 'Atualize as informações cadastrais do cliente.',
+                  style: const TextStyle(
+                    color: Colors.blueGrey,
+                  ),
                 ),
 
                 _tituloSecao('Informações pessoais'),
@@ -415,6 +615,7 @@ class _CadastroClientePageState extends State<CadastroClientePage> {
                   _emailController,
                   tipoTeclado: TextInputType.emailAddress,
                   icone: Icons.email_outlined,
+                  validador: _validarEmail,
                 ),
 
                 _tituloSecao('Endereço'),
@@ -493,9 +694,11 @@ class _CadastroClientePageState extends State<CadastroClientePage> {
                               color: Colors.white,
                             ),
                           )
-                        : const Text(
-                            'Salvar cliente',
-                            style: TextStyle(
+                        : Text(
+                            widget.cliente == null
+                                ? 'Salvar cliente'
+                                : 'Salvar alterações',
+                            style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 15,
                             ),

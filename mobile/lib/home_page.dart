@@ -34,8 +34,7 @@ class _HomePageState extends State<HomePage> {
 
   // Carrinho compartilhado entre as telas.
   final Map<int, _ItemCarrinho> _itensCarrinho = {};
-  Cliente? _clienteSelecionado; // --->  Cliente associado à venda atual.
-
+  Cliente? _clienteSelecionado;
 
   void _message(String feature) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -84,6 +83,30 @@ class _HomePageState extends State<HomePage> {
     } else if (resultado == false) {
       setState(() {
         _clienteSelecionado = null;
+      });
+    }
+  }
+
+  // Abre o cadastro do cliente selecionado em modo de edição.
+  Future<void> _editarClienteSelecionado() async {
+    final clienteAtual = _clienteSelecionado;
+
+    if (clienteAtual == null) return;
+
+    final clienteAtualizado = await Navigator.push<Cliente>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => CadastroClientePage(
+          cliente: clienteAtual,
+        ),
+      ),
+    );
+
+    if (!mounted) return;
+
+    if (clienteAtualizado != null) {
+      setState(() {
+        _clienteSelecionado = clienteAtualizado;
       });
     }
   }
@@ -923,15 +946,26 @@ class _HomePageState extends State<HomePage> {
               ],
             ),
           ),
-          IconButton(
-            tooltip: 'Remover cliente',
-            onPressed: () {
-              setState(() {
-                _clienteSelecionado = null;
-              });
-            },
-            icon: const Icon(Icons.close_rounded),
-            color: muted,
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(
+                tooltip: 'Editar cadastro',
+                onPressed: _editarClienteSelecionado,
+                icon: const Icon(Icons.edit_outlined),
+                color: blue,
+              ),
+              IconButton(
+                tooltip: 'Remover cliente',
+                onPressed: () {
+                  setState(() {
+                    _clienteSelecionado = null;
+                  });
+                },
+                icon: const Icon(Icons.close_rounded),
+                color: muted,
+              ),
+            ],
           ),
         ],
       ),
