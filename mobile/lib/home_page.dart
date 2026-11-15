@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+
+import 'cliente_page.dart';
 import 'dashboard_page.dart';
 import 'estoque_page.dart';
+import 'cadastro_cliente_page.dart';
 import 'identificar_produto_page.dart';
+import 'models/cliente.dart';
 import 'models/produto_variacao.dart';
 import 'services/auth_service.dart';
 
@@ -30,6 +34,8 @@ class _HomePageState extends State<HomePage> {
 
   // Carrinho compartilhado entre as telas.
   final Map<int, _ItemCarrinho> _itensCarrinho = {};
+  Cliente? _clienteSelecionado; // --->  Cliente associado à venda atual.
+
 
   void _message(String feature) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -60,6 +66,28 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  // Abre a pesquisa e recebe o cliente selecionado.
+  Future<void> _abrirCliente() async {
+    final resultado = await Navigator.push<Object?>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const ClientePage(),
+      ),
+    );
+
+    if (!mounted) return;
+
+    if (resultado is Cliente) {
+      setState(() {
+        _clienteSelecionado = resultado;
+      });
+    } else if (resultado == false) {
+      setState(() {
+        _clienteSelecionado = null;
+      });
+    }
+  }
+
   // Adiciona uma variação ao carrinho.
   void _adicionarAoCarrinho(ProdutoVariacao variacao) {
     final estoqueDisponivel = variacao.quantidade ?? 0;
@@ -69,17 +97,17 @@ class _HomePageState extends State<HomePage> {
       return;
     }
 
-  // Não permite adicionar a mesma variação duas vezes.
+    // Não permite adicionar a mesma variação duas vezes.
     if (_itensCarrinho.containsKey(variacao.id)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
             'Este produto já está no carrinho. Ajuste a quantidade por lá.',
           ),
-        behavior: SnackBarBehavior.floating,
-       ),
-     );
-     return;
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
     }
 
     setState(() {
@@ -834,6 +862,82 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  // CLIENTE SELECIONADO NO CARRINHO.
+  Widget _buildClienteSelecionado() {
+    final cliente = _clienteSelecionado;
+
+    if (cliente == null) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFEAF1FF),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: const Color(0xFFD5E3FF),
+        ),
+      ),
+      child: Row(
+        children: [
+          const CircleAvatar(
+            backgroundColor: Colors.white,
+            child: Icon(
+              Icons.person_rounded,
+              color: blue,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Cliente selecionado',
+                  style: TextStyle(
+                    color: muted,
+                    fontSize: 11,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  cliente.nome,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: navy,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                if (cliente.cpf != null)
+                  Text(
+                    cliente.cpf!,
+                    style: const TextStyle(
+                      color: muted,
+                      fontSize: 11,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          IconButton(
+            tooltip: 'Remover cliente',
+            onPressed: () {
+              setState(() {
+                _clienteSelecionado = null;
+              });
+            },
+            icon: const Icon(Icons.close_rounded),
+            color: muted,
+          ),
+        ],
+      ),
+    );
+  }
+
   // CARRINHO
   Widget _buildCarrinho() {
     if (_itensCarrinho.isEmpty) {
@@ -956,15 +1060,25 @@ class _HomePageState extends State<HomePage> {
                 ],
               ),
               const SizedBox(height: 17),
+
+              _buildClienteSelecionado(),
+
+              if (_clienteSelecionado != null)
+                const SizedBox(height: 12),
+
               SizedBox(
                 width: double.infinity,
                 height: 49,
                 child: OutlinedButton.icon(
-                  onPressed: () => _message('Cliente / Cadastro'),
+                  onPressed: _abrirCliente,
                   icon: const Icon(
                     Icons.person_add_alt_1_rounded,
                   ),
-                  label: const Text('Cliente / Cadastro'),
+                  label: Text(
+                    _clienteSelecionado == null
+                        ? 'Cliente / Cadastro'
+                        : 'Alterar cliente',
+                  ),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: navy,
                     side: const BorderSide(
