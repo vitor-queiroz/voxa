@@ -229,7 +229,7 @@ class _SelecionarTamanhoPageState
                         return InkWell(
                           borderRadius:
                               BorderRadius.circular(14),
-                          onTap: esgotado
+                          onTap: esgotado || noCarrinho
                               ? null
                               : () {
                                   setState(() {
